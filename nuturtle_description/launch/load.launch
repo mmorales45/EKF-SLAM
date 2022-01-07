@@ -1,0 +1,37 @@
+<launch>
+    <arg name= "use_rviz" default = "true" doc="use_rviz:=true to use RVIZ or use_rviz:=false to not load RVIZ"/>
+    <arg name= "use_jsp" default = "false" doc="use_jsp:=true to use the Joint State Publisher or use_jsp:=false to not load the Joint State Publisher"/>
+    <arg name= "color_bot" default = "black" doc="Color of the robot. Use red,green,blue,or black"/>
+
+    <group ns="$(arg color_bot)" > 
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/basic.rviz -f 'base_link'" if="$(arg use_rviz)"/>
+    </group>
+
+    <group if="$(eval arg('color_bot') == 'black')" ns="black">
+        <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=$(arg color_bot)" />
+        <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_jsp)"/>
+        <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/basic.rviz" if="$(arg use_rviz)"/> -->
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+    </group>
+
+    <group if="$(eval arg('color_bot') == 'red')" ns="red">
+        <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=$(arg color_bot)" />
+        <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_jsp)"/>
+        <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/basic.rviz" if="$(arg use_rviz)"/> -->
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+    </group>
+
+    <group if="$(eval arg('color_bot') == 'green')" ns="green">
+        <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=$(arg color_bot)" />
+        <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_jsp)"/>
+        <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/basic.rviz" if="$(arg use_rviz)"/> -->
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+    </group>
+
+    <group if="$(eval arg('color_bot') == 'blue')" ns="blue">
+        <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=$(arg color_bot)" />
+        <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_jsp)"/>
+        <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/basic.rviz" if="$(arg use_rviz)"/> -->
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+    </group>
+</launch>
