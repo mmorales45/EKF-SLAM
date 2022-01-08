@@ -3,6 +3,7 @@
   <name>nuturtle_description</name>
   <version>0.0.3</version>
   <description>Adapting the turtblebot for this project</description>
+  <!-- The turtlebot3 repository has been modified from the original version -->
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
