@@ -10,6 +10,9 @@ project(nusim)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  geometry_msgs
+  tf2_ros
+  tf2
 )
 
 ## System dependencies are found with CMake's conventions

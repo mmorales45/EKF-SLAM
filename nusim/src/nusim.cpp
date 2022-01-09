@@ -1,8 +1,15 @@
-#include"ros/ros.h"
-#include"std_msgs/UInt64.h"
+#include <ros/ros.h>
+#include <std_msgs/UInt64.h>
 #include <iostream>
 #include <ros/console.h>
 #include <std_srvs/Empty.h>
+#include <sensor_msgs/JointState.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Pose.h>
+// #include <turtlesim/Pose.h>
+
 
 class Sim
 {
@@ -11,8 +18,21 @@ class Sim
             data_val = 0;
             timestep.data = 0;
             nh.getParam("/nusim/rate",rate);
-            pub = nh.advertise<std_msgs::UInt64>("UInt64", 100);
-            timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);            
+            pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
+            pub_red_js = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);
+            timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
+
+            joint_state.name.push_back("red:wheel_left_joint");
+            joint_state.name.push_back("red:wheel_right_joint");
+            joint_state.position.push_back(0.0);
+            joint_state.position.push_back(0.0);
+
+            transformStamped.header.frame_id = "world";
+            transformStamped.child_frame_id = "red:base_footprint";
+
+            current_Pose.position.x = 0.0;
+            current_Pose.position.y = 0.0;
+            current_Pose.position.z = 0.0;
         }
            
         bool reset(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
@@ -22,22 +42,53 @@ class Sim
         return true;
         }
 
+        bool teleport(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
+        {
+        timestep.data = 0;
+        pub.publish(timestep);
+        return true;
+        }
+
         void main_loop(const ros::TimerEvent &)
          {
             // implement the state machine here
+            joint_state.header.stamp = ros::Time::now();
+            joint_state.position[0] = 0.0;
+            joint_state.position[1] = 0.0;
+
             timestep.data++;
             pub.publish(timestep);  
+            pub_red_js.publish(joint_state);
+
+            transformStamped.header.stamp = ros::Time::now();
+            transformStamped.transform.translation.x = current_Pose.position.x;
+            transformStamped.transform.translation.y = current_Pose.position.y;
+            transformStamped.transform.translation.z = current_Pose.position.z;
+            q.setRPY(0, 0, 0);
+            transformStamped.transform.rotation.x = q.x();
+            transformStamped.transform.rotation.y = q.y();
+            transformStamped.transform.rotation.z = q.z();
+            transformStamped.transform.rotation.w = q.w();
+            broadcaster.sendTransform(transformStamped);
          }
 
 
     private:
         ros::NodeHandle nh;
         ros::Publisher pub;
+        ros::Publisher pub_red_js;
         ros::Timer timer;
         double rate;
         std_msgs::UInt64 timestep;
         int data_val;
-        ros::ServiceServer service = nh.advertiseService("reset", &Sim::reset, this);
+        ros::ServiceServer reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
+        ros::ServiceServer teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
+        sensor_msgs::JointState joint_state;
+        tf2_ros::TransformBroadcaster broadcaster;
+        geometry_msgs::TransformStamped transformStamped;
+        tf2::Quaternion q;
+        geometry_msgs::Pose current_Pose;
+        double theta;
 
 
 };
