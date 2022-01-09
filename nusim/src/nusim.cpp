@@ -37,7 +37,7 @@ class Sim
         double rate;
         std_msgs::UInt64 timestep;
         int data_val;
-        ros::ServiceServer service = nh.advertiseService("my_service", &Sim::reset, this);
+        ros::ServiceServer service = nh.advertiseService("reset", &Sim::reset, this);
 
 
 };
