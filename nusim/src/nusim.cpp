@@ -19,6 +19,8 @@ class Sim
             timestep.data = 0;
             nh.getParam("/nusim/rate",rate);
             pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
+            reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
+            teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
             pub_red_js = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
 
@@ -37,8 +39,10 @@ class Sim
            
         bool reset(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
         {
-        timestep.data = 0;
-        pub.publish(timestep);
+            timestep.data = 0;
+            pub.publish(timestep);
+            current_Pose.position.x = 1.0;
+            current_Pose.position.y = 1.0;
         return true;
         }
 
@@ -81,8 +85,8 @@ class Sim
         double rate;
         std_msgs::UInt64 timestep;
         int data_val;
-        ros::ServiceServer reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
-        ros::ServiceServer teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
+        ros::ServiceServer reset_service;
+        ros::ServiceServer teleport_service;
         sensor_msgs::JointState joint_state;
         tf2_ros::TransformBroadcaster broadcaster;
         geometry_msgs::TransformStamped transformStamped;
