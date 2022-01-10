@@ -8,6 +8,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Pose.h>
+#include <nusim/Teleport.h>
 // #include <turtlesim/Pose.h>
 
 
@@ -18,10 +19,13 @@ class Sim
             data_val = 0;
             timestep.data = 0;
             nh.getParam("/nusim/rate",rate);
+            nh.getParam("/nusim/x0",x0);
+            nh.getParam("/nusim/y0",y0);
+            nh.getParam("/nusim/theta0",theta0);
             pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
-            pub_red_js = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);
+            pub_red_js = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
 
             joint_state.name.push_back("red:wheel_left_joint");
@@ -31,26 +35,26 @@ class Sim
 
             transformStamped.header.frame_id = "world";
             transformStamped.child_frame_id = "red:base_footprint";
-
-            current_Pose.position.x = 0.0;
-            current_Pose.position.y = 0.0;
-            current_Pose.position.z = 0.0;
+            current_Pose.position.x = x0;
+            current_Pose.position.y = y0;
+            theta = 0.0;
         }
            
-        bool reset(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
+        bool reset(std_srvs::Empty::Request& data, std_srvs::Empty::Response& response)
         {
             timestep.data = 0;
             pub.publish(timestep);
-            current_Pose.position.x = 1.0;
-            current_Pose.position.y = 1.0;
+            current_Pose.position.x = 0.0;
+            current_Pose.position.y = 0.0;
         return true;
         }
 
-        bool teleport(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
+        bool teleport(nusim::Teleport::Request& data, nusim::Teleport::Response& response)
         {
-        timestep.data = 0;
-        pub.publish(timestep);
-        return true;
+            current_Pose.position.x = data.x;
+            current_Pose.position.y = data.y;
+            theta = data.theta;
+            return true;
         }
 
         void main_loop(const ros::TimerEvent &)
@@ -68,7 +72,7 @@ class Sim
             transformStamped.transform.translation.x = current_Pose.position.x;
             transformStamped.transform.translation.y = current_Pose.position.y;
             transformStamped.transform.translation.z = current_Pose.position.z;
-            q.setRPY(0, 0, 0);
+            q.setRPY(0, 0, theta);
             transformStamped.transform.rotation.x = q.x();
             transformStamped.transform.rotation.y = q.y();
             transformStamped.transform.rotation.z = q.z();
@@ -92,7 +96,11 @@ class Sim
         geometry_msgs::TransformStamped transformStamped;
         tf2::Quaternion q;
         geometry_msgs::Pose current_Pose;
+        double x0;
+        double y0;
+        double theta0;
         double theta;
+        // nusim::Teleport new_Pose;
 
 
 };
