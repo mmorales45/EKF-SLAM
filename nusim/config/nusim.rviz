@@ -145,6 +145,14 @@ Visualization Manager:
                 {}
       Update Interval: 0
       Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /obstacles/visualization
+      Name: Marker
+      Namespaces:
+        /obstacles/obstacles: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -173,7 +181,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.4897146224975586
+      Distance: 4.5634074211120605
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -210,4 +218,4 @@ Window Geometry:
     collapsed: false
   Width: 1200
   X: 60
-  Y: 0
+  Y: 27

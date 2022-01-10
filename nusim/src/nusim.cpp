@@ -1,3 +1,19 @@
+/// \file
+/// \brief This file creates custom services that affect the turtlebot as well as create obstacles in RVIZ.
+///
+/// PARAMETERS:
+///     rate (double): Frequency at which the main loop runs
+///     parameter_name (parameter_type): description of the parameter
+///     parameter_name (parameter_type): description of the parameter
+///     parameter_name (parameter_type): description of the parameter
+/// PUBLISHES:
+///     timestep_pub (std_msgs/UInt64): Tracks the simulation's current timestep
+///     joint_state_pub (sensor_msgs/JointState): Publishes joint positions to red/joint_states
+///     marker_pub (visualization_msgs/Marker): Creates obstacles as red cylinders
+/// SERVICES:
+///     reset (std_srvs/Empty): Sets the timestep to 0 and teleports turtlebot to (0,0,0)
+///     teleport (nusim/Teleport): Teleports the turtblebot to a user defined position
+///     service_name (service_type): description of the service
 #include <ros/ros.h>
 #include <std_msgs/UInt64.h>
 #include <iostream>
@@ -13,9 +29,14 @@
 #include <vector>
 #include <cstdlib>
 
-// #include <turtlesim/Pose.h>
 
-
+/// \brief Computes the factorial
+///
+/// \tparam T - An integral type
+/// \param F - the factorial to compute
+/// \returns F! (F Factorial)
+/// <template typename T>
+/// T factorial (T F);
 class Sim
 {
     public:
@@ -32,6 +53,8 @@ class Sim
             nh.getParam("/cylinders_x_coord",cylinders_x_coord);
             nh.getParam("/cylinders_y_coord",cylinders_y_coord);
             nh.getParam("/robot",robot_coords);
+            nh.getParam("/radius",radius);
+            radius = radius*2.0;
 
             for (int j = 0;j<(cylinders_x_coord.size()+num_obstacles);j++){
                 randNumx = fRand(-2.5,2.5);
@@ -49,11 +72,11 @@ class Sim
                 }
             }
 
-            pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
+            timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
             marker_pub  = nh.advertise<visualization_msgs::Marker>("/obstacles/visualization", 1000, true);
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
-            pub_red_js = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
+            joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
 
             joint_state.name.push_back("red:wheel_left_joint");
@@ -71,17 +94,34 @@ class Sim
             transformStamped.child_frame_id = "red:base_footprint";
             current_Pose.position.x = x0;
             current_Pose.position.y = y0;
+            q.setRPY(0, 0, theta);
+            // current_Pose.position.x = robot_coords[0];
+            // current_Pose.position.y = robot_coords[1];
             theta = 0.0;
+            // q.setRPY(0, 0, robot_coords[2]);
 
         }
            
-        
+        /// \brief Computes the factorial
+        ///
+        /// \tparam T - An integral type
+        /// \param F - the factorial to compute
+        /// \returns F! (F Factorial)
+        /// <template typename T>
+        /// T factorial (T F);
         double fRand(double fMin, double fMax)
         {
             double f = (double)rand() / RAND_MAX;
             return fMin + f * (fMax - fMin);
         }
 
+        /// \brief Computes the factorial
+        ///
+        /// \tparam T - An integral type
+        /// \param F - the factorial to compute
+        /// \returns F! (F Factorial)
+        /// <template typename T>
+        /// T factorial (T F);
         bool reset(std_srvs::Empty::Request& data, std_srvs::Empty::Response& response)
         {
             timestep.data = 0;
@@ -91,6 +131,13 @@ class Sim
         return true;
         }
 
+        /// \brief Computes the factorial
+        ///
+        /// \tparam T - An integral type
+        /// \param F - the factorial to compute
+        /// \returns F! (F Factorial)
+        /// <template typename T>
+        /// T factorial (T F);
         bool teleport(nusim::Teleport::Request& data, nusim::Teleport::Response& response)
         {
             current_Pose.position.x = data.x;
@@ -99,6 +146,13 @@ class Sim
             return true;
         }
 
+        /// \brief Computes the factorial
+        ///
+        /// \tparam T - An integral type
+        /// \param F - the factorial to compute
+        /// \returns F! (F Factorial)
+        /// <template typename T>
+        /// T factorial (T F);
         void main_loop(const ros::TimerEvent &)
          {
             // implement the state machine here
@@ -114,7 +168,6 @@ class Sim
             transformStamped.transform.translation.x = current_Pose.position.x;
             transformStamped.transform.translation.y = current_Pose.position.y;
             transformStamped.transform.translation.z = current_Pose.position.z;
-            q.setRPY(0, 0, theta);
             transformStamped.transform.rotation.x = q.x();
             transformStamped.transform.rotation.y = q.y();
             transformStamped.transform.rotation.z = q.z();
@@ -131,9 +184,9 @@ class Sim
                 marker.pose.orientation.y = 0.0;
                 marker.pose.orientation.z = 0.0;
                 marker.pose.orientation.w = 1.0;
-                marker.scale.x = 0.1;
-                marker.scale.y = 0.1;
-                marker.scale.z = 0.1;
+                marker.scale.x = radius;
+                marker.scale.y = radius;
+                marker.scale.z = 0.25;
                 marker.color.r = 1.0f;
                 marker.color.g = 0.0f;
                 marker.color.b = 0.0f;
@@ -152,8 +205,8 @@ class Sim
 
     private:
         ros::NodeHandle nh;
-        ros::Publisher pub;
-        ros::Publisher pub_red_js;
+        ros::Publisher timestep_pub;
+        ros::Publisher joint_state_pub;
         ros::Publisher marker_pub;
         ros::Timer timer;
         double rate;
@@ -177,11 +230,13 @@ class Sim
         std::vector<double> cylinders_y_coord;
         std::vector<double> cylinder_marker_x;
         std::vector<double> cylinder_marker_y;
+        std::vector<double> robot_coords;
         // nusim::Teleport new_Pose;
         double randNumx;
         double randNumy;
         std::vector<double> rand_x;
         std::vector<double> rand_y;
+        double radius;
 
 };
 
