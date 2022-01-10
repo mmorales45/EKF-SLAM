@@ -3,6 +3,8 @@
     <arg name= "x0" default = "0" />
     <arg name= "y0" default = "0" />
     <arg name= "theta0" default = "0" />
+    <arg name= "num_obstacles" default = "0" />
+    <arg name= "radius" default = "0.15" />
     <arg name= "use_rviz" default = "true" doc="use_rviz:=true to use RVIZ or use_rviz:=false to not load RVIZ"/>
     <arg name= "use_jsp" default = "false" doc="use_jsp:=true to use the Joint State Publisher or use_jsp:=false to not load the Joint State Publisher"/>
     <arg name= "color" default = "red" doc="Color of the robot. Use red,green,blue,or black"/>
@@ -20,5 +22,6 @@
         <param name ="x0" value ="$(arg x0)" />
         <param name ="y0" value ="$(arg y0)" />
         <param name ="theta0" value ="$(arg theta0)" />
+        <param name ="num_obstacles" value ="$(arg num_obstacles)" />
     </node>
 </launch>

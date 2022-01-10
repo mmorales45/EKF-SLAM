@@ -9,6 +9,7 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Pose.h>
 #include <nusim/Teleport.h>
+#include <visualization_msgs/Marker.h>
 // #include <turtlesim/Pose.h>
 
 
@@ -22,7 +23,9 @@ class Sim
             nh.getParam("/nusim/x0",x0);
             nh.getParam("/nusim/y0",y0);
             nh.getParam("/nusim/theta0",theta0);
+            nh.getParam("/nusim/num_obstacles",num_obstacles);
             pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
+            marker_pub  = nh.advertise<visualization_msgs::Marker>("/obstacles/visualization", 1000, true);
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
             pub_red_js = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
@@ -33,6 +36,12 @@ class Sim
             joint_state.position.push_back(0.0);
             joint_state.position.push_back(0.0);
 
+            marker.header.frame_id = "world";
+            marker.ns = "/obstacles/obstacles";
+            shape = visualization_msgs::Marker::CYLINDER;
+            marker.type = shape;
+            marker.action = visualization_msgs::Marker::ADD;
+        
             transformStamped.header.frame_id = "world";
             transformStamped.child_frame_id = "red:base_footprint";
             current_Pose.position.x = x0;
@@ -78,6 +87,33 @@ class Sim
             transformStamped.transform.rotation.z = q.z();
             transformStamped.transform.rotation.w = q.w();
             broadcaster.sendTransform(transformStamped);
+
+            for (int i = 0;i<(num_obstacles+3);i++)
+            {
+                marker.id = i;
+                marker.pose.position.x = i*1.2;
+                marker.pose.position.y = 0;
+                marker.pose.position.z = 0;
+                marker.pose.orientation.x = 0.0;
+                marker.pose.orientation.y = 0.0;
+                marker.pose.orientation.z = 0.0;
+                marker.pose.orientation.w = 1.0;
+                marker.scale.x = 0.1;
+                marker.scale.y = 0.1;
+                marker.scale.z = 0.1;
+                marker.color.r = 1.0f;
+                marker.color.g = 0.0f;
+                marker.color.b = 0.0f;
+                marker.color.a = 1.0;
+                marker.lifetime = ros::Duration();
+                marker_pub.publish(marker);
+
+                // if (i<3) {
+
+                // }
+            }
+
+
          }
 
 
@@ -85,6 +121,7 @@ class Sim
         ros::NodeHandle nh;
         ros::Publisher pub;
         ros::Publisher pub_red_js;
+        ros::Publisher marker_pub;
         ros::Timer timer;
         double rate;
         std_msgs::UInt64 timestep;
@@ -100,6 +137,9 @@ class Sim
         double y0;
         double theta0;
         double theta;
+        visualization_msgs::Marker marker;
+        uint32_t shape;
+        int num_obstacles;
         // nusim::Teleport new_Pose;
 
 
