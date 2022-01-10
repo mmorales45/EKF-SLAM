@@ -1,5 +1,4 @@
 radius: 0.38
-cylinder1: [-0.6,-0.8]
-cylinder2: [0.6,-0.8]
-cylinder3: [0.6,0.8]
+cylinders_x_coord: [-0.6,0.6,0.6]
+cylinders_y_coord: [-0.8,-0.8,0.8]
 robot: [-0.6,0.8,1.57]

@@ -10,6 +10,9 @@
 #include <geometry_msgs/Pose.h>
 #include <nusim/Teleport.h>
 #include <visualization_msgs/Marker.h>
+#include <vector>
+#include <cstdlib>
+
 // #include <turtlesim/Pose.h>
 
 
@@ -17,6 +20,8 @@ class Sim
 {
     public:
         Sim() {
+            srand ( (unsigned)time(NULL));
+
             data_val = 0;
             timestep.data = 0;
             nh.getParam("/nusim/rate",rate);
@@ -24,6 +29,26 @@ class Sim
             nh.getParam("/nusim/y0",y0);
             nh.getParam("/nusim/theta0",theta0);
             nh.getParam("/nusim/num_obstacles",num_obstacles);
+            nh.getParam("/cylinders_x_coord",cylinders_x_coord);
+            nh.getParam("/cylinders_y_coord",cylinders_y_coord);
+            nh.getParam("/robot",robot_coords);
+
+            for (int j = 0;j<(cylinders_x_coord.size()+num_obstacles);j++){
+                randNumx = fRand(-2.5,2.5);
+                randNumy = fRand(-2.5,2.5);
+
+                if (j<cylinders_x_coord.size()) {
+                    cylinder_marker_x.push_back(cylinders_x_coord[j]);
+                    cylinder_marker_y.push_back(cylinders_y_coord[j]);
+                    std::cout << cylinder_marker_x[j] << " X\n";
+                    std::cout << cylinder_marker_y[j] << " Y\n";
+                }
+                else {
+                    cylinder_marker_x.push_back(randNumx);
+                    cylinder_marker_y.push_back(randNumy);
+                }
+            }
+
             pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
             marker_pub  = nh.advertise<visualization_msgs::Marker>("/obstacles/visualization", 1000, true);
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
@@ -47,8 +72,16 @@ class Sim
             current_Pose.position.x = x0;
             current_Pose.position.y = y0;
             theta = 0.0;
+
         }
            
+        
+        double fRand(double fMin, double fMax)
+        {
+            double f = (double)rand() / RAND_MAX;
+            return fMin + f * (fMax - fMin);
+        }
+
         bool reset(std_srvs::Empty::Request& data, std_srvs::Empty::Response& response)
         {
             timestep.data = 0;
@@ -88,11 +121,11 @@ class Sim
             transformStamped.transform.rotation.w = q.w();
             broadcaster.sendTransform(transformStamped);
 
-            for (int i = 0;i<(num_obstacles+3);i++)
+            for (int i = 0;i<(num_obstacles+cylinders_x_coord.size());i++)
             {
                 marker.id = i;
-                marker.pose.position.x = i*1.2;
-                marker.pose.position.y = 0;
+                marker.pose.position.x = cylinder_marker_x[i];
+                marker.pose.position.y = cylinder_marker_y[i];
                 marker.pose.position.z = 0;
                 marker.pose.orientation.x = 0.0;
                 marker.pose.orientation.y = 0.0;
@@ -107,11 +140,11 @@ class Sim
                 marker.color.a = 1.0;
                 marker.lifetime = ros::Duration();
                 marker_pub.publish(marker);
-
+            }
                 // if (i<3) {
 
                 // }
-            }
+            
 
 
          }
@@ -140,8 +173,15 @@ class Sim
         visualization_msgs::Marker marker;
         uint32_t shape;
         int num_obstacles;
+        std::vector<double> cylinders_x_coord;
+        std::vector<double> cylinders_y_coord;
+        std::vector<double> cylinder_marker_x;
+        std::vector<double> cylinder_marker_y;
         // nusim::Teleport new_Pose;
-
+        double randNumx;
+        double randNumy;
+        std::vector<double> rand_x;
+        std::vector<double> rand_y;
 
 };
 
