@@ -5,6 +5,7 @@
 
 
 #include<iosfwd> // contains forward definitions for iostream objects
+#include <cmath>
 
 namespace turtlelib
 {
@@ -22,6 +23,13 @@ namespace turtlelib
     /// if given a compile-time constant as input
     constexpr bool almost_equal(double d1, double d2, double epsilon=1.0e-12)
     {
+        if (abs(d1-d2) <= epsilon) {
+            return true;
+        }
+        else {
+            return false;
+        }
+
     }
 
     /// \brief convert degrees to radians
@@ -29,6 +37,8 @@ namespace turtlelib
     /// \returns radians
     constexpr double deg2rad(double deg)
     {
+        double rad = (PI * deg)/(180.0);
+        return rad;
     }
 
     /// \brief convert radians to degrees
@@ -36,6 +46,7 @@ namespace turtlelib
     /// \returns the angle in degrees
     constexpr double rad2deg(double rad)
     {
+        double deg = (180.8 * rad)/(PI);
     }
 
     /// static_assertions test compile time assumptions.
@@ -43,10 +54,14 @@ namespace turtlelib
     /// You should also purposely (and temporarily) make one of these tests fail
     /// just to see what happens
     static_assert(almost_equal(0, 0), "is_zero failed");
+    static_assert(almost_equal(0, 1.0e-13), "is_zero failed");
+    // static_assert(almost_equal(0, 1.0), "is_zero failed"); //should fail
 
     static_assert(almost_equal(deg2rad(0.0), 0.0), "deg2rad failed");
+    static_assert(almost_equal(deg2rad(180.0), 3.14159), "deg2rad failed");
 
     static_assert(almost_equal(rad2deg(0.0), 0.0), "rad2deg) failed");
+    static_assert(almost_equal(rad2deg(1.5708), 90.0), "rad2deg) failed");
 
     static_assert(almost_equal(deg2rad(rad2deg(2.1)), 2.1), "deg2rad failed");
 
