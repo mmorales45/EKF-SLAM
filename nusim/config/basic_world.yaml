@@ -1,4 +1,5 @@
 radius: 0.038
+rate: 500
 cylinders_x_coord: [-0.6,0.6,0.6]
 cylinders_y_coord: [-0.8,-0.8,0.8]
 robot: [-0.6,0.8,1.57]

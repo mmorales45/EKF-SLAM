@@ -45,32 +45,12 @@ class Sim
 
             data_val = 0;
             timestep.data = 0;
-            nh.getParam("/nusim/rate",rate);
-            nh.getParam("/nusim/x0",x0);
-            nh.getParam("/nusim/y0",y0);
-            nh.getParam("/nusim/theta0",theta0);
-            nh.getParam("/nusim/num_obstacles",num_obstacles);
+            nh.getParam("/rate",rate);
             nh.getParam("/cylinders_x_coord",cylinders_x_coord);
             nh.getParam("/cylinders_y_coord",cylinders_y_coord);
             nh.getParam("/robot",robot_coords);
             nh.getParam("/radius",radius);
             radius = radius*2.0;
-
-            for (int j = 0;j<(cylinders_x_coord.size()+num_obstacles);j++){
-                randNumx = fRand(-2.5,2.5);
-                randNumy = fRand(-2.5,2.5);
-
-                if (j<cylinders_x_coord.size()) {
-                    cylinder_marker_x.push_back(cylinders_x_coord[j]);
-                    cylinder_marker_y.push_back(cylinders_y_coord[j]);
-                    std::cout << cylinder_marker_x[j] << " X\n";
-                    std::cout << cylinder_marker_y[j] << " Y\n";
-                }
-                else {
-                    cylinder_marker_x.push_back(randNumx);
-                    cylinder_marker_y.push_back(randNumy);
-                }
-            }
 
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
             marker_pub  = nh.advertise<visualization_msgs::Marker>("/obstacles/visualization", 1000, true);
@@ -92,29 +72,19 @@ class Sim
         
             transformStamped.header.frame_id = "world";
             transformStamped.child_frame_id = "red:base_footprint";
-            current_Pose.position.x = x0;
-            current_Pose.position.y = y0;
-            q.setRPY(0, 0, theta);
-            // current_Pose.position.x = robot_coords[0];
-            // current_Pose.position.y = robot_coords[1];
-            theta = 0.0;
-            // q.setRPY(0, 0, robot_coords[2]);
+            current_Pose.position.x = robot_coords[0];
+            current_Pose.position.y = robot_coords[1];
+            q.setRPY(0, 0, robot_coords[2]);
+
+            for (int j = 0;j<(cylinders_x_coord.size());j++){
+                cylinder_marker_x.push_back(cylinders_x_coord[j]);
+                cylinder_marker_y.push_back(cylinders_y_coord[j]);
+                std::cout << cylinder_marker_x[j] << " X\n";
+                std::cout << cylinder_marker_y[j] << " Y\n";
+            }
 
         }
-           
-        /// \brief Computes the factorial
-        ///
-        /// \tparam T - An integral type
-        /// \param F - the factorial to compute
-        /// \returns F! (F Factorial)
-        /// <template typename T>
-        /// T factorial (T F);
-        double fRand(double fMin, double fMax)
-        {
-            double f = (double)rand() / RAND_MAX;
-            return fMin + f * (fMax - fMin);
-        }
-
+    
         /// \brief Computes the factorial
         ///
         /// \tparam T - An integral type
@@ -125,7 +95,7 @@ class Sim
         bool reset(std_srvs::Empty::Request& data, std_srvs::Empty::Response& response)
         {
             timestep.data = 0;
-            pub.publish(timestep);
+            timestep_pub.publish(timestep);
             current_Pose.position.x = 0.0;
             current_Pose.position.y = 0.0;
         return true;
@@ -161,8 +131,8 @@ class Sim
             joint_state.position[1] = 0.0;
 
             timestep.data++;
-            pub.publish(timestep);  
-            pub_red_js.publish(joint_state);
+            timestep_pub.publish(timestep);  
+            joint_state_pub.publish(joint_state);
 
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_Pose.position.x;
@@ -174,12 +144,12 @@ class Sim
             transformStamped.transform.rotation.w = q.w();
             broadcaster.sendTransform(transformStamped);
 
-            for (int i = 0;i<(num_obstacles+cylinders_x_coord.size());i++)
+            for (int i = 0;i<(cylinders_x_coord.size());i++)
             {
                 marker.id = i;
                 marker.pose.position.x = cylinder_marker_x[i];
                 marker.pose.position.y = cylinder_marker_y[i];
-                marker.pose.position.z = 0;
+                marker.pose.position.z = 0.125;
                 marker.pose.orientation.x = 0.0;
                 marker.pose.orientation.y = 0.0;
                 marker.pose.orientation.z = 0.0;
@@ -194,12 +164,6 @@ class Sim
                 marker.lifetime = ros::Duration();
                 marker_pub.publish(marker);
             }
-                // if (i<3) {
-
-                // }
-            
-
-
          }
 
 
@@ -231,11 +195,6 @@ class Sim
         std::vector<double> cylinder_marker_x;
         std::vector<double> cylinder_marker_y;
         std::vector<double> robot_coords;
-        // nusim::Teleport new_Pose;
-        double randNumx;
-        double randNumy;
-        std::vector<double> rand_x;
-        std::vector<double> rand_y;
         double radius;
 
 };
