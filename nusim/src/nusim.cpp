@@ -74,7 +74,8 @@ class Sim
             transformStamped.child_frame_id = "red:base_footprint";
             current_Pose.position.x = robot_coords[0];
             current_Pose.position.y = robot_coords[1];
-            q.setRPY(0, 0, robot_coords[2]);
+            theta = robot_coords[2];
+            q.setRPY(0, 0, theta);
 
             for (int j = 0;j<(cylinders_x_coord.size());j++){
                 cylinder_marker_x.push_back(cylinders_x_coord[j]);
@@ -96,8 +97,9 @@ class Sim
         {
             timestep.data = 0;
             timestep_pub.publish(timestep);
-            current_Pose.position.x = 0.0;
-            current_Pose.position.y = 0.0;
+            current_Pose.position.x = robot_coords[0];
+            current_Pose.position.y = robot_coords[1];
+            theta = robot_coords[2];
         return true;
         }
 
