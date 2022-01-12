@@ -48,4 +48,9 @@ turtlelib::Transform2D::translation() const
     return translational_component;
 }
 
+turtlelib::Transform2D::rotation() const
+{
+    return angular_displacement;
+}
+
 
