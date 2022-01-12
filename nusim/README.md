@@ -2,22 +2,19 @@
 By Marco Morales
 
 ## Overview
-The nusim package allows the simualtion of a turtlebot3 that can be viewed in RVIZ. In this simualation, there are a number of obstacles in the enviornment that are presented as red cylinders.
+The nusim package allows the simulation of a turtlebot3 that can be viewed in RVIZ. In this simulation, there are a number of obstacles in the environment that are presented as red cylinders.
+
+An important thing to note is that the user can change the parameters of the simulation by editing the basic_world.yaml.
+
+### Parameters
+
 
 ### Launchfile
 The launchfile, `nusim.launch`, is the main launchfile for the package and it runs the simulation node, `nusim.cpp`, RVIZ, and loads the yaml file for the parameters. There are arguments within the launchfile that the user can define when running the launchfile.
 
-To run the launchfile with the arguments all set to the default, run the following run.
+To run the launchfile, run the following line.
 `roslaunch nusim nusim.launch`
 
-Arguments can be set in the launchfile line as can be seen in the example below.
-`roslaunch nusim nusim.launch rate:=100`
-
-#### Arguments 
-There are a number of arguments that can be defined by the user.
-
-`rate`
-The parameter rate sets the frequency of the main loop in the node.
 
 ### Services
 There are two services that can be called in the package.
@@ -32,3 +29,6 @@ below.
 ```
 rosservice call /nusim/teleport {}
 ```
+
+![](/home/mmoral45/winter_quarter/ME495/slam_ws/src/slam-project-mmorales45/nusim/images/nusim1.png)
+
