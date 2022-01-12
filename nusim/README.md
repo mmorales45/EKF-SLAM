@@ -43,5 +43,5 @@ rosservice call /nusim/teleport {}
 
 
 ### Image of the simulation
-![](/home/mmoral45/winter_quarter/ME495/slam_ws/src/slam-project-mmorales45/nusim/images/nusim1.png)
+![](images/nusim1.png)
 
