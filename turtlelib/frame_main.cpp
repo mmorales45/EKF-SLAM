@@ -13,5 +13,5 @@ int main(){
     std::cout << "Enter vector v_b:";
     std::cin >>T;
     std::cout << T;
-
+    
 }

@@ -9,6 +9,8 @@ A library for handling transformations in SE(2) and other turtlebot-related math
 1. We need to be able to ~normalize~ Vector2D objects (i.e., find the unit vector in the direction of a given Vector2D):
    - Propose three different designs for implementing the ~normalize~ functionality
    1. 
+   2.
+   3.
    - Discuss the pros and cons of each proposed method, in light of the C++ Core Guidelines.
 
    - Which of the methods would you implement and why?

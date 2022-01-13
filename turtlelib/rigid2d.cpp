@@ -85,15 +85,15 @@ double turtlelib::Transform2D::rotation() const
     return angular_displacement;
 }
 
-// std::istream & turtlelib::operator>>(std::istream & is, Transform2D & tf){
-//     // char str[4];
+std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D & tf){
+    // char str[4];
 
-//     // if (str == "get"){
-//     //     is.get(str,5);
-//     is >> tf;
-//     // }
-//     return is;
-// }
+    // if (str == "get"){
+    //     is.get(str,5);
+    is >> tf;
+    // }
+    return is;
+}
 
 // std::ostream & turtlelib::operator<<(std::ostream & os, const Transform2D & tf){
 //     return os << tf;
