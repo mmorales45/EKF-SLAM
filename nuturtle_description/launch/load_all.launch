@@ -1,14 +1,11 @@
 <launch>
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/basic_all.rviz" required="true"/>
-    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="black_link" args="0 1 0 0 0 0 1 world base_footprint" /> -->
-    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="red_link" args="0 -1 0 0 0 0 1 world base_footprint" /> -->
-
 
     <group ns="black">
         <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='black'" />
         <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
         <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-        <node pkg="tf2_ros" type="static_transform_publisher" name="black_link" args="0 -1 0 0 0 0 1 world black:base_footprint" />
+        <node pkg="tf2_ros" type="static_transform_publisher" name="black_link" args="0 -1 0 0 0 0 1 world black_base_footprint" />
 
     </group>
 
@@ -16,20 +13,20 @@
         <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='red'" />
         <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>       
         <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-        <node pkg="tf2_ros" type="static_transform_publisher" name="red_link" args="1 0 0 0 0 0 1 world red:base_footprint" />
+        <node pkg="tf2_ros" type="static_transform_publisher" name="red_link" args="1 0 0 0 0 0 1 world red_base_footprint" />
     </group>
 
     <group ns="green">
         <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='green'" />
         <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
         <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-        <node pkg="tf2_ros" type="static_transform_publisher" name="green_link" args="0 1 0 0 0 0 1 world green:base_footprint" />
+        <node pkg="tf2_ros" type="static_transform_publisher" name="green_link" args="0 1 0 0 0 0 1 world green_base_footprint" />
     </group>
 
     <group ns="blue">
         <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:='blue'" />
         <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
         <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-        <node pkg="tf2_ros" type="static_transform_publisher" name="blue_link" args="-1 0 0 0 0 0 1 world blue:base_footprint" />
+        <node pkg="tf2_ros" type="static_transform_publisher" name="blue_link" args="-1 0 0 0 0 0 1 world blue_base_footprint" />
     </group>
 </launch>

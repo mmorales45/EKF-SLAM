@@ -4,7 +4,7 @@
     <arg name= "color" default = "black" doc="Color of the robot. Use red,green,blue,or black"/>
 
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/basic.rviz -f '$(arg color):base_link'" if="$(arg use_rviz)" required="true"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/basic.rviz -f '$(arg color)_base_link'" if="$(arg use_rviz)" required="true"/>
     <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=$(arg color)" />
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" if="$(arg use_jsp)"/>
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>

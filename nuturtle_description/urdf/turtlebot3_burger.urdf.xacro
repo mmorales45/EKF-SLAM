@@ -10,15 +10,15 @@
 
 <xacro:arg name="color" default="black" />
 
-  <link name="$(arg color):base_footprint"/>
+  <link name="$(arg color)_base_footprint"/>
 
-  <joint name="$(arg color):base_joint" type="fixed">
-    <parent link="$(arg color):base_footprint"/>
-    <child link="$(arg color):base_link"/>
+  <joint name="$(arg color)_base_joint" type="fixed">
+    <parent link="$(arg color)_base_footprint"/>
+    <child link="$(arg color)_base_link"/>
     <origin xyz="0.0 0.0 0.010" rpy="0 0 0"/>
   </joint>
 
-  <link name="$(arg color):base_link">
+  <link name="$(arg color)_base_link">
     <visual>light_black
       <origin xyz="-0.032 0 0.0" rpy="0 0 0"/>
       <geometry>
@@ -43,14 +43,14 @@
     </inertial>
   </link>
 
-  <joint name="$(arg color):wheel_left_joint" type="continuous">
-    <parent link="$(arg color):base_link"/>
-    <child link="$(arg color):wheel_left_link"/>
+  <joint name="$(arg color)_wheel_left_joint" type="continuous">
+    <parent link="$(arg color)_base_link"/>
+    <child link="$(arg color)_wheel_left_link"/>
     <origin xyz="0.0 ${track_width/2} 0.023" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
-  <link name="$(arg color):wheel_left_link">
+  <link name="$(arg color)_wheel_left_link">
     <visual>
       <origin xyz="0 0 0" rpy="1.57 0 0"/>
       <geometry>
@@ -75,14 +75,14 @@
       </inertial>
   </link>
 
-  <joint name="$(arg color):wheel_right_joint" type="continuous">
-    <parent link="$(arg color):base_link"/>
-    <child link="$(arg color):wheel_right_link"/>
+  <joint name="$(arg color)_wheel_right_joint" type="continuous">
+    <parent link="$(arg color)_base_link"/>
+    <child link="$(arg color)_wheel_right_link"/>
     <origin xyz="0.0 -${track_width/2} 0.023" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
-  <link name="$(arg color):wheel_right_link">
+  <link name="$(arg color)_wheel_right_link">
     <visual>
       <origin xyz="0 0 0" rpy="1.57 0 0"/>
       <geometry>
@@ -107,13 +107,13 @@
       </inertial>
   </link>
 
-  <joint name="$(arg color):caster_back_joint" type="fixed">
-    <parent link="$(arg color):base_link"/>
-    <child link="$(arg color):caster_back_link"/>
+  <joint name="$(arg color)_caster_back_joint" type="fixed">
+    <parent link="$(arg color)_base_link"/>
+    <child link="$(arg color)_caster_back_link"/>
     <origin xyz="-0.081 0 -0.004" rpy="-1.57 0 0"/>
   </joint>
 
-  <link name="$(arg color):caster_back_link">
+  <link name="$(arg color)_caster_back_link">
     <collision>
       <origin xyz="0 0.001 0" rpy="0 0 0"/>
       <geometry>
@@ -130,21 +130,21 @@
     </inertial>
   </link>
 
-  <joint name="$(arg color):imu_joint" type="fixed">
-    <parent link="$(arg color):base_link"/>
-    <child link="$(arg color):imu_link"/>
+  <joint name="$(arg color)_imu_joint" type="fixed">
+    <parent link="$(arg color)_base_link"/>
+    <child link="$(arg color)_imu_link"/>
     <origin xyz="-0.032 0 0.068" rpy="0 0 0"/>
   </joint>
 
-  <link name="$(arg color):imu_link"/>
+  <link name="$(arg color)_imu_link"/>
 
-  <joint name="$(arg color):scan_joint" type="fixed">
-    <parent link="$(arg color):base_link"/>
-    <child link="$(arg color):base_scan"/>
+  <joint name="$(arg color)_scan_joint" type="fixed">
+    <parent link="$(arg color)_base_link"/>
+    <child link="$(arg color)_base_scan"/>
     <origin xyz="-0.032 0 0.172" rpy="0 0 0"/>
   </joint>
 
-  <link name="$(arg color):base_scan">
+  <link name="$(arg color)_base_scan">
     <visual>
       <origin xyz="0 0 0.0" rpy="0 0 0"/>
       <geometry>
