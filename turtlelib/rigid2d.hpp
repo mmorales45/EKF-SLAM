@@ -44,7 +44,7 @@ namespace turtlelib
     /// \returns the angle in degrees
     constexpr double rad2deg(double rad)
     {
-        double deg = (180.8 * rad)/(PI);
+        double deg = (180.0 * rad)/(PI);
         return deg;
     }
 
@@ -171,8 +171,16 @@ namespace turtlelib
     /// HINT: This function should be implemented in terms of *=
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
+    struct Twist2D
+    {
+        double theta_dot = 0.0;
+        double x_dot = 0.0;
+        double y_dot = 0.0;
+    };
 
+    std::ostream & operator<<(std::ostream & os, const Twist2D & t);
 
+    std::istream & operator>>(std::istream & is, Twist2D & t);
 }
 
 #endif

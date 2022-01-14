@@ -1,6 +1,8 @@
 #include "rigid2d.hpp"
 #include <iostream>
+#include <string>
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::ostream & turtlelib::operator<<(std::ostream & os, const Vector2D & v) 
 {
@@ -17,7 +19,7 @@ std::istream & turtlelib::operator>>(std::istream & is, Vector2D & v)
     is >> v.x >> v.y;
     return is;
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 turtlelib::Transform2D::Transform2D()
 {
     translational_component.x = 0;
@@ -70,7 +72,7 @@ turtlelib::Transform2D turtlelib::Transform2D::inv() const
 
 turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const Transform2D & rhs){
     translational_component.x = (rhs.translational_component.x)*cos(angular_displacement) - (rhs.translational_component.y)*sin(angular_displacement) + translational_component.x;
-    translational_component.y = (rhs.translational_component.x)*sin(angular_displacement) + (rhs.translational_component.x)*cos(angular_displacement) + translational_component.y;
+    translational_component.y = (rhs.translational_component.x)*sin(angular_displacement) + (rhs.translational_component.y)*cos(angular_displacement) + translational_component.y;
     angular_displacement = angular_displacement+rhs.angular_displacement;
     return *this;
 }
@@ -85,16 +87,61 @@ double turtlelib::Transform2D::rotation() const
     return angular_displacement;
 }
 
-std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D & tf){
-    // char str[4];
 
-    // if (str == "get"){
-    //     is.get(str,5);
-    is >> tf;
-    // }
+std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D & tf){
+    turtlelib::Vector2D translational;
+    double rotational;
+    
+    char c1 = is.peek();
+    char str1[6] = "";
+    char str2[4] = "";
+
+    if (c1 == 'd'){
+        is.get(str1,6);
+        // std::cout << "this is str1 after seeing d: "<<str1<<"\n";
+        // std::cout << "this is the new value " << static_cast<char>(is.peek()) << "\n";
+        is >> rotational;
+        is.get(str2,4);
+        // std::cout << "this is the new value " << static_cast<char>(is.peek()) << "\n";
+        is >> translational.x;
+        is.get(str2,4);
+        // std::cout << "this is the new value " << static_cast<char>(is.peek()) << "\n";
+        is.get();
+        // std::cout << "this is the new value " << static_cast<char>(is.peek()) << "\n";
+        is >> translational.y;
+        is.get();
+    }
+    else {
+        is >> rotational >> translational.x >> translational.y;
+    }
+    rotational = deg2rad(rotational);
+    tf = turtlelib::Transform2D(translational,rotational);
+
     return is;
 }
 
-// std::ostream & turtlelib::operator<<(std::ostream & os, const Transform2D & tf){
-//     return os << tf;
-// }
+std::ostream & turtlelib::operator<<(std::ostream & os, const Transform2D & tf){
+    os <<"deg: "<< rad2deg(tf.angular_displacement)<< " x: "<<tf.translational_component.x << " y: " <<tf.translational_component.y << "\n";
+    return os;
+}
+
+turtlelib::Transform2D turtlelib::operator*(Transform2D lhs, const Transform2D & rhs)
+{
+    lhs *= rhs; // from hint 
+
+    return lhs;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::ostream & turtlelib::operator<<(std::ostream & os, const Twist2D & t)
+{
+    os << t.theta_dot << " " << t.x_dot << " " << t.y_dot << "\n";
+    return os;
+}
+
+std::istream & turtlelib::operator>>(std::istream & is, Twist2D & t)
+{
+    is >> t.theta_dot >> t.x_dot >> t.y_dot;
+    return is;
+}
