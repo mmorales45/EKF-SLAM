@@ -70,7 +70,7 @@ namespace turtlelib
         double y = 0.0;
     };
 
-
+    Vector2D Normalize(Vector2D vector);
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
     /// os - stream to output to
@@ -97,6 +97,17 @@ namespace turtlelib
     /// get removes the next unprocessed character from the buffer.
     std::istream & operator>>(std::istream & is, Vector2D & v);
 
+    struct Twist2D
+    {
+        double theta_dot = 0.0;
+        double x_dot = 0.0;
+        double y_dot = 0.0;
+    };
+
+    std::ostream & operator<<(std::ostream & os, const Twist2D & t);
+
+    std::istream & operator>>(std::istream & is, Twist2D & t);
+    
     /// \brief a rigid body transformation in 2 dimensions
     class Transform2D
     {
@@ -142,6 +153,8 @@ namespace turtlelib
         /// \return the angular displacement, in radiansVector2D
         double rotation() const;
 
+        Twist2D operator()(Twist2D twist) const;
+
         /// \brief \see operator<<(...) (declared outside this class)
         /// for a description
         friend std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
@@ -171,16 +184,6 @@ namespace turtlelib
     /// HINT: This function should be implemented in terms of *=
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
-    struct Twist2D
-    {
-        double theta_dot = 0.0;
-        double x_dot = 0.0;
-        double y_dot = 0.0;
-    };
-
-    std::ostream & operator<<(std::ostream & os, const Twist2D & t);
-
-    std::istream & operator>>(std::istream & is, Twist2D & t);
 }
 
 #endif

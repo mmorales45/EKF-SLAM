@@ -19,6 +19,16 @@ std::istream & turtlelib::operator>>(std::istream & is, Vector2D & v)
     is >> v.x >> v.y;
     return is;
 }
+
+turtlelib::Vector2D turtlelib::Normalize(turtlelib::Vector2D vector)
+{
+    turtlelib::Vector2D v_hat;
+    double magnitude = sqrt(pow(vector.x,2)+ pow(vector.y,2));
+    v_hat.x = vector.x/magnitude;
+    v_hat.y = vector.y/magnitude;
+    return v_hat; 
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 turtlelib::Transform2D::Transform2D()
 {
@@ -51,26 +61,41 @@ turtlelib::Transform2D::Transform2D(Vector2D trans, double radians)
 turtlelib::Vector2D turtlelib::Transform2D::operator()(Vector2D v) const{
     turtlelib::Vector2D transformed_vector;
     transformed_vector.x = v.x*cos(angular_displacement) - (v.y*sin(angular_displacement)) + translational_component.x;
-    transformed_vector.y = -v.x*sin(angular_displacement) + (v.y*cos(angular_displacement)) + translational_component.y;
+    transformed_vector.y = v.x*sin(angular_displacement) + (v.y*cos(angular_displacement)) + translational_component.y;
 
     return transformed_vector;
 }
+
+turtlelib::Twist2D turtlelib::Transform2D::operator()(Twist2D twist) const{
+    turtlelib::Twist2D new_twist;
+    new_twist.theta_dot = twist.theta_dot;
+    new_twist.x_dot = (twist.theta_dot * translational_component.y)+(twist.x_dot*cos(angular_displacement))-(twist.y_dot*sin(angular_displacement));
+    new_twist.y_dot = (-twist.theta_dot * translational_component.x)+(twist.x_dot*sin(angular_displacement))+(twist.y_dot*cos(angular_displacement));
+
+    return new_twist;
+}
+
 
 turtlelib::Transform2D turtlelib::Transform2D::inv() const
 {
     double inverse_theta;
     turtlelib::Vector2D inverse_translation;
     turtlelib::Transform2D inverse_transform;
-
+    
     inverse_theta = -angular_displacement;
-    inverse_translation.x = (-translational_component.x *cos(angular_displacement)) - (translational_component.y * sin(angular_displacement));
-    inverse_translation.x = (-translational_component.y *cos(angular_displacement)) + (translational_component.x * sin(angular_displacement));
+    // std::cout <<"this is the inverse theta" << inverse_theta;
+    // angular_displacement = deg2rad(angular_displacement);
+
+    inverse_translation.x = (-translational_component.x *cos((angular_displacement))) - (translational_component.y * sin((angular_displacement)));
+    inverse_translation.y = (-translational_component.y *cos((angular_displacement))) + (translational_component.x * sin((angular_displacement)));
 
     inverse_transform = Transform2D(inverse_translation, inverse_theta);
     return inverse_transform;
 }
 
 turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const Transform2D & rhs){
+    // angular_displacement = deg2rad(angular_displacement);
+
     translational_component.x = (rhs.translational_component.x)*cos(angular_displacement) - (rhs.translational_component.y)*sin(angular_displacement) + translational_component.x;
     translational_component.y = (rhs.translational_component.x)*sin(angular_displacement) + (rhs.translational_component.y)*cos(angular_displacement) + translational_component.y;
     angular_displacement = angular_displacement+rhs.angular_displacement;
@@ -86,6 +111,7 @@ double turtlelib::Transform2D::rotation() const
 {
     return angular_displacement;
 }
+
 
 
 std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D & tf){
@@ -115,7 +141,7 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D &
         is >> rotational >> translational.x >> translational.y;
     }
     rotational = deg2rad(rotational);
-    tf = turtlelib::Transform2D(translational,rotational);
+    tf = turtlelib::Transform2D(translational,rotational);tf = turtlelib::Transform2D(translational,rotational);
 
     return is;
 }
@@ -136,7 +162,7 @@ turtlelib::Transform2D turtlelib::operator*(Transform2D lhs, const Transform2D &
 
 std::ostream & turtlelib::operator<<(std::ostream & os, const Twist2D & t)
 {
-    os << t.theta_dot << " " << t.x_dot << " " << t.y_dot << "\n";
+    os << "["<< t.theta_dot << " " << t.x_dot << " " << t.y_dot <<"]"<< "\n";
     return os;
 }
 
