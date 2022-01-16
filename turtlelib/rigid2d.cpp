@@ -83,8 +83,6 @@ turtlelib::Transform2D turtlelib::Transform2D::inv() const
     turtlelib::Transform2D inverse_transform;
     
     inverse_theta = -angular_displacement;
-    // std::cout <<"this is the inverse theta" << inverse_theta;
-    // angular_displacement = deg2rad(angular_displacement);
 
     inverse_translation.x = (-translational_component.x *cos((angular_displacement))) - (translational_component.y * sin((angular_displacement)));
     inverse_translation.y = (-translational_component.y *cos((angular_displacement))) + (translational_component.x * sin((angular_displacement)));
