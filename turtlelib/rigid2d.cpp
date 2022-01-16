@@ -1,8 +1,11 @@
+/// \file
+/// \brief Defines functions and operators that were declared in rigid2D.hpp
+///
+
 #include "rigid2d.hpp"
 #include <iostream>
 #include <string>
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::ostream & turtlelib::operator<<(std::ostream & os, const Vector2D & v) 
 {
@@ -13,7 +16,7 @@ std::istream & turtlelib::operator>>(std::istream & is, Vector2D & v)
 {
     char c1 = is.peek();
     
-    if (c1 == '['){ //remove '[' if this char appears
+    if (c1 == '['){ 
         is.get();
     }
     is >> v.x >> v.y;
@@ -29,7 +32,6 @@ turtlelib::Vector2D turtlelib::Normalize(turtlelib::Vector2D vector)
     return v_hat; 
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 turtlelib::Transform2D::Transform2D()
 {
     translational_component.x = 0;
@@ -58,7 +60,8 @@ turtlelib::Transform2D::Transform2D(Vector2D trans, double radians)
     angular_displacement = radians;
 }
 
-turtlelib::Vector2D turtlelib::Transform2D::operator()(Vector2D v) const{
+turtlelib::Vector2D turtlelib::Transform2D::operator()(Vector2D v) const
+{
     turtlelib::Vector2D transformed_vector;
     transformed_vector.x = v.x*cos(angular_displacement) - (v.y*sin(angular_displacement)) + translational_component.x;
     transformed_vector.y = v.x*sin(angular_displacement) + (v.y*cos(angular_displacement)) + translational_component.y;
@@ -66,7 +69,8 @@ turtlelib::Vector2D turtlelib::Transform2D::operator()(Vector2D v) const{
     return transformed_vector;
 }
 
-turtlelib::Twist2D turtlelib::Transform2D::operator()(Twist2D twist) const{
+turtlelib::Twist2D turtlelib::Transform2D::operator()(Twist2D twist) const
+{
     turtlelib::Twist2D new_twist;
     new_twist.theta_dot = twist.theta_dot;
     new_twist.x_dot = (twist.theta_dot * translational_component.y)+(twist.x_dot*cos(angular_displacement))-(twist.y_dot*sin(angular_displacement));
@@ -91,9 +95,8 @@ turtlelib::Transform2D turtlelib::Transform2D::inv() const
     return inverse_transform;
 }
 
-turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const Transform2D & rhs){
-    // angular_displacement = deg2rad(angular_displacement);
-
+turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const Transform2D & rhs)
+{
     translational_component.x = (rhs.translational_component.x)*cos(angular_displacement) - (rhs.translational_component.y)*sin(angular_displacement) + translational_component.x;
     translational_component.y = (rhs.translational_component.x)*sin(angular_displacement) + (rhs.translational_component.y)*cos(angular_displacement) + translational_component.y;
     angular_displacement = angular_displacement+rhs.angular_displacement;
@@ -112,7 +115,8 @@ double turtlelib::Transform2D::rotation() const
 
 
 
-std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D & tf){
+std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D & tf)
+{
     turtlelib::Vector2D translational;
     double rotational;
     
@@ -144,7 +148,8 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D &
     return is;
 }
 
-std::ostream & turtlelib::operator<<(std::ostream & os, const Transform2D & tf){
+std::ostream & turtlelib::operator<<(std::ostream & os, const Transform2D & tf)
+{
     os <<"deg: "<< rad2deg(tf.angular_displacement)<< " x: "<<tf.translational_component.x << " y: " <<tf.translational_component.y << "\n";
     return os;
 }
@@ -156,7 +161,6 @@ turtlelib::Transform2D turtlelib::operator*(Transform2D lhs, const Transform2D &
     return lhs;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::ostream & turtlelib::operator<<(std::ostream & os, const Twist2D & t)
 {

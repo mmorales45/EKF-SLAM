@@ -53,12 +53,24 @@ namespace turtlelib
     /// You should also purposely (and temporarily) make one of these tests fail
     /// just to see what happens
     static_assert(almost_equal(0.0, 0.0), "is_zero failed");
+    static_assert(almost_equal(5.0, 5.0), "is_zero failed");
+    static_assert(almost_equal(PI, PI), "is_zero failed");
+    // static_assert(almost_equal(1.0, 0), "is_zero failed"); //should fail
 
     static_assert(almost_equal(deg2rad(0.0), 0.0), "deg2rad failed");
+    static_assert(almost_equal(deg2rad(90.0), PI/2), "deg2rad failed");
+    static_assert(almost_equal(deg2rad(180.0), PI), "deg2rad failed");
+    // static_assert(almost_equal(deg2rad(0), PI), "deg2rad failed"); //should fail
 
     static_assert(almost_equal(rad2deg(0.0), 0.0), "rad2deg) failed");
+    static_assert(almost_equal(rad2deg(PI), 180.0), "rad2deg) failed");
+    static_assert(almost_equal(rad2deg((3*PI)/2), 270.0), "rad2deg) failed");
+    // static_assert(almost_equal(rad2deg((3*PI)/2), 0.0), "rad2deg) failed"); //should fail
 
-    // static_assert(almost_equal(deg2rad(rad2deg(2.1)), 2.1), "deg2rad failed");
+    static_assert(almost_equal(deg2rad(rad2deg(2.1)), 2.1), "deg2rad failed");
+    static_assert(almost_equal(deg2rad(rad2deg(0.0)), 0.0), "deg2rad failed");
+    static_assert(almost_equal(deg2rad(rad2deg(5.0)), 5.0), "deg2rad failed");
+    // static_assert(almost_equal(deg2rad(rad2deg(2.5)), 1.0), "deg2rad failed");//should fail
 
     /// \brief A 2-Dimensional Vector
     struct Vector2D
@@ -70,6 +82,10 @@ namespace turtlelib
         double y = 0.0;
     };
 
+
+    /// \brief create a normalized 2D vector as [x_normalized y_normalized]
+    /// \param vector - the Vector2D vector to normalize
+    /// \return the normalized 2D vector
     Vector2D Normalize(Vector2D vector);
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
@@ -97,6 +113,7 @@ namespace turtlelib
     /// get removes the next unprocessed character from the buffer.
     std::istream & operator>>(std::istream & is, Vector2D & v);
 
+    /// \brief A twist made up of theta_dot,x_dot,y_dot
     struct Twist2D
     {
         double theta_dot = 0.0;
@@ -104,8 +121,14 @@ namespace turtlelib
         double y_dot = 0.0;
     };
 
+    /// \brief output a twist [theta_dot x_dot y_dot]
+    /// os - stream to output to
+    /// t - the twist to print
     std::ostream & operator<<(std::ostream & os, const Twist2D & t);
 
+    /// \brief input a twist made up of theta_dot, x_dot, y_dot in this order
+    /// is - stream from which to read
+    /// t [out] - output twist
     std::istream & operator>>(std::istream & is, Twist2D & t);
     
     /// \brief a rigid body transformation in 2 dimensions
@@ -136,7 +159,7 @@ namespace turtlelib
 
 
         /// \brief invert the transformation
-        /// \return the inverse transformation. 
+        /// \return the inverse transformation of the transformation
         Transform2D inv() const;
 
         /// \brief compose this transform with another and store the result 
@@ -153,6 +176,9 @@ namespace turtlelib
         /// \return the angular displacement, in radiansVector2D
         double rotation() const;
 
+        /// \brief apply a transformation to a Twist2D
+        /// \param twist - the twist to transform
+        /// \return a twist in the new coordinate system
         Twist2D operator()(Twist2D twist) const;
 
         /// \brief \see operator<<(...) (declared outside this class)

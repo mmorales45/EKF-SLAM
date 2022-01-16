@@ -1,3 +1,6 @@
+/// \file
+/// \brief Tests the functions and operators defined in rigid2D.cpp
+/// use g++ -Wall -Wextra -g -std=c++17 -o tests tests.cpp rigid2d.cpp to run tests
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "rigid2d.hpp"
@@ -5,9 +8,8 @@
 #include <iostream>    
 #include <sstream> 
 
-// g++ -Wall -Wextra -g -std=c++17 -o tests tests.cpp rigid2d.cpp 
 
-TEST_CASE("Identity Transform", "[transform]") {
+TEST_CASE("Test Identity Transform", "[transform]") {
     turtlelib::Transform2D transform = turtlelib::Transform2D();
     turtlelib::Vector2D vec = transform.translation();
     double angle = transform.rotation();
@@ -19,7 +21,7 @@ TEST_CASE("Identity Transform", "[transform]") {
     REQUIRE( y_ph == 0 );
 }
 
-TEST_CASE("Translational Only Transform", "[transform]") {
+TEST_CASE("Test Translational Only Transform", "[transform]") {
     turtlelib::Vector2D vector;
     vector.x = 2.0;
     vector.y = 3.0;
@@ -34,7 +36,7 @@ TEST_CASE("Translational Only Transform", "[transform]") {
     REQUIRE( y_ph == 3.0 );
 }
 
-TEST_CASE("Rotational Only Transform", "[transform]") {
+TEST_CASE("Test Rotational Only Transform", "[transform]") {
     double angle_init = 90.0;
     turtlelib::Transform2D transform = turtlelib::Transform2D(angle_init);
     turtlelib::Vector2D vec = transform.translation();
@@ -47,7 +49,7 @@ TEST_CASE("Rotational Only Transform", "[transform]") {
     REQUIRE( y_ph == 0.0 );
 }
 
-TEST_CASE("Both Translational and Rotational Transform", "[transform]") {
+TEST_CASE("Test Both Translational and Rotational Transform", "[transform]") {
     double angle_init = 90.0;
     turtlelib::Vector2D vector;
     vector.x = 2.0;
@@ -63,7 +65,7 @@ TEST_CASE("Both Translational and Rotational Transform", "[transform]") {
     REQUIRE( y_ph == 3.0 );
 }
 
-TEST_CASE("Apply Transform for Vector2D", "[transform]") {
+TEST_CASE("Test Apply Transform for Vector2D", "[transform]") {
     turtlelib::Vector2D init_vect;
     turtlelib::Vector2D new_vect;
     double angle_init = turtlelib::deg2rad(180.0);
@@ -76,7 +78,7 @@ TEST_CASE("Apply Transform for Vector2D", "[transform]") {
     REQUIRE(new_vect.y==Approx(-4.0));
 }
 
-TEST_CASE("Apply Transform for Twist2D", "[transform]") {
+TEST_CASE("Test Apply Transform for Twist2D", "[transform]") {
     turtlelib::Twist2D init_twist;
     turtlelib::Twist2D new_twist;
     double angle_init = turtlelib::deg2rad(180.0);
@@ -90,7 +92,7 @@ TEST_CASE("Apply Transform for Twist2D", "[transform]") {
     REQUIRE(new_twist.y_dot== Approx(-4.0));
 }
 
-TEST_CASE("Inverse of a Transform", "[transform]") {
+TEST_CASE("Test Inverse of a Transform", "[transform]") {
     double angle_init = turtlelib::deg2rad(180.0);
     turtlelib::Vector2D init_vect;
     init_vect.x = 2.0;
@@ -105,7 +107,7 @@ TEST_CASE("Inverse of a Transform", "[transform]") {
     REQUIRE(inv_angle== Approx(-turtlelib::deg2rad(180.0)));
 }
 
-TEST_CASE("Multiply Equals", "[transform]") {
+TEST_CASE("Test Multiply Equals", "[transform]") {
     turtlelib::Vector2D vect1;
     turtlelib::Vector2D vect2;
     turtlelib::Vector2D translational_comp;
@@ -128,7 +130,7 @@ TEST_CASE("Multiply Equals", "[transform]") {
 
 }
 
-TEST_CASE("Translation and Rotational Functions", "[transform]") {
+TEST_CASE("Test Translation and Rotational Functions", "[transform]") {
     turtlelib::Vector2D vect;
     double angle = turtlelib::deg2rad(90.0);
     vect.x = 6.0;
@@ -149,7 +151,7 @@ TEST_CASE("Translation and Rotational Functions", "[transform]") {
     }
 }
 
-TEST_CASE("Input stream", "[transform]") {
+TEST_CASE("Test Input stream", "[transform]") {
     std::stringstream ss;
 
     SECTION( "Just numbers" ) {
@@ -177,14 +179,14 @@ TEST_CASE("Input stream", "[transform]") {
     }
 }
 
-TEST_CASE("Output stream", "[transform]") {
+TEST_CASE("Test Output stream", "[transform]") {
     std::stringstream ss;
     std::string s("deg: 90 x: 0 y: 1");
     ss << "deg: " << 90 << " x: "<< 0 << " y: " << 1; 
     REQUIRE(s == ss.str());
 }
 
-TEST_CASE("Multiply two transforms", "[transform]") {
+TEST_CASE("Test Multiply two transforms", "[transform]") {
     turtlelib::Vector2D vect1;
     turtlelib::Vector2D vect2;
     turtlelib::Vector2D translational_comp;
