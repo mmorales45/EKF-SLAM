@@ -164,12 +164,7 @@ TEST_CASE("Test Input stream", "[transform]") {
     }
 
     SECTION( "Strings added" ) {
-        char c1 = ss.peek();
-        char str1[6] = "";
-
-        if (c1 == 'd'){
-            ss.get(str1,6);
-        }
+        ss.peek();
         ss << "deg: " << 90 << " x: "<< 0 << " y: " << 1;
         int deg,x,y;
         ss >> deg >>x>>y;

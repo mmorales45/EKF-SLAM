@@ -126,16 +126,11 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D &
 
     if (c1 == 'd'){
         is.get(str1,6);
-        // std::cout << "this is str1 after seeing d: "<<str1<<"\n";
-        // std::cout << "this is the new value " << static_cast<char>(is.peek()) << "\n";
         is >> rotational;
         is.get(str2,4);
-        // std::cout << "this is the new value " << static_cast<char>(is.peek()) << "\n";
         is >> translational.x;
         is.get(str2,4);
-        // std::cout << "this is the new value " << static_cast<char>(is.peek()) << "\n";
         is.get();
-        // std::cout << "this is the new value " << static_cast<char>(is.peek()) << "\n";
         is >> translational.y;
         is.get();
     }
