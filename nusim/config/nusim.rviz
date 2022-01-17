@@ -147,10 +147,10 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /obstacles/visualization
+      Marker Topic: /nusim/obstacles/visualization
       Name: Marker
       Namespaces:
-        /obstacles/obstacles: true
+        "": true
       Queue Size: 100
       Value: true
   Enabled: true

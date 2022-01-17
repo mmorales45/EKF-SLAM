@@ -26,6 +26,8 @@ The launchfile, `nusim.launch`, is the main launchfile for the package and it ru
 To run the launchfile, run the following line.
 `roslaunch nusim nusim.launch`
 
+There is only one argument, which is color and this sets the color of the robot. For this assignment, only red is used and therefre the default is red. 
+`roslaunch nusim nusim.launch color:=red`
 
 ### Services
 There are two services that can be called in the package.
@@ -38,7 +40,9 @@ rosservice call /nusim/reset
 The next service is 'teleport' and it moves the position of the turtlebot where the user set when calling the service.
 below.
 ```
-rosservice call /nusim/teleport {}
+rosservice call /nusim/teleport "x: 0.0
+y: 0.0
+theta: 0.0" 
 ```
 
 

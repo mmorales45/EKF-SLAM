@@ -3,17 +3,18 @@
 ///
 /// PARAMETERS:
 ///     rate (double): Frequency at which the main loop runs
-///     parameter_name (parameter_type): description of the parameter
-///     parameter_name (parameter_type): description of the parameter
-///     parameter_name (parameter_type): description of the parameter
+///     cylinders_x_coord (std::vector<double>): The x coordaintes of the three red cylinders
+///     cylinders_y_coord (std::vector<double>): The y coordaintes of the three red cylinders
+///     robot (std::vector<double>): vector/array of the robot's iniital coordinates in x,y,and theta
+///     radius (double): the radius of the red cylinders
 /// PUBLISHES:
 ///     timestep_pub (std_msgs/UInt64): Tracks the simulation's current timestep
 ///     joint_state_pub (sensor_msgs/JointState): Publishes joint positions to red/joint_states
-///     marker_pub (visualization_msgs/Marker): Creates obstacles as red cylinders
+///     marker_pub (visualization_msgs/Marker): Creates obstacles as red cylinders in RVIZ
 /// SERVICES:
-///     reset (std_srvs/Empty): Sets the timestep to 0 and teleports turtlebot to (0,0,0)
+///     reset (nusim/reset): Sets the timestep to 0 and teleports turtlebot to the initial position
 ///     teleport (nusim/Teleport): Teleports the turtblebot to a user defined position
-///     service_name (service_type): description of the service
+
 #include <ros/ros.h>
 #include <std_msgs/UInt64.h>
 #include <iostream>
@@ -29,31 +30,23 @@
 #include <vector>
 #include <cstdlib>
 
+/// \brief Creates a simulator and visualizer for the turtlebot3
 
-/// \brief Computes the factorial
-///
-/// \tparam T - An integral type
-/// \param F - the factorial to compute
-/// \returns F! (F Factorial)
-/// <template typename T>
-/// T factorial (T F);
 class Sim
 {
     public:
         Sim() {
-            srand ( (unsigned)time(NULL));
 
             data_val = 0;
             timestep.data = 0;
-            nh.getParam("/rate",rate);
-            nh.getParam("/cylinders_x_coord",cylinders_x_coord);
-            nh.getParam("/cylinders_y_coord",cylinders_y_coord);
-            nh.getParam("/robot",robot_coords);
-            nh.getParam("/radius",radius);
-            radius = radius*2.0;
+            nh.getParam("/nusim/rate",rate);
+            nh.getParam("/nusim/cylinders_x_coord",cylinders_x_coord);
+            nh.getParam("/nusim/cylinders_y_coord",cylinders_y_coord);
+            nh.getParam("/nusim/robot",robot_coords);
+            nh.getParam("/nusim/radius",radius);
 
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
-            marker_pub  = nh.advertise<visualization_msgs::Marker>("/obstacles/visualization", 1000, true);
+            marker_pub  = nh.advertise<visualization_msgs::Marker>("/nusim/obstacles/visualization", 1000, true);
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
             joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
@@ -65,7 +58,7 @@ class Sim
             joint_state.position.push_back(0.0);
 
             marker.header.frame_id = "world";
-            marker.ns = "/obstacles/obstacles";
+            marker.ns = "/nusim/obstacles/obstacles";
             shape = visualization_msgs::Marker::CYLINDER;
             marker.type = shape;
             marker.action = visualization_msgs::Marker::ADD;
@@ -80,19 +73,14 @@ class Sim
             for (int j = 0;j<(cylinders_x_coord.size());j++){
                 cylinder_marker_x.push_back(cylinders_x_coord[j]);
                 cylinder_marker_y.push_back(cylinders_y_coord[j]);
-                std::cout << cylinder_marker_x[j] << " X\n";
-                std::cout << cylinder_marker_y[j] << " Y\n";
             }
 
         }
     
-        /// \brief Computes the factorial
+        /// \brief sets the timestep to 0 and teleports robot to intial position
         ///
-        /// \tparam T - An integral type
-        /// \param F - the factorial to compute
-        /// \returns F! (F Factorial)
-        /// <template typename T>
-        /// T factorial (T F);
+        /// \param data - empty
+        /// \returns response - true 
         bool reset(std_srvs::Empty::Request& data, std_srvs::Empty::Response& response)
         {
             timestep.data = 0;
@@ -103,13 +91,10 @@ class Sim
         return true;
         }
 
-        /// \brief Computes the factorial
+        /// \brief teleports the robot to a position set by the user
         ///
-        /// \tparam T - An integral type
-        /// \param F - the factorial to compute
-        /// \returns F! (F Factorial)
-        /// <template typename T>
-        /// T factorial (T F);
+        /// \param data - Teleport data type composed of user x,y,theta
+        /// \returns response - true 
         bool teleport(nusim::Teleport::Request& data, nusim::Teleport::Response& response)
         {
             current_Pose.position.x = data.x;
@@ -118,16 +103,10 @@ class Sim
             return true;
         }
 
-        /// \brief Computes the factorial
+        /// \brief A timer that updates the simulation
         ///
-        /// \tparam T - An integral type
-        /// \param F - the factorial to compute
-        /// \returns F! (F Factorial)
-        /// <template typename T>
-        /// T factorial (T F);
         void main_loop(const ros::TimerEvent &)
          {
-            // implement the state machine here
             joint_state.header.stamp = ros::Time::now();
             joint_state.position[0] = 0.0;
             joint_state.position[1] = 0.0;
@@ -156,8 +135,8 @@ class Sim
                 marker.pose.orientation.y = 0.0;
                 marker.pose.orientation.z = 0.0;
                 marker.pose.orientation.w = 1.0;
-                marker.scale.x = radius;
-                marker.scale.y = radius;
+                marker.scale.x = (2*radius);
+                marker.scale.y = (2*radius);
                 marker.scale.z = 0.25;
                 marker.color.r = 1.0f;
                 marker.color.g = 0.0f;
@@ -201,9 +180,11 @@ class Sim
 
 };
 
+/// \brief the main function that calls the class
+
 int main(int argc, char * argv[])
 {
-    ros::init(argc, argv, "nodename");
+    ros::init(argc, argv, "nusim");
     Sim node;
     ros::spin();
     return 0;
