@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TF1/Tree1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 555
   - Class: rviz/Selection
@@ -63,35 +63,35 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        red:base_footprint:
+        red-base_footprint:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        red:base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        red:base_scan:
+        red-base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        red:caster_back_link:
+        red-base_scan:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        red:imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        red:wheel_left_link:
+        red-caster_back_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        red:wheel_right_link:
+        red-imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        red-wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        red-wheel_right_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -107,19 +107,19 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        red:base_footprint:
+        red-base_footprint:
           Value: false
-        red:base_link:
+        red-base_link:
           Value: false
-        red:base_scan:
+        red-base_scan:
           Value: false
-        red:caster_back_link:
+        red-caster_back_link:
           Value: false
-        red:imu_link:
+        red-imu_link:
           Value: false
-        red:wheel_left_link:
+        red-wheel_left_link:
           Value: false
-        red:wheel_right_link:
+        red-wheel_right_link:
           Value: false
         world:
           Value: true
@@ -131,17 +131,17 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          red:base_footprint:
-            red:base_link:
-              red:base_scan:
+          red-base_footprint:
+            red-base_link:
+              red-base_scan:
                 {}
-              red:caster_back_link:
+              red-caster_back_link:
                 {}
-              red:imu_link:
+              red-imu_link:
                 {}
-              red:wheel_left_link:
+              red-wheel_left_link:
                 {}
-              red:wheel_right_link:
+              red-wheel_right_link:
                 {}
       Update Interval: 0
       Value: true
@@ -150,7 +150,7 @@ Visualization Manager:
       Marker Topic: /nusim/obstacles/visualization
       Name: Marker
       Namespaces:
-        "": true
+        /nusim/obstacles/obstacles: true
       Queue Size: 100
       Value: true
   Enabled: true

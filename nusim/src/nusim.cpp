@@ -51,8 +51,8 @@ class Sim
             joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
             //Add initial values of 0.0 for joint's position
-            joint_state.name.push_back("red:wheel_left_joint");
-            joint_state.name.push_back("red:wheel_right_joint");
+            joint_state.name.push_back("red-wheel_left_joint");
+            joint_state.name.push_back("red-wheel_right_joint");
             joint_state.position.push_back(0.0);
             joint_state.position.push_back(0.0);
             //initialize parameters of marker that do not change such as the name,type and ns
@@ -63,7 +63,7 @@ class Sim
             marker.action = visualization_msgs::Marker::ADD;
             //set initial coordinates for the robot as well as the header and child ids
             transformStamped.header.frame_id = "world";
-            transformStamped.child_frame_id = "red:base_footprint";
+            transformStamped.child_frame_id = "red-base_footprint";
             current_Pose.position.x = robot_coords[0];
             current_Pose.position.y = robot_coords[1];
             theta = robot_coords[2];
