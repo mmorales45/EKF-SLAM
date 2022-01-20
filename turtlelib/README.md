@@ -12,30 +12,15 @@ A library for handling transformations in SE(2) and other turtlebot-related math
    2. Create a function that is not a part of a class or struct but instead is of type Vector2D
    3. Create a class or struct who's function is to normalize a vector.
    - Discuss the pros and cons of each proposed method, in light of the C++ Core Guidelines.
-   1. Pros:
 
       Makes organization simple by having a function that uses the Vector2D struct be inside. 
-
-      Cons:
-
       C.4 states that one should only make a function a member function if it needs direct access to representation of class. The function does need any private numbers or information other than that it is of a Vector2D data type.
 
-   2. Pros:
-
       The function does not need direct access to the representation of the struct and it can be in the same namespace as the struct which according to C.5, is the definition of a helper function. Additionally, being in the same namespace shows the obvious relationship between the function and the struct.
-
-      Cons:
-
       Since it is not inside a class/struct, the relationship might be as apparent to users looking at the function. 
 
-
-   3. Pros: 
-   
       Referencing C.1, it is advised to use strutures for easy 
       of comprehension and allows data to be used within the structure.
-
-      Cons:
-
       Creating an entire structure for the implementation of one function would be adding too much complexity for a single function.
 
    - Which of the methods would you implement and why?
