@@ -14,7 +14,7 @@ TEST_CASE("Test Identity Transform", "[transform]") {
     turtlelib::Vector2D vec = transform.translation();
     double angle = transform.rotation();
     double x_ph = vec.x;
-    double y_ph = vec.x;
+    double y_ph = vec.y;
 
     REQUIRE( angle == 0 );
     REQUIRE( x_ph == 0 );
