@@ -27,6 +27,7 @@
 #include <geometry_msgs/Pose.h>
 #include <nusim/Teleport.h>
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <vector>
 #include <cstdlib>
 
@@ -45,7 +46,7 @@ class Sim
             nh.getParam("/nusim/radius",radius);
             //Initialize the timer, services, and publishers
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
-            marker_pub  = nh.advertise<visualization_msgs::Marker>("/obstacles/visualization", 1000, true);
+            marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/obstacles", 1, true);
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
             joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
@@ -55,11 +56,7 @@ class Sim
             joint_state.name.push_back("red-wheel_right_joint");
             joint_state.position.push_back(0.0);
             joint_state.position.push_back(0.0);
-            //initialize parameters of marker that do not change such as the name,type and ns
-            marker.header.frame_id = "world";
-            shape = visualization_msgs::Marker::CYLINDER;
-            marker.type = shape;
-            marker.action = visualization_msgs::Marker::ADD;
+
             //set initial coordinates for the robot as well as the header and child ids
             transformStamped.header.frame_id = "world";
             transformStamped.child_frame_id = "red-base_footprint";
@@ -123,26 +120,36 @@ class Sim
             transformStamped.transform.rotation.w = q.w();
             broadcaster.sendTransform(transformStamped);
             //publish the markers'/cylinders' position 
+            //Create marker array
+            marker.markers.resize(cylinders_x_coord.size());
             for (int i = 0;i<(cylinders_x_coord.size());i++)
             {
-                marker.id = i;
-                marker.pose.position.x = cylinder_marker_x[i];
-                marker.pose.position.y = cylinder_marker_y[i];
-                marker.pose.position.z = 0.125;
-                marker.pose.orientation.x = 0.0;
-                marker.pose.orientation.y = 0.0;
-                marker.pose.orientation.z = 0.0;
-                marker.pose.orientation.w = 1.0;
-                marker.scale.x = (2*radius);
-                marker.scale.y = (2*radius);
-                marker.scale.z = 0.25;
-                marker.color.r = 1.0f;
-                marker.color.g = 0.0f;
-                marker.color.b = 0.0f;
-                marker.color.a = 1.0;
-                marker.lifetime = ros::Duration();
-                marker_pub.publish(marker);
+                marker.markers[i].header.stamp = ros::Time();
+                marker.markers[i].header.frame_id = "world";
+                shape = visualization_msgs::Marker::CYLINDER;
+                marker.markers[i].type = shape;
+                marker.markers[i].ns = "obstacles";
+                marker.markers[i].action = visualization_msgs::Marker::ADD;
+                marker.markers[i].id = i;
+
+                marker.markers[i].pose.position.x = cylinder_marker_x[i];
+                marker.markers[i].pose.position.y = cylinder_marker_y[i];
+                marker.markers[i].pose.position.z = 0.125;
+                marker.markers[i].pose.orientation.x = 0.0;
+                marker.markers[i].pose.orientation.y = 0.0;
+                marker.markers[i].pose.orientation.z = 0.0;
+                marker.markers[i].pose.orientation.w = 1.0;
+
+                marker.markers[i].scale.x = (2*radius);
+                marker.markers[i].scale.y = (2*radius);
+                marker.markers[i].scale.z = 0.25;
+                
+                marker.markers[i].color.r = 1.0;
+                marker.markers[i].color.g = 0.0;
+                marker.markers[i].color.b = 0.0;
+                marker.markers[i].color.a = 1.0;
             }
+            marker_pub.publish(marker);
          }
 
     
@@ -162,7 +169,7 @@ class Sim
         tf2::Quaternion q;
         geometry_msgs::Pose current_Pose;
         double theta;
-        visualization_msgs::Marker marker;
+        visualization_msgs::MarkerArray marker;
         uint32_t shape;
         int num_obstacles;
         std::vector<double> cylinders_x_coord;
