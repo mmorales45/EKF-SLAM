@@ -147,7 +147,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /obstacles
+      Marker Topic: /nusim/obstacles/markerArray
       Name: MarkerArray
       Namespaces:
         obstacles: true
