@@ -147,7 +147,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /nusim/obstacles/visualization
+      Marker Topic: /obstacles/visualization
       Name: Marker
       Namespaces:
         /nusim/obstacles/obstacles: true
@@ -218,4 +218,4 @@ Window Geometry:
     collapsed: false
   Width: 1200
   X: 60
-  Y: 27
+  Y: 0

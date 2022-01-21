@@ -45,7 +45,7 @@ class Sim
             nh.getParam("/nusim/radius",radius);
             //Initialize the timer, services, and publishers
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
-            marker_pub  = nh.advertise<visualization_msgs::Marker>("/nusim/obstacles/visualization", 1000, true);
+            marker_pub  = nh.advertise<visualization_msgs::Marker>("/obstacles/visualization", 1000, true);
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
             joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
