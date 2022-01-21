@@ -57,7 +57,6 @@ class Sim
             joint_state.position.push_back(0.0);
             //initialize parameters of marker that do not change such as the name,type and ns
             marker.header.frame_id = "world";
-            marker.ns = "/nusim/obstacles/obstacles";
             shape = visualization_msgs::Marker::CYLINDER;
             marker.type = shape;
             marker.action = visualization_msgs::Marker::ADD;
