@@ -10,7 +10,7 @@
 /// PUBLISHES:
 ///     timestep_pub (std_msgs/UInt64): Tracks the simulation's current timestep
 ///     joint_state_pub (sensor_msgs/JointState): Publishes joint positions to red/joint_states
-///     marker_pub (visualization_msgs/Marker): Creates obstacles as red cylinders in RVIZ
+///     marker_pub (visualization_msgs/MarkerArray): Creates obstacles as red cylinders in RVIZ
 /// SERVICES:
 ///     reset (nusim/reset): Sets the timestep to 0 and teleports turtlebot to the initial position
 ///     teleport (nusim/Teleport): Teleports the turtblebot to a user defined position
