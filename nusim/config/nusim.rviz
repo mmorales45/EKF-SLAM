@@ -145,12 +145,12 @@ Visualization Manager:
                 {}
       Update Interval: 0
       Value: true
-    - Class: rviz/Marker
+    - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /nusim/obstacles/visualization
-      Name: Marker
+      Marker Topic: /nusim/obstacles/markerArray
+      Name: MarkerArray
       Namespaces:
-        /nusim/obstacles/obstacles: true
+        obstacles: true
       Queue Size: 100
       Value: true
   Enabled: true
