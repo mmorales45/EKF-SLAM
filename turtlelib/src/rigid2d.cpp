@@ -19,8 +19,14 @@ namespace turtlelib{
         
         if (c1 == '['){ 
             is.get();
+            is >> v.x;
+            is >> v.y;
+            is.get();
+            is.get();
         }
-        is >> v.x >> v.y;
+        else{
+            is >> v.x >> v.y;
+        }
         return is;
     }
 
@@ -137,6 +143,7 @@ namespace turtlelib{
         }
         else {
             is >> rotational >> translational.x >> translational.y;
+            is.get();
         }
         rotational = deg2rad(rotational);
         tf = Transform2D(translational,rotational);
@@ -165,8 +172,23 @@ namespace turtlelib{
     }
 
     std::istream & operator>>(std::istream & is, Twist2D & t)
-    {
-        is >> t.theta_dot >> t.x_dot >> t.y_dot;
+    {   
+        char c1 = is.peek();
+        
+        if (c1 == '['){ 
+            is.get();
+            is >> t.theta_dot;
+            is.get();
+            is >> t.x_dot;
+            is.get();
+            is >> t.y_dot;
+            is.get();
+            is.get();
+
+        }
+        else {
+            is >> t.theta_dot >> t.x_dot >> t.y_dot;
+        }
         return is;
     }
 
