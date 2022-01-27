@@ -248,7 +248,6 @@ namespace turtlelib{
     {
         Transform2D TbbPrime;
         if(twist.theta_dot == 0.0){
-            // Transform2D TbbPrime;
             Vector2D vector;
 
             vector.x = twist.x_dot;
@@ -257,7 +256,6 @@ namespace turtlelib{
         }
         else 
         {
-            // Transform2D TbbPrime;
             Transform2D Tsb;
             Transform2D Tbs;
             Transform2D TssPrime;
