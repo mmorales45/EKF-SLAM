@@ -23,7 +23,7 @@ int main(){
     // Tba = Tab.inv();
     // Tac = Tab*Tbc;
     // Tcb = Tbc.inv();
-    // Tca = Tac.inv();
+    // TcaX = Tac.inv();
     // //Print out transforms
     // std::cout << "T_{a,b}: " <<Tab;
     // std::cout << "T_{b,a}: " <<Tba;

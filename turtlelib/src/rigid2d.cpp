@@ -99,7 +99,7 @@ namespace turtlelib{
         return new_angle;
     }
 
-    Vector2D Normalize(Vector2D vector)
+    Vector2D NormalizeVector(Vector2D vector)
     {
         Vector2D v_hat;
         double magnitude = sqrt(pow(vector.x,2)+ pow(vector.y,2));

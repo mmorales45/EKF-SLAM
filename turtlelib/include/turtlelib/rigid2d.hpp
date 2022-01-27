@@ -106,7 +106,7 @@ namespace turtlelib
     /// \brief create a normalized 2D vector as [x_normalized y_normalized]
     /// \param vector - the Vector2D vector to normalize
     /// \return the normalized 2D vector
-    Vector2D Normalize(Vector2D vector);
+    Vector2D NormalizeVector(Vector2D vector);
 
     double normalize_angle(double rad);
 
