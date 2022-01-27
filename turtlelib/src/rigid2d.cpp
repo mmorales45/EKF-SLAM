@@ -2,7 +2,7 @@
 /// \brief Defines functions and operators that were declared in rigid2D.hpp
 ///
 
-#include "turtlelib/rigid2d.hpp"
+#include <turtlelib/rigid2d.hpp>
 #include <iostream>
 #include <string>
 
@@ -30,6 +30,75 @@ namespace turtlelib{
         return is;
     }
 
+    Vector2D & Vector2D::operator+=(const Vector2D & rhs)
+    {
+        x = x + rhs.x;
+        y = y + rhs.y;
+        return *this;
+    }
+
+    Vector2D operator+(Vector2D lhs, const Vector2D & rhs)
+    {
+        lhs += rhs;
+        return lhs;
+    }
+
+    Vector2D & Vector2D::operator-=(const Vector2D & rhs)
+    {
+        x = x - rhs.x;
+        y = y - rhs.y;
+        return *this;
+    }
+
+    Vector2D operator-(Vector2D lhs, const Vector2D & rhs)
+    {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    Vector2D & Vector2D::operator*=(const double & scalar)
+    {
+        this->x *= scalar;
+        this->y *= scalar;
+        return *this;
+    }
+
+    Vector2D operator*(Vector2D lhs, const double & scalar)
+    {
+        lhs *= scalar;
+        return lhs;
+    }
+
+    Vector2D operator*(const double & scalar, Vector2D lhs)
+    {
+        lhs *= scalar;
+        return lhs;
+    }
+
+    double dot(Vector2D vector1, Vector2D vector2)
+    {
+        double product;
+        product = (vector1.x * vector2.x) + (vector1.y * vector2.y);
+        return product;
+    }
+
+    double magnitude(Vector2D vector)
+    {
+        double magnitude = sqrt(pow(vector.x,2)+ pow(vector.y,2));
+        return magnitude;
+    }
+
+
+    double angle(Vector2D vector1, Vector2D vector2)
+    {
+        double product = dot(vector1, vector2);
+        double mag1 = magnitude(vector1);
+        double mag2 = magnitude(vector2);
+
+        double new_angle = acos(product/(mag1*mag2));
+        return new_angle;
+    }
+
     Vector2D Normalize(Vector2D vector)
     {
         Vector2D v_hat;
@@ -38,7 +107,18 @@ namespace turtlelib{
         v_hat.y = vector.y/magnitude;
         return v_hat; 
     }
-
+    
+    double normalize_angle(double rad)
+    {
+        double x = fmod(rad - PI, (2*PI));
+        if(x > 0.0) {
+            x = x - (2*PI);
+        }
+        return x + PI;
+    }
+    
+///// TRANSFORM 2D
+//////////////////////////////////////////////////////////////////////////////////////////////
     Transform2D::Transform2D()
     {
         translational_component.x = 0;
@@ -164,7 +244,42 @@ namespace turtlelib{
         return lhs;
     }
 
+    Transform2D integrate_twist(const Twist2D & twist)
+    {
+        Transform2D TbbPrime;
+        if(twist.theta_dot == 0.0){
+            // Transform2D TbbPrime;
+            Vector2D vector;
 
+            vector.x = twist.x_dot;
+            vector.y = twist.y_dot;
+            TbbPrime = Transform2D(vector);
+        }
+        else 
+        {
+            // Transform2D TbbPrime;
+            Transform2D Tsb;
+            Transform2D Tbs;
+            Transform2D TssPrime;
+            Transform2D TsPrimebPrime;
+            Vector2D translational_vector;
+            double angle = twist.theta_dot * 1;
+
+
+            translational_vector.x = (-twist.x_dot/twist.theta_dot);
+            translational_vector.y = (twist.y_dot/twist.theta_dot);
+            Tsb = Transform2D(translational_vector);
+            Tbs = Tsb.inv();
+            TsPrimebPrime = Tsb;
+            TssPrime = Transform2D(angle);
+            TbbPrime = Tbs * TssPrime * TsPrimebPrime;
+        }
+
+        return TbbPrime;
+
+    }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::ostream & operator<<(std::ostream & os, const Twist2D & t)
     {
         os << "["<< t.theta_dot << " " << t.x_dot << " " << t.y_dot <<"]"<< "\n";

@@ -80,13 +80,35 @@ namespace turtlelib
 
         /// \brief the y coordinate
         double y = 0.0;
+
+        Vector2D & operator+=(const Vector2D & rhs);
+
+        Vector2D & operator-=(const Vector2D & rhs);
+
+        Vector2D & operator*=(const double & scalar);
+
     };
 
+    Vector2D operator+(Vector2D lhs, const Vector2D & rhs);
+
+    Vector2D operator-(Vector2D lhs, const Vector2D & rhs);
+
+    Vector2D operator*(Vector2D lhs, const double & scalar);
+
+    Vector2D operator*(const double & scalar, Vector2D lhs);
+
+    double dot(Vector2D vector1, Vector2D vector2);
+
+    double magnitude(Vector2D vector);
+
+    double angle(Vector2D vector1, Vector2D vector2);
 
     /// \brief create a normalized 2D vector as [x_normalized y_normalized]
     /// \param vector - the Vector2D vector to normalize
     /// \return the normalized 2D vector
     Vector2D Normalize(Vector2D vector);
+
+    double normalize_angle(double rad);
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
     /// os - stream to output to
@@ -185,11 +207,15 @@ namespace turtlelib
         /// for a description
         friend std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
 
+        // Transform2D integrate_twist(const Twist2D & twist);
+        
+
     private:
         Vector2D translational_component;
         double angular_displacement;
     };
 
+    Transform2D integrate_twist(const Twist2D & twist);
 
     /// \brief should print a human readable version of the transform:
     /// An example output:
