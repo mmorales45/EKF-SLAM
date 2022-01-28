@@ -10,7 +10,7 @@
 /// PUBLISHES:
 ///     timestep_pub (std_msgs/UInt64): Tracks the simulation's current timestep
 ///     joint_state_pub (sensor_msgs/JointState): Publishes joint positions to red/joint_states
-///     marker_pub (visualization_msgs/Marker): Creates obstacles as red cylinders in RVIZ
+///     marker_pub (visualization_msgs/MarkerArray): Creates obstacles as red cylinders in RVIZ
 /// SERVICES:
 ///     reset (nusim/reset): Sets the timestep to 0 and teleports turtlebot to the initial position
 ///     teleport (nusim/Teleport): Teleports the turtblebot to a user defined position
@@ -27,6 +27,7 @@
 #include <geometry_msgs/Pose.h>
 #include <nusim/Teleport.h>
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <vector>
 #include <cstdlib>
 
@@ -36,40 +37,34 @@ class Sim
 {
     public:
         Sim() {
-
-            data_val = 0;
+            //get parameters from basic_world.yaml
             timestep.data = 0;
             nh.getParam("/nusim/rate",rate);
             nh.getParam("/nusim/cylinders_x_coord",cylinders_x_coord);
             nh.getParam("/nusim/cylinders_y_coord",cylinders_y_coord);
             nh.getParam("/nusim/robot",robot_coords);
             nh.getParam("/nusim/radius",radius);
-
+            //Initialize the timer, services, and publishers
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
-            marker_pub  = nh.advertise<visualization_msgs::Marker>("/nusim/obstacles/visualization", 1000, true);
+            marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/markerArray", 1, true);
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
             joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
-
-            joint_state.name.push_back("red:wheel_left_joint");
-            joint_state.name.push_back("red:wheel_right_joint");
+            //Add initial values of 0.0 for joint's position
+            joint_state.name.push_back("red-wheel_left_joint");
+            joint_state.name.push_back("red-wheel_right_joint");
             joint_state.position.push_back(0.0);
             joint_state.position.push_back(0.0);
 
-            marker.header.frame_id = "world";
-            marker.ns = "/nusim/obstacles/obstacles";
-            shape = visualization_msgs::Marker::CYLINDER;
-            marker.type = shape;
-            marker.action = visualization_msgs::Marker::ADD;
-        
+            //set initial coordinates for the robot as well as the header and child ids
             transformStamped.header.frame_id = "world";
-            transformStamped.child_frame_id = "red:base_footprint";
+            transformStamped.child_frame_id = "red-base_footprint";
             current_Pose.position.x = robot_coords[0];
             current_Pose.position.y = robot_coords[1];
             theta = robot_coords[2];
             q.setRPY(0, 0, theta);
-
+            //add values to x and y coordiante vectors
             for (int j = 0;j<(cylinders_x_coord.size());j++){
                 cylinder_marker_x.push_back(cylinders_x_coord[j]);
                 cylinder_marker_y.push_back(cylinders_y_coord[j]);
@@ -110,11 +105,11 @@ class Sim
             joint_state.header.stamp = ros::Time::now();
             joint_state.position[0] = 0.0;
             joint_state.position[1] = 0.0;
-
+            //update timestep
             timestep.data++;
             timestep_pub.publish(timestep);  
             joint_state_pub.publish(joint_state);
-
+            //update position of the robot 
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_Pose.position.x;
             transformStamped.transform.translation.y = current_Pose.position.y;
@@ -124,30 +119,40 @@ class Sim
             transformStamped.transform.rotation.z = q.z();
             transformStamped.transform.rotation.w = q.w();
             broadcaster.sendTransform(transformStamped);
-
+            //publish the markers'/cylinders' position 
+            //Create marker array
+            marker.markers.resize(cylinders_x_coord.size());
             for (int i = 0;i<(cylinders_x_coord.size());i++)
             {
-                marker.id = i;
-                marker.pose.position.x = cylinder_marker_x[i];
-                marker.pose.position.y = cylinder_marker_y[i];
-                marker.pose.position.z = 0.125;
-                marker.pose.orientation.x = 0.0;
-                marker.pose.orientation.y = 0.0;
-                marker.pose.orientation.z = 0.0;
-                marker.pose.orientation.w = 1.0;
-                marker.scale.x = (2*radius);
-                marker.scale.y = (2*radius);
-                marker.scale.z = 0.25;
-                marker.color.r = 1.0f;
-                marker.color.g = 0.0f;
-                marker.color.b = 0.0f;
-                marker.color.a = 1.0;
-                marker.lifetime = ros::Duration();
-                marker_pub.publish(marker);
+                marker.markers[i].header.stamp = ros::Time();
+                marker.markers[i].header.frame_id = "world";
+                shape = visualization_msgs::Marker::CYLINDER;
+                marker.markers[i].type = shape;
+                marker.markers[i].ns = "obstacles";
+                marker.markers[i].action = visualization_msgs::Marker::ADD;
+                marker.markers[i].id = i;
+
+                marker.markers[i].pose.position.x = cylinder_marker_x[i];
+                marker.markers[i].pose.position.y = cylinder_marker_y[i];
+                marker.markers[i].pose.position.z = 0.125;
+                marker.markers[i].pose.orientation.x = 0.0;
+                marker.markers[i].pose.orientation.y = 0.0;
+                marker.markers[i].pose.orientation.z = 0.0;
+                marker.markers[i].pose.orientation.w = 1.0;
+
+                marker.markers[i].scale.x = (2*radius);
+                marker.markers[i].scale.y = (2*radius);
+                marker.markers[i].scale.z = 0.25;
+                
+                marker.markers[i].color.r = 1.0;
+                marker.markers[i].color.g = 0.0;
+                marker.markers[i].color.b = 0.0;
+                marker.markers[i].color.a = 1.0;
             }
+            marker_pub.publish(marker);
          }
 
-
+    
     private:
         ros::NodeHandle nh;
         ros::Publisher timestep_pub;
@@ -156,7 +161,6 @@ class Sim
         ros::Timer timer;
         double rate;
         std_msgs::UInt64 timestep;
-        int data_val;
         ros::ServiceServer reset_service;
         ros::ServiceServer teleport_service;
         sensor_msgs::JointState joint_state;
@@ -164,11 +168,8 @@ class Sim
         geometry_msgs::TransformStamped transformStamped;
         tf2::Quaternion q;
         geometry_msgs::Pose current_Pose;
-        double x0;
-        double y0;
-        double theta0;
         double theta;
-        visualization_msgs::Marker marker;
+        visualization_msgs::MarkerArray marker;
         uint32_t shape;
         int num_obstacles;
         std::vector<double> cylinders_x_coord;
