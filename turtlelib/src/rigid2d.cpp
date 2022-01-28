@@ -266,6 +266,7 @@ namespace turtlelib{
 
             translational_vector.x = (twist.y_dot/twist.theta_dot);
             translational_vector.y = (-twist.x_dot/twist.theta_dot);
+            
             Tsb = Transform2D(translational_vector);
             Tbs = Tsb.inv();
             TsPrimebPrime = Tsb;

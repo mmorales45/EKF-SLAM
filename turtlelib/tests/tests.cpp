@@ -63,6 +63,18 @@ TEST_CASE("Integrating a Twist", "[rigid2d]") {
         REQUIRE( trans.y ==  Approx(0.63662));
         REQUIRE( rot ==  Approx(PI));
     }
+
+    SECTION( "Testing Both Rotational and Translational components v3" ) {
+        twist.x_dot = 2.0;
+        twist.y_dot = 4.0;
+        twist.theta_dot = PI;
+        TbbPrime = integrate_twist(twist);
+        trans = TbbPrime.translation();
+        rot = TbbPrime.rotation();
+        REQUIRE( trans.x == Approx(-2.54).margin(0.01));
+        REQUIRE( trans.y ==  Approx(1.272).margin(0.01));
+        REQUIRE( rot ==  Approx(PI));
+    }
 }
 
 
