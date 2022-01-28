@@ -253,6 +253,7 @@ namespace turtlelib{
             vector.x = twist.x_dot;
             vector.y = twist.y_dot;
             TbbPrime = Transform2D(vector);
+            return TbbPrime;
         }
         else 
         {
@@ -272,9 +273,9 @@ namespace turtlelib{
             TsPrimebPrime = Tsb;
             TssPrime = Transform2D(angle);
             TbbPrime = Tbs * TssPrime * TsPrimebPrime;
+            return TbbPrime;
         }
 
-        return TbbPrime;
 
     }
 
