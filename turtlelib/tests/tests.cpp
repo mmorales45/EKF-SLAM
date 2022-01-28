@@ -12,14 +12,57 @@ using namespace turtlelib;
 
 
 TEST_CASE("Integrating a Twist", "[rigid2d]") {
+    Twist2D twist;
+    Transform2D TbbPrime;
+    Vector2D trans;
+    double rot; 
+    SECTION( "Testing only Translational components" ) {
+        twist.x_dot = 3.0;
+        twist.y_dot = 5.0;
+        twist.theta_dot = 0.0;
+        TbbPrime = integrate_twist(twist);
+        trans = TbbPrime.translation();
+        rot = TbbPrime.rotation();
+        REQUIRE( trans.x ==  Approx(3.0));
+        REQUIRE( trans.y ==  Approx(5.0));
+        REQUIRE( rot ==  Approx(0.0));
+    }
+    
+    SECTION( "Testing only Rotational components" ) {
+        twist.x_dot = 0.0;
+        twist.y_dot = 0.0;
+        twist.theta_dot = PI;
+        TbbPrime = integrate_twist(twist);
+        trans = TbbPrime.translation();
+        rot = TbbPrime.rotation();
+        REQUIRE( trans.x ==  Approx(0.0));
+        REQUIRE( trans.y ==  Approx(0.0));
+        REQUIRE( rot ==  Approx(PI));
+    }
 
-    REQUIRE( normalize_angle(PI) ==  Approx(PI));
-    REQUIRE( normalize_angle(-PI) ==  Approx(PI));
-    REQUIRE( normalize_angle(0) ==  Approx(0));
-    REQUIRE( normalize_angle(-PI/4) ==  Approx(-PI/4));
-    REQUIRE( normalize_angle(3*PI/2) ==  Approx(-PI/2));
-    REQUIRE( normalize_angle(-5*PI/2) ==  Approx(-PI/2));
+    SECTION( "Testing Both Rotational and Translational components" ) {
+        twist.x_dot = 3.0;
+        twist.y_dot = 5.0;
+        twist.theta_dot = PI/2;
+        TbbPrime = integrate_twist(twist);
+        trans = TbbPrime.translation();
+        rot = TbbPrime.rotation();
+        REQUIRE( trans.x == Approx(-1.27324));
+        REQUIRE( trans.y ==  Approx(5.09296));
+        REQUIRE( rot ==  Approx(PI/2));
+    }
 
+    SECTION( "Testing Both Rotational and Translational components v2" ) {
+        twist.x_dot = 1.0;
+        twist.y_dot = 2.0;
+        twist.theta_dot = PI;
+        TbbPrime = integrate_twist(twist);
+        trans = TbbPrime.translation();
+        rot = TbbPrime.rotation();
+        REQUIRE( trans.x == Approx(-1.27324));
+        REQUIRE( trans.y ==  Approx(0.63662));
+        REQUIRE( rot ==  Approx(PI));
+    }
 }
 
 
@@ -31,7 +74,6 @@ TEST_CASE("Normalizing Angles", "[rigid2d]") {
     REQUIRE( normalize_angle(-PI/4) ==  Approx(-PI/4));
     REQUIRE( normalize_angle(3*PI/2) ==  Approx(-PI/2));
     REQUIRE( normalize_angle(-5*PI/2) ==  Approx(-PI/2));
-
 }
 
 TEST_CASE("+= Test", "[transform]") {

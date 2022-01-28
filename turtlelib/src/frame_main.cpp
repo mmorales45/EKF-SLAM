@@ -92,9 +92,9 @@ int main(){
     // std::cout<< angle1 << std::endl;
 
     turtlelib::Twist2D twist;
-    twist.x_dot = 3.0;
+    twist.x_dot = 5.0;
     twist.y_dot = 2.0;
-    twist.theta_dot = 0;
+    twist.theta_dot = turtlelib::PI/2;
 
     turtlelib::Transform2D tbb;
     tbb = turtlelib::integrate_twist(twist);
