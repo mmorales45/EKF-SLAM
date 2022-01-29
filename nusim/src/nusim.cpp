@@ -173,7 +173,7 @@ class Sim
          
         }
 
-        void wheel_callback(const nuturtlebot_msgs::WheelCommands &wheel_commands)
+        void wheel_callback(const nuturtlebot_msgs::WheelCommands &wheel_commands) 
         {
             left_vel = wheel_commands.left_velocity;
             right_vel = wheel_commands.right_velocity;
