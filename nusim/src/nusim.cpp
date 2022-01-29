@@ -44,12 +44,17 @@ class Sim
             nh.getParam("/nusim/cylinders_y_coord",cylinders_y_coord);
             nh.getParam("/nusim/robot",robot_coords);
             nh.getParam("/nusim/radius",radius);
+            nh.getParam("/nusim/x_length",x_length);
+            nh.getParam("/nusim/y_length",y_length);
             //Initialize the timer, services, and publishers
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
             marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/markerArray", 1, true);
+            walls_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/walls/walls", 1, true);
+            
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
-            joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
+            // joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);   //remove    
+            make_arena();
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
             //Add initial values of 0.0 for joint's position
             joint_state.name.push_back("red-wheel_left_joint");
@@ -69,6 +74,7 @@ class Sim
                 cylinder_marker_x.push_back(cylinders_x_coord[j]);
                 cylinder_marker_y.push_back(cylinders_y_coord[j]);
             }
+            
 
         }
     
@@ -98,6 +104,71 @@ class Sim
             return true;
         }
 
+        void make_arena()
+        {
+            x_walls.markers.resize(4);
+            for (int i = 0;i<4;i++)
+            {
+                if (i ==0)
+                {
+                    x_walls.markers[i].pose.position.x = 0;
+                    x_walls.markers[i].pose.position.y = -y_length/2 ;
+                    x_walls.markers[i].scale.x = x_length +0.1;
+                    x_walls.markers[i].scale.y = 0.1;
+    
+                }
+                if (i ==1)
+                {
+                    x_walls.markers[i].pose.position.x = x_length/2;
+                    x_walls.markers[i].pose.position.y = 0;
+                    x_walls.markers[i].scale.x = 0.1;
+                    x_walls.markers[i].scale.y = y_length+0.1;
+    
+                }
+                if (i ==2)
+                {
+                    x_walls.markers[i].pose.position.x = 0;
+                    x_walls.markers[i].pose.position.y = y_length/2;
+                    x_walls.markers[i].scale.x = x_length+0.1;
+                    x_walls.markers[i].scale.y = 0.1;
+    
+                }
+                if (i ==3)
+                {
+                    x_walls.markers[i].pose.position.x = -x_length/2;
+                    x_walls.markers[i].pose.position.y = 0;
+                    x_walls.markers[i].scale.x = 0.1;
+                    x_walls.markers[i].scale.y = y_length+0.1;
+    
+                }
+                x_walls.markers[i].header.stamp = ros::Time();
+                x_walls.markers[i].header.frame_id = "world";
+                shape = visualization_msgs::Marker::CUBE;
+                x_walls.markers[i].type = shape;
+                x_walls.markers[i].ns = "walls";
+                x_walls.markers[i].action = visualization_msgs::Marker::ADD;
+                x_walls.markers[i].id = i;
+
+                x_walls.markers[i].pose.position.z = 0.125;
+
+                x_walls.markers[i].pose.orientation.x = 0.0;
+                x_walls.markers[i].pose.orientation.y = 0.0;
+                x_walls.markers[i].pose.orientation.z = 0.0;
+                x_walls.markers[i].pose.orientation.w = 1.0;
+
+    
+                x_walls.markers[i].scale.z = 0.25;
+                
+                x_walls.markers[i].color.r = 0.13;
+                x_walls.markers[i].color.g = 0.54;
+                x_walls.markers[i].color.b = 0.13;
+                x_walls.markers[i].color.a = 1.0;
+            }
+            walls_pub.publish(x_walls);
+
+         
+        }
+
         /// \brief A timer that updates the simulation
         ///
         void main_loop(const ros::TimerEvent &)
@@ -108,7 +179,7 @@ class Sim
             //update timestep
             timestep.data++;
             timestep_pub.publish(timestep);  
-            joint_state_pub.publish(joint_state);
+            // joint_state_pub.publish(joint_state); ///remove
             //update position of the robot 
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_Pose.position.x;
@@ -156,8 +227,10 @@ class Sim
     private:
         ros::NodeHandle nh;
         ros::Publisher timestep_pub;
-        ros::Publisher joint_state_pub;
+        // ros::Publisher joint_state_pub; ///remove
         ros::Publisher marker_pub;
+        ros::Publisher walls_pub;
+
         ros::Timer timer;
         double rate;
         std_msgs::UInt64 timestep;
@@ -170,6 +243,8 @@ class Sim
         geometry_msgs::Pose current_Pose;
         double theta;
         visualization_msgs::MarkerArray marker;
+        visualization_msgs::MarkerArray x_walls;
+
         uint32_t shape;
         int num_obstacles;
         std::vector<double> cylinders_x_coord;
@@ -178,6 +253,8 @@ class Sim
         std::vector<double> cylinder_marker_y;
         std::vector<double> robot_coords;
         double radius;
+        double x_length;
+        double y_length;
 
 };
 
