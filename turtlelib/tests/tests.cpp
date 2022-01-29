@@ -23,9 +23,9 @@ TEST_CASE("Integrating a Twist", "[rigid2d]") {
         TbbPrime = integrate_twist(twist);
         trans = TbbPrime.translation();
         rot = TbbPrime.rotation();
-        REQUIRE( trans.x ==  Approx(3.0));
-        REQUIRE( trans.y ==  Approx(5.0));
-        REQUIRE( rot ==  Approx(0.0));
+        CHECK( trans.x ==  Approx(3.0));
+        CHECK( trans.y ==  Approx(5.0));
+        CHECK( rot ==  Approx(0.0));
     }
     
     SECTION( "Testing only Rotational components" ) {
@@ -35,9 +35,9 @@ TEST_CASE("Integrating a Twist", "[rigid2d]") {
         TbbPrime = integrate_twist(twist);
         trans = TbbPrime.translation();
         rot = TbbPrime.rotation();
-        REQUIRE( trans.x ==  Approx(0.0));
-        REQUIRE( trans.y ==  Approx(0.0));
-        REQUIRE( rot ==  Approx(PI));
+        CHECK( trans.x ==  Approx(0.0));
+        CHECK( trans.y ==  Approx(0.0));
+        CHECK( rot ==  Approx(PI));
     }
 
     SECTION( "Testing Both Rotational and Translational components" ) {
@@ -47,9 +47,9 @@ TEST_CASE("Integrating a Twist", "[rigid2d]") {
         TbbPrime = integrate_twist(twist);
         trans = TbbPrime.translation();
         rot = TbbPrime.rotation();
-        REQUIRE( trans.x == Approx(-1.27324));
-        REQUIRE( trans.y ==  Approx(5.09296));
-        REQUIRE( rot ==  Approx(PI/2));
+        CHECK( trans.x == Approx(-1.27324));
+        CHECK( trans.y ==  Approx(5.09296));
+        CHECK( rot ==  Approx(PI/2));
     }
 
     SECTION( "Testing Both Rotational and Translational components v2" ) {
@@ -59,9 +59,9 @@ TEST_CASE("Integrating a Twist", "[rigid2d]") {
         TbbPrime = integrate_twist(twist);
         trans = TbbPrime.translation();
         rot = TbbPrime.rotation();
-        REQUIRE( trans.x == Approx(-1.27324));
-        REQUIRE( trans.y ==  Approx(0.63662));
-        REQUIRE( rot ==  Approx(PI));
+        CHECK( trans.x == Approx(-1.27324));
+        CHECK( trans.y ==  Approx(0.63662));
+        CHECK( rot ==  Approx(PI));
     }
 
     SECTION( "Testing Both Rotational and Translational components v3" ) {
@@ -71,9 +71,9 @@ TEST_CASE("Integrating a Twist", "[rigid2d]") {
         TbbPrime = integrate_twist(twist);
         trans = TbbPrime.translation();
         rot = TbbPrime.rotation();
-        REQUIRE( trans.x == Approx(-2.54).margin(0.01));
-        REQUIRE( trans.y ==  Approx(1.272).margin(0.01));
-        REQUIRE( rot ==  Approx(PI));
+        CHECK( trans.x == Approx(-2.54).margin(0.01));
+        CHECK( trans.y ==  Approx(1.272).margin(0.01));
+        CHECK( rot ==  Approx(PI));
     }
 
     SECTION( "Testing Both Rotational and Translational components v4" ) {
@@ -83,21 +83,21 @@ TEST_CASE("Integrating a Twist", "[rigid2d]") {
         TbbPrime = integrate_twist(twist);
         trans = TbbPrime.translation();
         rot = TbbPrime.rotation();
-        REQUIRE( trans.x == Approx(0.0).margin(0.01));
-        REQUIRE( trans.y ==  Approx(4/PI).margin(0.01));
-        REQUIRE( rot ==  Approx(PI/2));
+        CHECK( trans.x == Approx(0.0).margin(0.01));
+        CHECK( trans.y ==  Approx(4/PI).margin(0.01));
+        CHECK( rot ==  Approx(PI/2));
     }
 }
 
 
 TEST_CASE("Normalizing Angles", "[rigid2d]") {
 
-    REQUIRE( normalize_angle(PI) ==  Approx(PI));
-    REQUIRE( normalize_angle(-PI) ==  Approx(PI));
-    REQUIRE( normalize_angle(0) ==  Approx(0));
-    REQUIRE( normalize_angle(-PI/4) ==  Approx(-PI/4));
-    REQUIRE( normalize_angle(3*PI/2) ==  Approx(-PI/2));
-    REQUIRE( normalize_angle(-5*PI/2) ==  Approx(-PI/2));
+    CHECK( normalize_angle(PI) ==  Approx(PI));
+    CHECK( normalize_angle(-PI) ==  Approx(PI));
+    CHECK( normalize_angle(0) ==  Approx(0));
+    CHECK( normalize_angle(-PI/4) ==  Approx(-PI/4));
+    CHECK( normalize_angle(3*PI/2) ==  Approx(-PI/2));
+    CHECK( normalize_angle(-5*PI/2) ==  Approx(-PI/2));
 }
 
 TEST_CASE("+= Test", "[transform]") {
@@ -108,8 +108,8 @@ TEST_CASE("+= Test", "[transform]") {
     vect2.x = 2.0;
     vect2.y = 4.0;
     vect2 += vect1;
-    REQUIRE( vect2.x == 3.0 );
-    REQUIRE( vect2.y == 7.0 );
+    CHECK( vect2.x == 3.0 );
+    CHECK( vect2.y == 7.0 );
 }
 
 TEST_CASE("+ Test", "[transform]") {
@@ -121,8 +121,8 @@ TEST_CASE("+ Test", "[transform]") {
     vect2.x = 2.0;
     vect2.y = 4.0;
     vect3 = vect1 + vect2;
-    REQUIRE( vect3.x == 3.0 );
-    REQUIRE( vect3.y == 7.0 );
+    CHECK( vect3.x == 3.0 );
+    CHECK( vect3.y == 7.0 );
 }
 
 TEST_CASE("-= Test", "[transform]") {
@@ -133,8 +133,8 @@ TEST_CASE("-= Test", "[transform]") {
     vect2.x = 5.0;
     vect2.y = 3.0;
     vect2 -= vect1;
-    REQUIRE( vect2.x == 4.0 );
-    REQUIRE( vect2.y == 1.0 );
+    CHECK( vect2.x == 4.0 );
+    CHECK( vect2.y == 1.0 );
 }
 
 TEST_CASE("- Test", "[transform]") {
@@ -146,8 +146,8 @@ TEST_CASE("- Test", "[transform]") {
     vect2.x = 5.0;
     vect2.y = 3.0;
     vect3 = vect2 - vect1;
-    REQUIRE( vect3.x == 4.0 );
-    REQUIRE( vect3.y == 1.0 );
+    CHECK( vect3.x == 4.0 );
+    CHECK( vect3.y == 1.0 );
 }
 
 TEST_CASE("*= Test", "[transform]") {
@@ -155,8 +155,8 @@ TEST_CASE("*= Test", "[transform]") {
     vect.x = 1.0;
     vect.y = 2.0;
     vect *= 2;
-    REQUIRE( vect.x == 2.0 );
-    REQUIRE( vect.y == 4.0 );
+    CHECK( vect.x == 2.0 );
+    CHECK( vect.y == 4.0 );
 }
 
 TEST_CASE("* Test", "[transform]") {
@@ -164,8 +164,8 @@ TEST_CASE("* Test", "[transform]") {
     vect.x = 1.0;
     vect.y = 2.0;
     vect = vect * 2;
-    REQUIRE( vect.x == 2.0 );
-    REQUIRE( vect.y == 4.0 );
+    CHECK( vect.x == 2.0 );
+    CHECK( vect.y == 4.0 );
 }
 
 TEST_CASE("*1 Test", "[transform]") {
@@ -173,8 +173,8 @@ TEST_CASE("*1 Test", "[transform]") {
     vect.x = 1.0;
     vect.y = 2.0;
     vect = 2 * vect;
-    REQUIRE( vect.x == 2.0 );
-    REQUIRE( vect.y == 4.0 );
+    CHECK( vect.x == 2.0 );
+    CHECK( vect.y == 4.0 );
 }
 
 TEST_CASE("Test Identity Transform", "[transform]") {
@@ -184,9 +184,9 @@ TEST_CASE("Test Identity Transform", "[transform]") {
     double x_ph = vec.x;
     double y_ph = vec.y;
 
-    REQUIRE( angle == 0 );
-    REQUIRE( x_ph == 0 );
-    REQUIRE( y_ph == 0 );
+    CHECK( angle == 0 );
+    CHECK( x_ph == 0 );
+    CHECK( y_ph == 0 );
 }
 
 TEST_CASE("Test Translational Only Transform", "[transform]") {
@@ -199,9 +199,9 @@ TEST_CASE("Test Translational Only Transform", "[transform]") {
     double x_ph = vec.x;
     double y_ph = vec.y;
 
-    REQUIRE( angle == 0 );
-    REQUIRE( x_ph == 2.0 );
-    REQUIRE( y_ph == 3.0 );
+    CHECK( angle == 0 );
+    CHECK( x_ph == 2.0 );
+    CHECK( y_ph == 3.0 );
 }
 
 TEST_CASE("Test Rotational Only Transform", "[transform]") {
@@ -212,9 +212,9 @@ TEST_CASE("Test Rotational Only Transform", "[transform]") {
     double x_ph = vec.x;
     double y_ph = vec.y;
 
-    REQUIRE( angle == 90.0 );
-    REQUIRE( x_ph == 0.0 );
-    REQUIRE( y_ph == 0.0 );
+    CHECK( angle == 90.0 );
+    CHECK( x_ph == 0.0 );
+    CHECK( y_ph == 0.0 );
 }
 
 TEST_CASE("Test Both Translational and Rotational Transform", "[transform]") {
@@ -228,9 +228,9 @@ TEST_CASE("Test Both Translational and Rotational Transform", "[transform]") {
     double x_ph = vec.x;
     double y_ph = vec.y;
 
-    REQUIRE( angle == 90.0 );
-    REQUIRE( x_ph == 2.0 );
-    REQUIRE( y_ph == 3.0 );
+    CHECK( angle == 90.0 );
+    CHECK( x_ph == 2.0 );
+    CHECK( y_ph == 3.0 );
 }
 
 TEST_CASE("Test Apply Transform for Vector2D", "[transform]") {
@@ -242,8 +242,8 @@ TEST_CASE("Test Apply Transform for Vector2D", "[transform]") {
     Transform2D transform = Transform2D(angle_init);
     new_vect = transform(init_vect);
 
-    REQUIRE(new_vect.x== Approx(-2.0));
-    REQUIRE(new_vect.y==Approx(-4.0));
+    CHECK(new_vect.x== Approx(-2.0));
+    CHECK(new_vect.y==Approx(-4.0));
 }
 
 TEST_CASE("Test Apply Transform for Twist2D", "[transform]") {
@@ -255,9 +255,9 @@ TEST_CASE("Test Apply Transform for Twist2D", "[transform]") {
     init_twist.y_dot = 4.0;
     Transform2D transform = Transform2D(angle_init);
     new_twist = transform(init_twist);
-    REQUIRE(new_twist.theta_dot== Approx(1.0));
-    REQUIRE(new_twist.x_dot== Approx(-2.0));
-    REQUIRE(new_twist.y_dot== Approx(-4.0));
+    CHECK(new_twist.theta_dot== Approx(1.0));
+    CHECK(new_twist.x_dot== Approx(-2.0));
+    CHECK(new_twist.y_dot== Approx(-4.0));
 }
 
 TEST_CASE("Test Inverse of a Transform", "[transform]") {
@@ -270,9 +270,9 @@ TEST_CASE("Test Inverse of a Transform", "[transform]") {
     Vector2D inv_vect = inv_transform.translation();
     double inv_angle = inv_transform.rotation();
 
-    REQUIRE(inv_vect.x== Approx(2.0));
-    REQUIRE(inv_vect.y== Approx(4.0));
-    REQUIRE(inv_angle== Approx(-deg2rad(180.0)));
+    CHECK(inv_vect.x== Approx(2.0));
+    CHECK(inv_vect.y== Approx(4.0));
+    CHECK(inv_angle== Approx(-deg2rad(180.0)));
 }
 
 TEST_CASE("Test Multiply Equals", "[transform]") {
@@ -292,9 +292,9 @@ TEST_CASE("Test Multiply Equals", "[transform]") {
     translational_comp = transform1.translation();
     rotational_comp = transform1.rotation();
 
-    REQUIRE(translational_comp.x== Approx(-3.0));
-    REQUIRE(translational_comp.y== Approx(5.0));
-    REQUIRE(rotational_comp== deg2rad(180.0));
+    CHECK(translational_comp.x== Approx(-3.0));
+    CHECK(translational_comp.y== Approx(5.0));
+    CHECK(rotational_comp== deg2rad(180.0));
 
 }
 
@@ -308,14 +308,14 @@ TEST_CASE("Test Translation and Rotational Functions", "[transform]") {
     SECTION( "Testing Translational components" ) {
         Vector2D vect_comp;
         vect_comp = transform.translation();
-        REQUIRE(vect_comp.x== Approx(6.0));
-        REQUIRE(vect_comp.y== Approx(12.0));
+        CHECK(vect_comp.x== Approx(6.0));
+        CHECK(vect_comp.y== Approx(12.0));
     }
 
     SECTION( "Testing Rotational components" ) {
         double angle_comp;
         angle_comp = transform.rotation();
-        REQUIRE(angle_comp== deg2rad(90.0));
+        CHECK(angle_comp== deg2rad(90.0));
     }
 }
 
@@ -326,9 +326,9 @@ TEST_CASE("Test Input stream", "[transform]") {
         ss << 90 << ' '<< 0 << ' ' << 1;
         int deg,x,y;
         ss >> deg >>x>>y;
-        REQUIRE(deg == 90);
-        REQUIRE(x == 0);
-        REQUIRE(y == 1);
+        CHECK(deg == 90);
+        CHECK(x == 0);
+        CHECK(y == 1);
     }
 
     SECTION( "Strings added" ) {
@@ -336,9 +336,9 @@ TEST_CASE("Test Input stream", "[transform]") {
         ss << "deg: " << 90 << " x: "<< 0 << " y: " << 1;
         int deg,x,y;
         ss >> deg >>x>>y;
-        REQUIRE(deg == 90);
-        REQUIRE(x == 0);
-        REQUIRE(y == 1);
+        CHECK(deg == 90);
+        CHECK(x == 0);
+        CHECK(y == 1);
     }
 }
 
@@ -346,7 +346,7 @@ TEST_CASE("Test Output stream", "[transform]") {
     std::stringstream ss;
     std::string s("deg: 90 x: 0 y: 1");
     ss << "deg: " << 90 << " x: "<< 0 << " y: " << 1; 
-    REQUIRE(s == ss.str());
+    CHECK(s == ss.str());
 }
 
 TEST_CASE("Test Multiply two transforms", "[transform]") {
@@ -364,7 +364,7 @@ TEST_CASE("Test Multiply two transforms", "[transform]") {
     Transform2D product = transform1*transform2;
     Vector2D prod_vect = product.translation();
     double prod_angle = product.rotation();
-    REQUIRE(prod_vect.x == Approx((4-sqrt(2)/2)));
-    REQUIRE(prod_vect.y == Approx((5+3*sqrt(2)/2)));
-    REQUIRE(prod_angle == (PI/2));
+    CHECK(prod_vect.x == Approx((4-sqrt(2)/2)));
+    CHECK(prod_vect.y == Approx((5+3*sqrt(2)/2)));
+    CHECK(prod_angle == (PI/2));
 }
