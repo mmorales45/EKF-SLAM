@@ -25,14 +25,18 @@ class turtle_interface
             nh.getParam("/encoder_ticks_to_rad",encoder_ticks_to_rad);
             nh.getParam("/motor_cmd_max",motor_cmd_max);
 
-            cmd_vel_sub = nh.subscribe("/cmd_vel", 1000, &turtle_interface::callback, this);
+            // cmd_vel_sub = nh.subscribe("/cmd_vel", 1000, &turtle_interface::callback, this);
         }
           
     private:
+    ros::NodeHandle nh;
     double wheel_radius;
     double track_width;
     double collision_radius;
-    ros::Subscriber cmd_vel_sub;
+    double motor_cmd_to_radsec;
+    double encoder_ticks_to_rad;
+    double motor_cmd_max;
+    // ros::Subscriber cmd_vel_sub;
 
 };
 

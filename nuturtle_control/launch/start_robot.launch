@@ -1,0 +1,6 @@
+<launch>
+    <!-- Launch Node with parameters inside -->
+    <node name="turtle_interface" pkg="nuturtle_control" type="turtle_interface" output = "screen">
+        <rosparam file="$(find nusim)/config/basic_world.yaml" />
+    </node>
+</launch>
