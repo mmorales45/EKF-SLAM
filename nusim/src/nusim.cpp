@@ -31,6 +31,9 @@
 #include <vector>
 #include <cstdlib>
 
+#include <nuturtlebot_msgs/WheelCommands.h>
+
+
 /// \brief Creates a simulator and visualizer for the turtlebot3
 
 class Sim
@@ -50,6 +53,7 @@ class Sim
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
             marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/markerArray", 1, true);
             walls_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/walls/walls", 1, true);
+            wheel_cmd_sub = nh.subscribe("red/wheel_cmd", 1000, &Sim::wheel_callback, this);
             
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
@@ -169,6 +173,13 @@ class Sim
          
         }
 
+        void wheel_callback(const nuturtlebot_msgs::WheelCommands &wheel_commands)
+        {
+            left_vel = wheel_commands.left_velocity;
+            right_vel = wheel_commands.right_velocity;
+
+        }
+
         /// \brief A timer that updates the simulation
         ///
         void main_loop(const ros::TimerEvent &)
@@ -230,6 +241,7 @@ class Sim
         // ros::Publisher joint_state_pub; ///remove
         ros::Publisher marker_pub;
         ros::Publisher walls_pub;
+        ros::Subscriber wheel_cmd_sub;
 
         ros::Timer timer;
         double rate;
@@ -255,6 +267,9 @@ class Sim
         double radius;
         double x_length;
         double y_length;
+        
+        int left_vel;
+        int right_vel;
 
 };
 
