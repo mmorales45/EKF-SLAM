@@ -152,6 +152,7 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 catch_add_test(${PROJECT_NAME}_test
 	tests/tests.cpp
   src/rigid2d.cpp
+  src/diff_drive.cpp
 )
 
 ## Specify libraries to link a library or executable target against

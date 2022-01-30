@@ -38,11 +38,15 @@ namespace turtlelib
     class diff_drive
     {
     public:
-        // diff_drive();
+        diff_drive();
+        
+        Twist2D Twist_from_wheelRates(speed phi);
 
         speed get_phi_rates(Twist2D twist);
 
         phi_angles new_configuration(phi_angles updated_angles, speed rates, Twist2D twist);
+
+        phi_angles new_configuration(phi_angles old_angles,phi_angles new_angles, speed rates);
 
         phi_angles new_angles(speed angle_rate, phi_angles old_angles);
 
