@@ -9,6 +9,7 @@
 
 int main(){
     // Declare Vectors,Twists, and Transforms
+    /// rec: it's better to declare variables at the last moment, right before you need them
     turtlelib::Vector2D v_b,v_a,v_c,v_bhat;
     turtlelib::Transform2D Tab,Tba,Tbc,Tcb,Tac,Tca;
     turtlelib::Twist2D V_a,V_b,V_c;
@@ -55,4 +56,6 @@ int main(){
     std::cout << "V_a "<<V_a;
     std::cout << "V_b "<<V_b;
     std::cout << "V_c "<<V_c;
+
+    /// rec: missing return 0
 }

@@ -1,0 +1,43 @@
+catkin_lint -W2
+catkin_make
+
+Task A.
+README.md
+   - command
+   - command
+   - Rviz screenshot
+
+roslaunch nuturtle_description load.launch
+
+roslaunch nuturtle_description load_all.launch 
+
+
+Minimal Files To Display Turtlebot:
+meshes/
+   burger_base.stl
+   lds.stl
+   left_tire.stl
+   right_tire.stl
+urdf/
+   common_properties.xacro
+   turtlebot3_burger.urdf.xacro
+
+config/diff_params.yaml
+   wheel_radius: 0.033
+   wheel_track: 0.160
+
+Task B.
+     static_assertions?
+     unit_tests (enough + passed?)
+                - Don't include the newline when printing out Transform2D/Vector2D, let the user add that if they want
+     Code works?
+     conceptual questions (see readme) -1
+
+Task C.
+   roslaunch nusim.launch
+   clock is published?
+   teleport works?
+   reset works?
+   README
+   - [Wall, Westra, and c++17 are not set in the CMakelists.txt]
+99/100

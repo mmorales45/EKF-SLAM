@@ -39,7 +39,7 @@ namespace turtlelib{
         return v_hat; 
     }
 
-    Transform2D::Transform2D()
+    Transform2D::Transform2D() /// rec: use member initializer lists and delegating constructors
     {
         translational_component.x = 0;
         translational_component.y = 0;
@@ -69,7 +69,7 @@ namespace turtlelib{
 
     Vector2D Transform2D::operator()(Vector2D v) const
     {
-        Vector2D transformed_vector;
+        Vector2D transformed_vector; // rec: might as well just return the vector directly return { ,}
         transformed_vector.x = v.x*cos(angular_displacement) - (v.y*sin(angular_displacement)) + translational_component.x;
         transformed_vector.y = v.x*sin(angular_displacement) + (v.y*cos(angular_displacement)) + translational_component.y;
 
@@ -89,7 +89,7 @@ namespace turtlelib{
 
     Transform2D Transform2D::inv() const
     {
-        double inverse_theta;
+        double inverse_theta; // rec: this is an unitialized variable, very bad, just set this to -angular_displacement, and make it const auto.
         Vector2D inverse_translation;
         Transform2D inverse_transform;
         
@@ -98,7 +98,7 @@ namespace turtlelib{
         inverse_translation.x = (-translational_component.x *cos((angular_displacement))) - (translational_component.y * sin((angular_displacement)));
         inverse_translation.y = (-translational_component.y *cos((angular_displacement))) + (translational_component.x * sin((angular_displacement)));
 
-        inverse_transform = Transform2D(inverse_translation, inverse_theta);
+        inverse_transform = Transform2D(inverse_translation, inverse_theta); // No need for this inverse_transform local, just return this directly
         return inverse_transform;
     }
 
@@ -125,12 +125,12 @@ namespace turtlelib{
     std::istream & operator>>(std::istream & is, Transform2D & tf)
     {
         Vector2D translational;
-        double rotational;
+        double rotational; /// rec: Unitialized local variable
         
         char c1 = is.peek();
-        char str1[6] = "";
-        char str2[4] = "";
-
+        char str1[6] = ""; /// rec: Not a good idea to use arrays, especially dangerous when dealing with user input
+        char str2[4] = ""; /// rec: for strings, use std::string. You can read directly into an std::string with >> + you wouldn't be relying on an input length
+        
         if (c1 == 'd'){
             is.get(str1,6);
             is >> rotational;

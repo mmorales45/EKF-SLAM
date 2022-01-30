@@ -29,13 +29,14 @@ A library for handling transformations in SE(2) and other turtlebot-related math
 
 2. What is the difference between a class and a struct in C++?
 
-   There is no real difference between a class and a struct besides if the members are public or private. For classes, the members are private whereas members are public for structs by default.
+   There is no real difference between a class and a struct besides if the members are public or private. For classes, the members are private whereas members are public for structs by default. [by convention classes are used when their are invariants]
 
 3. Why is Vector2D a struct and Transform2DClass (refer to at least 2 specific C++ core guidelines in your answer)?
 
    The most apparent reason that Vector2D is a struct and not a class is because all of the members are public. This is according to C.8. Private members were introduced in Transform2D. 
 
    Another reason refers to C.4 where Transfrom2D has member functions that need access to private members in the class.
+   [also invariants.  There are no restraints on the values of x, and y in Vector2D, they vary independently, but for transform2d there potentially are restrictions.
 
 4. Why are some of the constructors in Transform2D explicit (refer to a specific C++ core guideline in your answer)?
 
