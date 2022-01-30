@@ -2,6 +2,11 @@
 #include <turtlelib/rigid2d.hpp>
 #include<cmath>
 
+#include <exception>
+#include <iostream>
+#include <stdexcept>
+#include <typeinfo>
+
 
 namespace turtlelib
 {
@@ -11,10 +16,29 @@ namespace turtlelib
         configuration.x = 0;
         configuration.y = 0;
         configuration.theta = 0;
+        phi__.phi_left = 0;
+        phi__.phi_right = 0;
+        phi_dot.phi_left = 0;
+        phi_dot.phi_right = 0;
     }
 
-    speed diff_drive::get_phi_rates(Twist2D twist)
+    diff_drive::diff_drive(config config_,phi_angles phi_input,speed phidot_input)
     {
+        configuration.x = config_.x;
+        configuration.y = config_.y;
+        configuration.theta = config_.theta;
+        phi__.phi_left = phi_input.phi_left;
+        phi__.phi_right = phi_input.phi_right;
+        phi_dot.phi_left = phidot_input.phi_left;
+        phi_dot.phi_right = phidot_input.phi_right;
+    }
+
+    speed diff_drive::inverse_Kinematics(Twist2D twist)
+    {
+        if(twist.y_dot != 0.0)
+        {
+            throw std::logic_error("Does not compute!");
+        }
         speed rates; 
         rates.phi_left = (-body_radius*twist.theta_dot + twist.x_dot)/wheel_radius;
         rates.phi_right = (body_radius*twist.theta_dot + twist.x_dot)/wheel_radius;
@@ -29,16 +53,21 @@ namespace turtlelib
         return updated_angles;
     }
 
-    Twist2D diff_drive::Twist_from_wheelRates(speed phi){
+    Twist2D diff_drive::Twist_from_wheelRates(phi_angles new_angles){
         Twist2D twist;
-        twist.theta_dot = (wheel_radius/(2*body_radius))*(phi.phi_right-phi.phi_left);
-        twist.x_dot = (wheel_radius/2)*(phi.phi_right-phi.phi_left);
-        twist.y_dot = 0;
+        // phi_angles angle_diff;
+        phi_dot.phi_left = new_angles.phi_left - phi__.phi_left;
+        phi_dot.phi_right = new_angles.phi_right - phi__.phi_right;
+
+        twist.theta_dot = (wheel_radius/2)*(-body_radius*phi_dot.phi_left+body_radius*phi_dot.phi_right);
+        twist.x_dot = (wheel_radius/2)*(phi_dot.phi_left+phi_dot.phi_right);
+        twist.y_dot = 0.0;
         return twist;
     }
-
-    phi_angles diff_drive::new_configuration(phi_angles angles, speed rates, Twist2D twist)
+    // config diff_drive::new_configuration(phi_angles angles, speed rates, Twist2D twist)
+    config diff_drive::forward_Kinematics(Twist2D twist)
     {
+
         Transform2D transform, Twb,TbbPrime, TwbPrime;
         Vector2D trans, updated_trans;
         double rot;
@@ -51,21 +80,18 @@ namespace turtlelib
         TbbPrime = integrate_twist(twist);
         TwbPrime = Twb*TbbPrime;
         updated_trans = TwbPrime.translation();
-        rot = TwbPrime.rotation();
+        rot = normalize_angle(TwbPrime.rotation());
         
         configuration.x = updated_trans.x;
         configuration.y = updated_trans.y;
         configuration.theta = rot;
 
 
-        wheel_speeds = diff_drive::get_phi_rates(twist);
-
-        new_wheel_angles = diff_drive::new_angles(wheel_speeds, angles);
-
-        return new_wheel_angles;
+        return configuration;
     }
 
-    phi_angles diff_drive::new_configuration(phi_angles old_angles,phi_angles new_angles, speed rates)
+    // config diff_drive::new_configuration(phi_angles old_angles,phi_angles new_angles, speed rates)
+    config diff_drive::forward_Kinematics(phi_angles new_angles)
     {
         Transform2D transform, Twb,TbbPrime, TwbPrime;
         Vector2D trans, updated_trans;
@@ -74,11 +100,7 @@ namespace turtlelib
         Twist2D twist;
 
         phi_angles new_wheel_angles, angle_diff;
-        angle_diff.phi_left = new_angles.phi_left - old_angles.phi_left;
-        angle_diff.phi_right = new_angles.phi_right - old_angles.phi_right;
-        twist.theta_dot = (wheel_radius/2)*(-body_radius*angle_diff.phi_left+body_radius*angle_diff.phi_right);
-        twist.x_dot = (wheel_radius/2)*(angle_diff.phi_left+angle_diff.phi_right);
-        twist.y_dot = 0.0;
+        twist = Twist_from_wheelRates(new_angles);
 
         trans.x = configuration.x;
         trans.y = configuration.y;
@@ -86,18 +108,13 @@ namespace turtlelib
         TbbPrime = integrate_twist(twist);
         TwbPrime = Twb*TbbPrime;
         updated_trans = TwbPrime.translation();
-        rot = TwbPrime.rotation();
+        rot = normalize_angle(TwbPrime.rotation());
         
         configuration.x = updated_trans.x;
         configuration.y = updated_trans.y;
         configuration.theta = rot;
 
-
-        wheel_speeds = diff_drive::get_phi_rates(twist);
-
-        new_wheel_angles = diff_drive::new_angles(rates, old_angles);
-
-        return new_wheel_angles;
+        return configuration;
     }
 
 

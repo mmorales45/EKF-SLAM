@@ -39,22 +39,24 @@ namespace turtlelib
     {
     public:
         diff_drive();
+
+        diff_drive(config config_,phi_angles phi_input,speed phidot_input);
         
-        Twist2D Twist_from_wheelRates(speed phi);
+        Twist2D Twist_from_wheelRates(phi_angles new_angles);
 
-        speed get_phi_rates(Twist2D twist);
+        speed inverse_Kinematics(Twist2D twist);
 
-        phi_angles new_configuration(phi_angles updated_angles, speed rates, Twist2D twist);
+        config forward_Kinematics(Twist2D twist);
 
-        phi_angles new_configuration(phi_angles old_angles,phi_angles new_angles, speed rates);
+        config forward_Kinematics(phi_angles new_angles);
 
         phi_angles new_angles(speed angle_rate, phi_angles old_angles);
 
 
     private:
-        // speed rates;
+        speed phi_dot;
         config configuration;
-        // phi_angles 
+        phi_angles phi__;
     };
 
 

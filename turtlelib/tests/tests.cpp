@@ -4,12 +4,50 @@
 
 #include <catch_ros/catch.hpp>
 #include <turtlelib/rigid2d.hpp>
+#include <turtlelib/diff_drive.hpp>
 #include <string>       
 #include <iostream>    
 #include <sstream> 
 
 using namespace turtlelib;
 
+TEST_CASE("Inverse Kinematics", "[diff_drive]") {
+    diff_drive diff = diff_drive();
+    Twist2D twist;
+    speed phi_rates;
+    // // diff_drive ddrive;
+    twist.x_dot = 1;
+    twist.y_dot = 0;
+    twist.theta_dot = PI/2;
+
+    phi_rates = diff.inverse_Kinematics(twist);
+    // CHECK(phi_rates.phi_left == 0.0);
+    CHECK(phi_rates.phi_left == Approx(26.495)); 
+    CHECK(phi_rates.phi_right == Approx(34.111));
+    
+}
+
+TEST_CASE("forward Kinematics", "[diff_drive]") {
+    config config_,new_config;
+    phi_angles phi_,phi_new,phi_old;
+    speed phi_dot;
+    config_.x = 0;
+    config_.y = 0;
+    config_.theta = 0;
+    phi_.phi_left = 0;
+    phi_.phi_right = 0;
+    phi_dot.phi_left = 0;
+    phi_dot.phi_right = 0;
+    diff_drive diff = diff_drive(config_,phi_,phi_dot);
+
+    phi_new.phi_left = PI/4;
+    phi_new.phi_right = PI/4;
+
+    new_config = diff.forward_Kinematics(phi_new);
+    CHECK(new_config.x == Approx(0.033*(PI/4))); 
+    CHECK(new_config.y == Approx(0));
+    CHECK(new_config.theta == Approx(0)); 
+}
 
 TEST_CASE("Integrating a Twist", "[rigid2d]") {
     Twist2D twist;
