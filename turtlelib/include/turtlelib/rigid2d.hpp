@@ -81,26 +81,64 @@ namespace turtlelib
         /// \brief the y coordinate
         double y = 0.0;
 
+        /// \brief add this vector with another vector and store the result 
+        /// in this object
+        /// \param rhs - the vector to add to the object
+        /// \return a reference to the newly added vector
         Vector2D & operator+=(const Vector2D & rhs);
 
+        /// \brief subtract this vector with another vector and store the result 
+        /// in this object
+        /// \param rhs - the vector to subtract from the object
+        /// \return a reference to the newly subtracted vector
         Vector2D & operator-=(const Vector2D & rhs);
 
+        /// \brief compose this vector with another vector and store the result 
+        /// in this object
+        /// \param rhs - the vector to multiplty by the object
+        /// \return a reference to the newly multiplied vector
         Vector2D & operator*=(const double & scalar);
 
     };
-
+    /// \brief add two vectors together, returning their composition
+    /// \param lhs - the left hand vector
+    /// \param rhs - the right hand vector
+    /// \return the composition of the two vectors after being added
     Vector2D operator+(Vector2D lhs, const Vector2D & rhs);
 
+    /// \brief subtract two vectors together, returning their composition
+    /// \param lhs - the left hand vector
+    /// \param rhs - the right hand vector
+    /// \return the composition of the two vectors after the subtraction
     Vector2D operator-(Vector2D lhs, const Vector2D & rhs);
 
+    /// \brief multiply a scalar by a vector with scalar on the right
+    /// \param lhs - the left hand vector
+    /// \param scalar - the value to multiply the vector by
+    /// \return the composition of the vectors and scalar after being multiplied
     Vector2D operator*(Vector2D lhs, const double & scalar);
 
+    /// \brief multiply a scalar by a vector with scalar on the left 
+    /// \param scalar - the value to multiply the vector by
+    /// \param lhs - the left hand vector
+    /// \return the composition of the vectors and scalar after being multiplied
     Vector2D operator*(const double & scalar, Vector2D lhs);
 
+    /// \brief compute the dot product between two vectors
+    /// \param vector1 - the first vector
+    /// \param vector2 - the second vector
+    /// \return - the dot product of both vectors
     double dot(Vector2D vector1, Vector2D vector2);
 
+    /// \brief compute the magnitude of a vector
+    /// \param vector - the vector to get the magnitude of
+    /// \return - the magnitude of the vector
     double magnitude(Vector2D vector);
 
+    /// \brief compute the angle between two vectors
+    /// \param vector1 - the first vector
+    /// \param vector2 - the second vector
+    /// \return - the angle between both vectors
     double angle(Vector2D vector1, Vector2D vector2);
 
     /// \brief create a normalized 2D vector as [x_normalized y_normalized]
@@ -108,6 +146,9 @@ namespace turtlelib
     /// \return the normalized 2D vector
     Vector2D NormalizeVector(Vector2D vector);
 
+    /// \brief normalize an angle to be between (-PI,PI]
+    /// \param angle - the angle, in radians, to normalize
+    /// \return the normalized angle
     double normalize_angle(double rad);
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
@@ -215,6 +256,9 @@ namespace turtlelib
         double angular_displacement;
     };
 
+    /// \brief Integrate a twist to get Tbbprime
+    /// \param twist - a twist of x_dot,y_dot and theta_dot
+    /// \return Transformation relative to the world frame
     Transform2D integrate_twist(const Twist2D & twist);
 
     /// \brief should print a human readable version of the transform:

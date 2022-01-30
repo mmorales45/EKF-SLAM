@@ -70,7 +70,13 @@ namespace turtlelib
         Twist2D twist;
 
         phi_angles new_wheel_angles, angle_diff;
-        twist = Twist_from_wheelRates(new_angles);
+        
+        phi_dot.phi_left = (new_angles.phi_left - phi__.phi_left);
+        phi_dot.phi_right = (new_angles.phi_right - phi__.phi_right);
+
+        twist.theta_dot = (wheel_radius/(2*body_radius))*(-phi_dot.phi_left+phi_dot.phi_right);
+        twist.x_dot = (wheel_radius/2)*(phi_dot.phi_left+phi_dot.phi_right);
+        twist.y_dot = 0.0;
 
         trans.x = configuration.x;
         trans.y = configuration.y;
