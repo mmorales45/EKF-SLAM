@@ -45,34 +45,32 @@ namespace turtlelib
         return rates;
     }
 
-    phi_angles diff_drive::new_angles(speed angle_rate, phi_angles old_angles)
-    {
-        phi_angles updated_angles;
-        updated_angles.phi_left = old_angles.phi_left + angle_rate.phi_left;
-        updated_angles.phi_right = old_angles.phi_right + angle_rate.phi_right;
-        return updated_angles;
-    }
 
     Twist2D diff_drive::Twist_from_wheelRates(phi_angles new_angles){
         Twist2D twist;
         // phi_angles angle_diff;
-        phi_dot.phi_left = new_angles.phi_left - phi__.phi_left;
-        phi_dot.phi_right = new_angles.phi_right - phi__.phi_right;
+        phi_dot.phi_left = (new_angles.phi_left - phi__.phi_left);
+        phi_dot.phi_right = (new_angles.phi_right - phi__.phi_right);
 
-        twist.theta_dot = (wheel_radius/2)*(-body_radius*phi_dot.phi_left+body_radius*phi_dot.phi_right);
+        twist.theta_dot = (wheel_radius/(2*body_radius))*(-phi_dot.phi_left+phi_dot.phi_right);
         twist.x_dot = (wheel_radius/2)*(phi_dot.phi_left+phi_dot.phi_right);
         twist.y_dot = 0.0;
         return twist;
     }
     // config diff_drive::new_configuration(phi_angles angles, speed rates, Twist2D twist)
-    config diff_drive::forward_Kinematics(Twist2D twist)
-    {
 
+
+    // config diff_drive::new_configuration(phi_angles old_angles,phi_angles new_angles, speed rates)
+    config diff_drive::forward_Kinematics(phi_angles new_angles)
+    {
         Transform2D transform, Twb,TbbPrime, TwbPrime;
         Vector2D trans, updated_trans;
         double rot;
         speed wheel_speeds;
-        phi_angles new_wheel_angles;
+        Twist2D twist;
+
+        phi_angles new_wheel_angles, angle_diff;
+        twist = Twist_from_wheelRates(new_angles);
 
         trans.x = configuration.x;
         trans.y = configuration.y;
@@ -86,21 +84,15 @@ namespace turtlelib
         configuration.y = updated_trans.y;
         configuration.theta = rot;
 
-
         return configuration;
     }
 
-    // config diff_drive::new_configuration(phi_angles old_angles,phi_angles new_angles, speed rates)
-    config diff_drive::forward_Kinematics(phi_angles new_angles)
+    config diff_drive::forward_Kinematics(Twist2D twist)
     {
         Transform2D transform, Twb,TbbPrime, TwbPrime;
         Vector2D trans, updated_trans;
         double rot;
         speed wheel_speeds;
-        Twist2D twist;
-
-        phi_angles new_wheel_angles, angle_diff;
-        twist = Twist_from_wheelRates(new_angles);
 
         trans.x = configuration.x;
         trans.y = configuration.y;

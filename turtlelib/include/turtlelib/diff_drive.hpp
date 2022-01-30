@@ -46,11 +46,9 @@ namespace turtlelib
 
         speed inverse_Kinematics(Twist2D twist);
 
-        config forward_Kinematics(Twist2D twist);
-
         config forward_Kinematics(phi_angles new_angles);
 
-        phi_angles new_angles(speed angle_rate, phi_angles old_angles);
+        config forward_Kinematics(Twist2D twist);
 
 
     private:
