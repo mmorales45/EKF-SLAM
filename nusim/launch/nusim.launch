@@ -12,5 +12,6 @@
     <!-- Launch Node with parameters inside -->
     <node name="nusim" pkg="nusim" type="nusim" output = "screen">
         <rosparam file="$(find nusim)/config/basic_world.yaml" />
+        <rosparam file="$(find nuturtle_description)/config/diff_params.yaml" />
     </node>
 </launch>

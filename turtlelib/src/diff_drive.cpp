@@ -45,6 +45,13 @@ namespace turtlelib
         return rates;
     }
 
+    phi_angles diff_drive::angles_From_Rate(phi_angles old_angels, speed wheel_vel){
+        phi_angles new_angles;
+        new_angles.phi_left = old_angels.phi_left + wheel_vel.phi_left * 1;
+        new_angles.phi_right =  old_angels.phi_right + wheel_vel.phi_right * 1;
+
+        return new_angles;
+    }
 
     Twist2D diff_drive::Twist_from_wheelRates(phi_angles new_angles){
         Twist2D twist;
