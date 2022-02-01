@@ -4,7 +4,7 @@
 
 #include<iosfwd>
 #include <cmath>
-#include "turtlelib/rigid2d.hpp"
+#include <turtlelib/rigid2d.hpp>
 #include <iostream>
 
 int main(){
@@ -38,7 +38,7 @@ int main(){
     v_a = Tab(v_b);
     v_c = Tcb(v_b);
     //normalize vector v_b
-    v_bhat = Normalize(v_b);
+    v_bhat = NormalizeVector(v_b);
     //print out the vectors
     std::cout <<"v_bhat" << v_bhat;
     std::cout <<"v_a " <<v_a;
@@ -55,4 +55,50 @@ int main(){
     std::cout << "V_a "<<V_a;
     std::cout << "V_b "<<V_b;
     std::cout << "V_c "<<V_c;
+
+    // double normal_angle = turtlelib::PI;
+    // normal_angle = turtlelib::normalize_angle(-1*normal_angle);
+    // std::cout << "Normalized Angle: "<<normal_angle<<std::endl;
+
+    // double scalar = 2;
+    // double scalar3 = 3;
+    // turtlelib::Vector2D vect;
+    // turtlelib::Vector2D vect3;
+    // vect.x = 1.0;
+    // vect.y = 1.0;
+    // vect3.x = 1.0;
+    // vect3.y = 1.5;
+
+    // vect3 *= scalar3;
+    // std::cout << vect*scalar << std::endl;
+
+    // vect3 = vect3 * scalar3;
+    // std::cout << vect3 << std::endl;
+
+    // vect3 = scalar3 * vect3;
+    // std::cout << vect3 << std::endl;
+
+    // std::cout <<  vect3 << std::endl;
+
+    // double prod = dot(vect, vect3);
+    // std::cout << prod << std::endl;
+
+    // double mag = magnitude(vect);
+
+    // std::cout << mag << std::endl;
+
+    // double angle1 = angle(vect, vect3);
+
+    // std::cout<< angle1 << std::endl;
+
+    // turtlelib::Twist2D twist;
+    // twist.x_dot = 5.0;
+    // twist.y_dot = 2.0;
+    // twist.theta_dot = turtlelib::PI/2;
+
+    // turtlelib::Transform2D tbb;
+    // tbb = turtlelib::integrate_twist(twist);
+    // double rot = tbb.rotation();
+    // std::cout << tbb << std::endl;
+    // std::cout << rot << std::endl;
 }
