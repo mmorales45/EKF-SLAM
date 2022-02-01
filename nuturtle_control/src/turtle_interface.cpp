@@ -15,7 +15,7 @@
 #include <cstdlib>
 
 
-#include <nuturtlebot_msgs/WheelCommands.h>
+#include <nuturtlebot_msgs>
 #include <nuturtlebot_msgs/SensorData.h>
 
 

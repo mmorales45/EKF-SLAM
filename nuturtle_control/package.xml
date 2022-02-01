@@ -51,7 +51,10 @@
   <build_depend>roscpp</build_depend>
   <build_export_depend>roscpp</build_export_depend>
 
+  <build_export_depend>message_runtime</build_export_depend>
+  <build_depend>message_runtime</build_depend>
 
+  <build_depend>message_generation</build_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
