@@ -15,7 +15,7 @@
 #include <cstdlib>
 
 
-#include <nuturtlebot_msgs>
+#include <nuturtlebot_msgs/WheelCommands.h>
 #include <nuturtlebot_msgs/SensorData.h>
 
 
@@ -51,16 +51,16 @@ class turtle_interface
                 nh.getParam("/motor_cmd_max",motor_cmd_max);
             }
 
-            // cmd_sub = nh.subscribe("cmd", 1000, &turtle_interface::cmd_callback, this);
+            cmd_sub = nh.subscribe("cmd", 1000, &turtle_interface::cmd_callback, this);
             // wheel_cmd_pub = ;
 
             // cmd_vel_sub = nh.subscribe("/cmd_vel", 1000, &turtle_interface::callback, this);
         }
 
-        // void cmd_callback(nuturtlebot_msgs::SensorData & sd)
-        // {
+        void cmd_callback(const nuturtlebot_msgs::SensorData & sd) const
+        {
             
-        // }
+        }
           
     private:
     ros::NodeHandle nh;

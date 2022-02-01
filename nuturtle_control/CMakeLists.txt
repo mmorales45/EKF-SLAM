@@ -10,6 +10,7 @@ project(nuturtle_control)
 find_package(catkin REQUIRED COMPONENTS
 message_generation
 message_runtime
+nuturtlebot_msgs
 roscpp
 )
 
