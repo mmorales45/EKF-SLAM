@@ -155,9 +155,8 @@ namespace turtlelib{
 
     Vector2D Transform2D::operator()(Vector2D v) const
     {
-        Vector2D transformed_vector;
-        return {transformed_vector.x = v.x*cos(angular_displacement) - (v.y*sin(angular_displacement)) + translational_component.x,
-                transformed_vector.y = v.x*sin(angular_displacement) + (v.y*cos(angular_displacement)) + translational_component.y};
+        return {v.x*cos(angular_displacement) - (v.y*sin(angular_displacement)) + translational_component.x,
+                v.x*sin(angular_displacement) + (v.y*cos(angular_displacement)) + translational_component.y};
     }
 
     Twist2D Transform2D::operator()(Twist2D twist) const
