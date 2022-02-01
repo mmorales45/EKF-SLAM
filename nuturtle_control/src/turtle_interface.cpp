@@ -14,6 +14,11 @@
 #include <vector>
 #include <cstdlib>
 
+
+#include <nuturtlebot_msgs/WheelCommands.h>
+#include <nuturtlebot_msgs/SensorData.h>
+
+
 class turtle_interface
 {
     public:
@@ -23,10 +28,39 @@ class turtle_interface
             nh.getParam("/collision_radius",collision_radius);
             nh.getParam("/motor_cmd_to_radsec",motor_cmd_to_radsec);
             nh.getParam("/encoder_ticks_to_rad",encoder_ticks_to_rad);
-            nh.getParam("/motor_cmd_max",motor_cmd_max);
+            // nh.getParam("/motor_cmd_max",motor_cmd_max);
+            if(!nh.getParam("/motor_cmd_to_radsec",motor_cmd_to_radsec)){
+                ROS_INFO_STREAM("Please make sure the parameters are correct! for motor_cmd_to_radsec");
+                ros::shutdown();
+            }
+            else{
+                nh.getParam("/motor_cmd_to_radsec",motor_cmd_to_radsec);
+            }
+            if(!nh.getParam("/encoder_ticks_to_rad",encoder_ticks_to_rad)){
+                ROS_INFO_STREAM("Please make sure the parameters are correct! for encoder_ticks_to_rad");
+                ros::shutdown();
+            }
+            else{
+                nh.getParam("/encoder_ticks_to_rad",encoder_ticks_to_rad);
+            }
+            if(!nh.getParam("/motor_cmd_max",motor_cmd_max)){
+                ROS_INFO_STREAM("Please make sure the parameters are correct! for motor_cmd_max");
+                ros::shutdown();
+            }
+            else{
+                nh.getParam("/motor_cmd_max",motor_cmd_max);
+            }
+
+            // cmd_sub = nh.subscribe("cmd", 1000, &turtle_interface::cmd_callback, this);
+            // wheel_cmd_pub = ;
 
             // cmd_vel_sub = nh.subscribe("/cmd_vel", 1000, &turtle_interface::callback, this);
         }
+
+        // void cmd_callback(nuturtlebot_msgs::SensorData & sd)
+        // {
+            
+        // }
           
     private:
     ros::NodeHandle nh;
@@ -35,8 +69,10 @@ class turtle_interface
     double collision_radius;
     double motor_cmd_to_radsec;
     double encoder_ticks_to_rad;
-    double motor_cmd_max;
-    // ros::Subscriber cmd_vel_sub;
+    std::vector<double> motor_cmd_max;
+
+    ros::Subscriber cmd_sub;
+    ros::Publisher wheel_cmd_pub;
 
 };
 
