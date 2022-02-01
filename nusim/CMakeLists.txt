@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   message_generation  
   message_runtime
+  nuturtlebot_msgs
   roscpp
   sensor_msgs
   std_msgs
