@@ -22,6 +22,7 @@
 #include <turtlelib/rigid2d.hpp>
 #include <turtlelib/diff_drive.hpp>
 #include <nav_msgs/Odometry.h>
+#include <nuturtle_control/Configuration.h>
 
 class odometry
 {
@@ -31,6 +32,7 @@ class odometry
             loadParams();
             joint_state_sub = nh.subscribe("joint_states",1000,&odometry::js_callback,this);
             odom_pub = nh.advertise<nav_msgs::Odometry>("odom",1);
+            set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
         }
 
         void js_callback(const sensor_msgs::JointState & js)
@@ -76,6 +78,15 @@ class odometry
 
         }
 
+        bool set_pose_callback(nuturtle_control::Configuration::Request& data, nuturtle_control::Configuration::Request& )
+        {
+            current_config.theta = data.theta;
+            current_config.x = data.x;
+            current_config.y = data.y;
+            DiffDrive = turtlelib::diff_drive(current_config);
+            return true;
+        }
+
         void loadParams()
         {
             if(!nh.getParam("/odom_id",odom_id)){
@@ -111,6 +122,7 @@ class odometry
     ros::NodeHandle nh;
     ros::Subscriber joint_state_sub;
     ros::Publisher odom_pub;
+    ros::ServiceServer set_pose_service;
 
     std::string odom_id;
     std::string body_id;

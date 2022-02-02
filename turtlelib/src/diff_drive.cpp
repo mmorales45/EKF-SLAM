@@ -33,6 +33,13 @@ namespace turtlelib
         phi_dot.phi_right = phidot_input.phi_right;
     }
 
+    diff_drive::diff_drive(config config_)
+    {
+        configuration.x = config_.x;
+        configuration.y = config_.y;
+        configuration.theta = config_.theta;
+    }
+
     speed diff_drive::inverse_Kinematics(Twist2D twist)
     {
         if(twist.y_dot != 0.0)

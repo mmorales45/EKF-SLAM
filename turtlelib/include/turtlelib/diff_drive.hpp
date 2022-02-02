@@ -63,6 +63,8 @@ namespace turtlelib
         /// \param phi_input - angles of the left and right wheels
         /// \param phidot_input - speeds of the left and right wheels
         diff_drive(config config_,phi_angles phi_input,speed phidot_input);
+
+        diff_drive(config config_);
         
         /// \brief Calculate a twist from new wheel angles
         /// \param new_angles - The new angles of the wheel
