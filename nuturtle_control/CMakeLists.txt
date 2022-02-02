@@ -12,6 +12,7 @@ message_generation
 message_runtime
 nuturtlebot_msgs
 roscpp
+turtlelib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -106,7 +107,7 @@ roscpp
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES nuturtle_control
- CATKIN_DEPENDS message_runtime roscpp
+ CATKIN_DEPENDS message_runtime roscpp 
 #  DEPENDS system_lib
 )
 

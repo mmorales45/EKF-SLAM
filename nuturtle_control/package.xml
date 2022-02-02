@@ -58,6 +58,8 @@
 
   <build_depend>nuturtlebot_msgs</build_depend>
   <exec_depend>nuturtlebot_msgs</exec_depend>
+  <build_depend>turtlelib</build_depend>
+  <exec_depend>turtlelib</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

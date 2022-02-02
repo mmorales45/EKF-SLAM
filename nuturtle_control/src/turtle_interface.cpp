@@ -9,6 +9,7 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Twist.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <vector>
@@ -17,17 +18,19 @@
 
 #include <nuturtlebot_msgs/WheelCommands.h>
 #include <nuturtlebot_msgs/SensorData.h>
+#include <turtlelib/rigid2d.hpp>
+#include <turtlelib/diff_drive.hpp>
 
 
 class turtle_interface
 {
     public:
         turtle_interface() {
+            diffDrive = turtlelib::diff_drive();
+
             nh.getParam("/wheel_radius",wheel_radius);
             nh.getParam("/track_width",track_width);
             nh.getParam("/collision_radius",collision_radius);
-            nh.getParam("/motor_cmd_to_radsec",motor_cmd_to_radsec);
-            nh.getParam("/encoder_ticks_to_rad",encoder_ticks_to_rad);
             // nh.getParam("/motor_cmd_max",motor_cmd_max);
             if(!nh.getParam("/motor_cmd_to_radsec",motor_cmd_to_radsec)){
                 ROS_INFO_STREAM("Please make sure the parameters are correct! for motor_cmd_to_radsec");
@@ -52,14 +55,31 @@ class turtle_interface
             }
 
             cmd_sub = nh.subscribe("cmd", 1000, &turtle_interface::cmd_callback, this);
-            // wheel_cmd_pub = ;
-
-            // cmd_vel_sub = nh.subscribe("/cmd_vel", 1000, &turtle_interface::callback, this);
+            sensor_data_sub = nh.subscribe("sensor_data",1000,&turtle_interface::js_callback,this);
+            
+            wheel_cmd_pub = nh.advertise<nuturtlebot_msgs::WheelCommands>("wheel_cmd",1);
+            joint_states_pub = nh.advertise<sensor_msgs::JointState>("joint_states",1);
+            
         }
 
-        void cmd_callback(const nuturtlebot_msgs::SensorData & sd) const
+        void cmd_callback(const geometry_msgs::Twist & data)
         {
-            
+            //data is a twist
+            turtlelib::Twist2D input_twist;
+            input_twist.theta_dot = data.angular.z;
+            input_twist.x_dot = data.linear.x;
+            input_twist.y_dot = data.linear.y;
+            wheel_velocity = diffDrive.inverse_Kinematics(input_twist);
+            wheel_cmd_pub.publish(wheel_velocity);
+        }
+
+        void sensor_data_sub(const nuturtlebot_msgs::SensorData & sd) 
+        {
+            turtlelib::phi_angles wheel_angles;
+            turtlelib::speed wheel_velocitys;
+            wheel_angles.phi_left = sd.left_encoder * 
+
+
         }
           
     private:
@@ -72,8 +92,14 @@ class turtle_interface
     std::vector<double> motor_cmd_max;
 
     ros::Subscriber cmd_sub;
+    ros::Subscriber sensor_data_sub;
     ros::Publisher wheel_cmd_pub;
+    ros::Publisher joint_states_pub;
 
+    turtlelib::speed wheel_velocity;
+    // turtlelib::phi_angles wheel_angles;
+    turtlelib::diff_drive diffDrive;
+    
 };
 
 
