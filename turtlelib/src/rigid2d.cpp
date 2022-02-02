@@ -5,6 +5,7 @@
 #include <turtlelib/rigid2d.hpp>
 #include <iostream>
 #include <string>
+#include <sstream> 
 
 namespace turtlelib{
 
@@ -15,19 +16,24 @@ namespace turtlelib{
 
     std::istream & operator>>(std::istream & is, Vector2D & v) 
     {
+        std::string ss1;
+        std::string ss2;
         char c1 = is.peek();
         
         if (c1 == '['){ 
-            is.get();
-            is >> v.x;
-            is >> v.y;
-            is.get();
-            is.get();
+            // is.get();
+            // is >> v.x;
+            // is >> v.y;
+            // is.get();
+            // is.get();
+            is >> ss1 >> v.x >>v.y>>ss2;
         }
         else{
             is >> v.x >> v.y;
         }
+        is.get();
         return is;
+        
     }
 
     Vector2D & Vector2D::operator+=(const Vector2D & rhs)
@@ -149,11 +155,8 @@ namespace turtlelib{
 
     Vector2D Transform2D::operator()(Vector2D v) const
     {
-        Vector2D transformed_vector;
-        transformed_vector.x = v.x*cos(angular_displacement) - (v.y*sin(angular_displacement)) + translational_component.x;
-        transformed_vector.y = v.x*sin(angular_displacement) + (v.y*cos(angular_displacement)) + translational_component.y;
-
-        return transformed_vector;
+        return {v.x*cos(angular_displacement) - (v.y*sin(angular_displacement)) + translational_component.x,
+                v.x*sin(angular_displacement) + (v.y*cos(angular_displacement)) + translational_component.y};
     }
 
     Twist2D Transform2D::operator()(Twist2D twist) const
@@ -169,17 +172,13 @@ namespace turtlelib{
 
     Transform2D Transform2D::inv() const
     {
-        double inverse_theta;
         Vector2D inverse_translation;
         Transform2D inverse_transform;
         
-        inverse_theta = -angular_displacement;
-
         inverse_translation.x = (-translational_component.x *cos((angular_displacement))) - (translational_component.y * sin((angular_displacement)));
         inverse_translation.y = (-translational_component.y *cos((angular_displacement))) + (translational_component.x * sin((angular_displacement)));
 
-        inverse_transform = Transform2D(inverse_translation, inverse_theta);
-        return inverse_transform;
+        return inverse_transform = Transform2D(inverse_translation, -angular_displacement);
     }
 
     Transform2D & Transform2D::operator*=(const Transform2D & rhs)
@@ -205,26 +204,31 @@ namespace turtlelib{
     std::istream & operator>>(std::istream & is, Transform2D & tf)
     {
         Vector2D translational;
-        double rotational;
-        
+        double rotational = 0.0;
+        std::string ss1;
+        std::string ss2;
+        std::string ss3;
+
         char c1 = is.peek();
-        char str1[6] = "";
-        char str2[4] = "";
+        // char str1[6] = "";
+        // char str2[4] = "";
 
         if (c1 == 'd'){
-            is.get(str1,6);
-            is >> rotational;
-            is.get(str2,4);
-            is >> translational.x;
-            is.get(str2,4);
-            is.get();
-            is >> translational.y;
-            is.get();
+            // is.get(str1,6);
+            // is >> rotational;
+            // is.get(str2,4);
+            // is >> translational.x;
+            // is.get(str2,4);
+            // is.get();
+            // is >> translational.y;
+            // is.get();
+            is >> ss1 >> rotational >>ss2 >> translational.x >> ss3 >> translational.y;
         }
         else {
             is >> rotational >> translational.x >> translational.y;
-            is.get();
+            // is.get();
         }
+        is.get();
         rotational = deg2rad(rotational);
         tf = Transform2D(translational,rotational);
 
@@ -289,21 +293,24 @@ namespace turtlelib{
     std::istream & operator>>(std::istream & is, Twist2D & t)
     {   
         char c1 = is.peek();
-        
+        std::string ss1;
+        std::string ss2;
+        std::string ss3;
         if (c1 == '['){ 
-            is.get();
-            is >> t.theta_dot;
-            is.get();
-            is >> t.x_dot;
-            is.get();
-            is >> t.y_dot;
-            is.get();
-            is.get();
-
+            // is.get();
+            // is >> t.theta_dot;
+            // is.get();
+            // is >> t.x_dot;
+            // is.get();
+            // is >> t.y_dot;
+            // is.get();
+            // is.get();
+            is >> ss1 >> t.theta_dot >> ss2 >> t.x_dot >> ss3>> t.y_dot;
         }
         else {
             is >> t.theta_dot >> t.x_dot >> t.y_dot;
         }
+        is.get();
         return is;
     }
 
