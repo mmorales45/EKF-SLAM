@@ -3,6 +3,15 @@
     <rosparam file="$(find nuturtle_description)/config/diff_params.yaml" />
     <node name="turtle_interface" pkg="nuturtle_control" type="nuturtle_control" output = "screen">
         <rosparam file="$(find nusim)/config/basic_world.yaml" />
-        
     </node>
+
+    <node name="turtle_interface_node" pkg="nuturtle_control" type="nuturtle_control_node" output = "screen"/>
+
+    <rosparam>
+            odom_id: odom
+            body_id: body
+            left_wheel_joint: wheel_left
+            right_wheel_joint: wheel_right
+    </rosparam>
+
 </launch>

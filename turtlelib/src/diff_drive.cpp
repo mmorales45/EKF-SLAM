@@ -45,6 +45,13 @@ namespace turtlelib
         return rates;
     }
 
+    Twist2D diff_drive::Twist_from_wheelVel(speed new_vel){
+        Twist2D twist;
+        twist.theta_dot = (wheel_radius/(2*body_radius))*(-new_vel.phi_left+new_vel.phi_right);
+        twist.x_dot = (wheel_radius/2)*(new_vel.phi_left+new_vel.phi_right);
+        twist.y_dot = 0.0;
+        return twist;
+    }
 
     Twist2D diff_drive::Twist_from_wheelRates(phi_angles new_angles){
         Twist2D twist;
@@ -73,6 +80,9 @@ namespace turtlelib
         
         phi_dot.phi_left = (new_angles.phi_left - phi__.phi_left);
         phi_dot.phi_right = (new_angles.phi_right - phi__.phi_right);
+
+        phi__.phi_left = new_angles.phi_left;
+        phi__.phi_right = new_angles.phi_right;
 
         twist.theta_dot = (wheel_radius/(2*body_radius))*(-phi_dot.phi_left+phi_dot.phi_right);
         twist.x_dot = (wheel_radius/2)*(phi_dot.phi_left+phi_dot.phi_right);

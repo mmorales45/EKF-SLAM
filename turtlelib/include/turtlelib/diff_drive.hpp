@@ -69,6 +69,8 @@ namespace turtlelib
         /// \return a twist composing of x_dot,y_dot and theta_dot
         Twist2D Twist_from_wheelRates(phi_angles new_angles);
 
+        Twist2D Twist_from_wheelVel(speed new_vel);
+
         /// \brief Calculate the speed using inverse kinematics
         /// \param twist - the x_dot,y_dot and theta_dot
         /// \return - the speed of the robot
