@@ -31,6 +31,13 @@
 #include <vector>
 #include <cstdlib>
 
+#include <turtlelib/rigid2d.hpp>
+#include <turtlelib/diff_drive.hpp>
+
+#include <nuturtlebot_msgs/WheelCommands.h>
+#include <nuturtlebot_msgs/SensorData.h>
+
+
 /// \brief Creates a simulator and visualizer for the turtlebot3
 
 class Sim
@@ -44,12 +51,24 @@ class Sim
             nh.getParam("/nusim/cylinders_y_coord",cylinders_y_coord);
             nh.getParam("/nusim/robot",robot_coords);
             nh.getParam("/nusim/radius",radius);
+            nh.getParam("/nusim/x_length",x_length);
+            nh.getParam("/nusim/y_length",y_length);
+            nh.getParam("/nusim/motor_cmd_to_radsec",motor_cmd_to_radsec);
+            nh.getParam("/nusim/encoder_ticks_to_rad",encoder_ticks_to_rad);
+
+
             //Initialize the timer, services, and publishers
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
             marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/markerArray", 1, true);
+            walls_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/walls/walls", 1, true);
+            encoder_pub  = nh.advertise<nuturtlebot_msgs::SensorData>("/red/sensor_data", 1, true);
+            wheel_cmd_sub = nh.subscribe("red/wheel_cmd", 1000, &Sim::wheel_cmd_callback, this);
+            
+            
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
-            joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);      
+            // joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);   //remove    
+            make_arena();
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
             //Add initial values of 0.0 for joint's position
             joint_state.name.push_back("red-wheel_left_joint");
@@ -65,10 +84,13 @@ class Sim
             theta = robot_coords[2];
             q.setRPY(0, 0, theta);
             //add values to x and y coordiante vectors
-            for (int j = 0;j<(cylinders_x_coord.size());j++){
+            obstacle_array_size = (cylinders_x_coord.size());
+            for (int j = 0;j<obstacle_array_size;j++){
                 cylinder_marker_x.push_back(cylinders_x_coord[j]);
                 cylinder_marker_y.push_back(cylinders_y_coord[j]);
             }
+
+            DiffDrive = turtlelib::diff_drive(current_config,wheel_angles,wheels_velocity);
 
         }
     
@@ -76,7 +98,7 @@ class Sim
         ///
         /// \param data - empty
         /// \returns response - true 
-        bool reset(std_srvs::Empty::Request& data, std_srvs::Empty::Response& response)
+        bool reset(std_srvs::Empty::Request& , std_srvs::Empty::Response& )
         {
             timestep.data = 0;
             timestep_pub.publish(timestep);
@@ -90,12 +112,97 @@ class Sim
         ///
         /// \param data - Teleport data type composed of user x,y,theta
         /// \returns response - true 
-        bool teleport(nusim::Teleport::Request& data, nusim::Teleport::Response& response)
+        bool teleport(nusim::Teleport::Request& data, nusim::Teleport::Response& )
         {
             current_Pose.position.x = data.x;
             current_Pose.position.y = data.y;
             theta = data.theta;
             return true;
+        }
+
+        void make_arena()
+        {
+            x_walls.markers.resize(4);
+            for (int i = 0;i<4;i++)
+            {
+                if (i ==0)
+                {
+                    x_walls.markers[i].pose.position.x = 0;
+                    x_walls.markers[i].pose.position.y = -y_length/2 ;
+                    x_walls.markers[i].scale.x = x_length +0.1;
+                    x_walls.markers[i].scale.y = 0.1;
+    
+                }
+                if (i ==1)
+                {
+                    x_walls.markers[i].pose.position.x = x_length/2;
+                    x_walls.markers[i].pose.position.y = 0;
+                    x_walls.markers[i].scale.x = 0.1;
+                    x_walls.markers[i].scale.y = y_length+0.1;
+    
+                }
+                if (i ==2)
+                {
+                    x_walls.markers[i].pose.position.x = 0;
+                    x_walls.markers[i].pose.position.y = y_length/2;
+                    x_walls.markers[i].scale.x = x_length+0.1;
+                    x_walls.markers[i].scale.y = 0.1;
+    
+                }
+                if (i ==3)
+                {
+                    x_walls.markers[i].pose.position.x = -x_length/2;
+                    x_walls.markers[i].pose.position.y = 0;
+                    x_walls.markers[i].scale.x = 0.1;
+                    x_walls.markers[i].scale.y = y_length+0.1;
+    
+                }
+                x_walls.markers[i].header.stamp = ros::Time();
+                x_walls.markers[i].header.frame_id = "world";
+                shape = visualization_msgs::Marker::CUBE;
+                x_walls.markers[i].type = shape;
+                x_walls.markers[i].ns = "walls";
+                x_walls.markers[i].action = visualization_msgs::Marker::ADD;
+                x_walls.markers[i].id = i;
+
+                x_walls.markers[i].pose.position.z = 0.125;
+
+                x_walls.markers[i].pose.orientation.x = 0.0;
+                x_walls.markers[i].pose.orientation.y = 0.0;
+                x_walls.markers[i].pose.orientation.z = 0.0;
+                x_walls.markers[i].pose.orientation.w = 1.0;
+
+    
+                x_walls.markers[i].scale.z = 0.25;
+                
+                x_walls.markers[i].color.r = 0.13;
+                x_walls.markers[i].color.g = 0.54;
+                x_walls.markers[i].color.b = 0.13;
+                x_walls.markers[i].color.a = 1.0;
+            }
+            walls_pub.publish(x_walls);
+
+         
+        }
+
+
+        void wheel_cmd_callback(const nuturtlebot_msgs::WheelCommands &wheel_commands) 
+        {
+            //get ticks from subscriber
+            left_tick = wheel_commands.left_velocity;
+            right_tick = wheel_commands.right_velocity;
+            //convert ticks to velocity
+            wheels_velocity.phi_left = (left_tick * motor_cmd_to_radsec); 
+            wheels_velocity.phi_right = (right_tick * motor_cmd_to_radsec); 
+            //use velocities to generate new angles
+            wheel_angles = DiffDrive.angles_From_Rate(wheel_angles,wheels_velocity);
+            current_config = DiffDrive.forward_Kinematics(wheel_angles);
+            //create endoder data
+            sensorData.left_encoder = ((wheels_velocity.phi_left*rate)+wheel_angles.phi_left)/encoder_ticks_to_rad;
+            sensorData.right_encoder = ((wheels_velocity.phi_right*rate)+wheel_angles.phi_right)/encoder_ticks_to_rad;
+            encoder_pub.publish(sensorData);
+
+
         }
 
         /// \brief A timer that updates the simulation
@@ -108,7 +215,7 @@ class Sim
             //update timestep
             timestep.data++;
             timestep_pub.publish(timestep);  
-            joint_state_pub.publish(joint_state);
+            // joint_state_pub.publish(joint_state); ///remove
             //update position of the robot 
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_Pose.position.x;
@@ -121,8 +228,8 @@ class Sim
             broadcaster.sendTransform(transformStamped);
             //publish the markers'/cylinders' position 
             //Create marker array
-            marker.markers.resize(cylinders_x_coord.size());
-            for (int i = 0;i<(cylinders_x_coord.size());i++)
+            marker.markers.resize(obstacle_array_size);
+            for (int i = 0;i<obstacle_array_size;i++)
             {
                 marker.markers[i].header.stamp = ros::Time();
                 marker.markers[i].header.frame_id = "world";
@@ -156,8 +263,12 @@ class Sim
     private:
         ros::NodeHandle nh;
         ros::Publisher timestep_pub;
-        ros::Publisher joint_state_pub;
+        // ros::Publisher joint_state_pub; ///remove
         ros::Publisher marker_pub;
+        ros::Publisher walls_pub;
+        ros::Publisher encoder_pub;
+        ros::Subscriber wheel_cmd_sub;
+
         ros::Timer timer;
         double rate;
         std_msgs::UInt64 timestep;
@@ -170,6 +281,9 @@ class Sim
         geometry_msgs::Pose current_Pose;
         double theta;
         visualization_msgs::MarkerArray marker;
+        visualization_msgs::MarkerArray x_walls;
+
+        int obstacle_array_size;
         uint32_t shape;
         int num_obstacles;
         std::vector<double> cylinders_x_coord;
@@ -178,6 +292,20 @@ class Sim
         std::vector<double> cylinder_marker_y;
         std::vector<double> robot_coords;
         double radius;
+        double x_length;
+        double y_length;
+        
+        int left_tick;
+        int right_tick;
+        // from diff_drive
+        turtlelib::phi_angles wheel_angles;
+        turtlelib::config current_config;
+        turtlelib::speed wheels_velocity;
+        turtlelib::diff_drive DiffDrive;
+        double motor_cmd_to_radsec;
+        double encoder_ticks_to_rad;
+        nuturtlebot_msgs::SensorData sensorData;
+
 
 };
 
