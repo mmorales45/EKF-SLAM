@@ -1,6 +1,6 @@
 <launch>
     <arg name= "color" default = "red" doc="Color of the robot. Use red,green,blue,or black"/>
-    <arg name= "use_jsp" default = "true" doc="use_jsp:=true to use the Joint State Publisher or use_jsp:=false to not load the Joint State Publisher"/>
+    <arg name= "use_jsp" default = "false" doc="use_jsp:=true to use the Joint State Publisher or use_jsp:=false to not load the Joint State Publisher"/>
 
     <group ns="$(arg color)">
         <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nusim)/config/nusim.rviz -f 'world'" required="true"/>

@@ -8,21 +8,21 @@
 #include <iostream>
 
 int main(){
-    // Declare Vectors,Twists, and Transforms
-    turtlelib::Vector2D v_b,v_a,v_c,v_bhat;
-    turtlelib::Transform2D Tab,Tba,Tbc,Tcb,Tac,Tca;
-    turtlelib::Twist2D V_a,V_b,V_c;
-
     //Have the user input 2 transforms
+    turtlelib::Transform2D Tab;
     std::cout << "Enter transform T_{a,b}: \n";
     std::cin >> Tab;
-
+    turtlelib::Transform2D Tbc;
     std::cout << "Enter transform T_{b,c}: \n";
     std::cin >> Tbc;
     //Compute other transforms
+    turtlelib::Transform2D Tba;
     Tba = Tab.inv();
+    turtlelib::Transform2D Tac;
     Tac = Tab*Tbc;
+    turtlelib::Transform2D Tcb;
     Tcb = Tbc.inv();
+    turtlelib::Transform2D Tca;
     Tca = Tac.inv();
     //Print out transforms
     std::cout << "T_{a,b}: " <<Tab;
@@ -34,10 +34,14 @@ int main(){
 
     //Have the user input a vector and compute vector in other frames
     std::cout << "Enter vector v_b: \n";
+    turtlelib::Vector2D v_b;
     std::cin >>v_b;
+    turtlelib::Vector2D v_a;
     v_a = Tab(v_b);
+    turtlelib::Vector2D v_c;
     v_c = Tcb(v_b);
     //normalize vector v_b
+    turtlelib::Vector2D v_bhat;
     v_bhat = NormalizeVector(v_b);
     //print out the vectors
     std::cout <<"v_bhat" << v_bhat;
@@ -47,9 +51,12 @@ int main(){
     
     //Have the user input a twist
     std::cout <<"Enter twist V_b: \n";
+    turtlelib::Twist2D V_b;
     std::cin >> V_b;
     //Compute twist in other frames and print out
+    turtlelib::Twist2D V_a;
     V_a = Tab(V_b);
+    turtlelib::Twist2D V_c;
     V_c = Tcb(V_b);
 
     std::cout << "V_a "<<V_a;

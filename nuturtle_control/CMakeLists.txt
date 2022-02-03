@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 geometry_msgs
 message_generation
 message_runtime
+nusim
 nuturtlebot_msgs
 roscpp
 sensor_msgs
@@ -64,6 +65,7 @@ turtlelib
 add_service_files(
   FILES
   Configuration.srv
+  Control.srv
 #   Service2.srv
 )
 
@@ -113,7 +115,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES nuturtle_control
- CATKIN_DEPENDS message_runtime roscpp 
+ CATKIN_DEPENDS nusim message_runtime roscpp 
 #  DEPENDS system_lib
 )
 
@@ -141,13 +143,21 @@ ${catkin_INCLUDE_DIRS}
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME} src/turtle_interface.cpp)
-target_link_libraries(${PROJECT_NAME}
+add_executable(turtle_interface src/turtle_interface.cpp)
+target_link_libraries(turtle_interface
   ${catkin_LIBRARIES}
+  turtlelib
 )
-add_executable(${PROJECT_NAME}_node src/odometry.cpp)
-target_link_libraries(${PROJECT_NAME}_node
+add_executable(odometry src/odometry.cpp)
+target_link_libraries(odometry
   ${catkin_LIBRARIES}
+  turtlelib
+)
+
+add_executable(circle src/circle.cpp)
+target_link_libraries(circle  
+  ${catkin_LIBRARIES}
+  turtlelib
 )
 
 ## Rename C++ executable without prefix
@@ -158,7 +168,7 @@ target_link_libraries(${PROJECT_NAME}_node
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(turtle_interface odometry circle ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 
@@ -179,13 +189,13 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS turtle_interface odometry circle
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS turtle_interface odometry circle
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}

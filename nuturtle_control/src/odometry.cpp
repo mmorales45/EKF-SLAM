@@ -28,7 +28,7 @@ class odometry
 {
     public:
         odometry() {
-            DiffDrive = turtlelib::diff_drive();
+            DiffDrive = turtlelib::DiffDrive();
             loadParams();
             joint_state_sub = nh.subscribe("joint_states",1000,&odometry::js_callback,this);
             odom_pub = nh.advertise<nav_msgs::Odometry>("odom",1);
@@ -38,16 +38,16 @@ class odometry
         void js_callback(const sensor_msgs::JointState & js)
         {
 
-            new_vel.phi_left = js.velocity[0];
-            new_vel.phi_right = js.velocity[1];
+            new_vel.left_vel = js.velocity[0];
+            new_vel.right_vel = js.velocity[1];
             twist = DiffDrive.Twist_from_wheelVel(new_vel);
 
-            new_angles.phi_left = js.position[0] - old_angles.phi_left;
-            new_angles.phi_right = js.position[1] - old_angles.phi_right;
+            new_angles.left_angle = js.position[0] - old_angles.left_angle;
+            new_angles.right_angle = js.position[1] - old_angles.right_angle;
             current_config = DiffDrive.forward_Kinematics(new_angles);
 
-            old_angles.phi_left = new_angles.phi_left;
-            old_angles.phi_right = new_angles.phi_right;
+            old_angles.left_angle = new_angles.left_angle;
+            old_angles.right_angle = new_angles.right_angle;
 
             /////////////////////////////////////////////////////////
 
@@ -83,7 +83,7 @@ class odometry
             current_config.theta = data.theta;
             current_config.x = data.x;
             current_config.y = data.y;
-            DiffDrive = turtlelib::diff_drive(current_config);
+            DiffDrive = turtlelib::DiffDrive(current_config);
             return true;
         }
 
@@ -134,7 +134,7 @@ class odometry
 
     turtlelib::speed new_vel;
     turtlelib::Twist2D twist;
-    turtlelib::diff_drive DiffDrive;
+    turtlelib::DiffDrive DiffDrive;
     turtlelib::config current_config;
 
     nav_msgs::Odometry odom;

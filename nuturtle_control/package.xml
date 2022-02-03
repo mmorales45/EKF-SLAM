@@ -61,6 +61,10 @@
   <build_depend>turtlelib</build_depend>
   <exec_depend>turtlelib</exec_depend>
 
+  <build_depend>nusim</build_depend>
+  <exec_depend>nusim</exec_depend>
+  <build_export_depend>nusim</build_export_depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

@@ -178,7 +178,7 @@ namespace turtlelib{
         inverse_translation.x = (-translational_component.x *cos((angular_displacement))) - (translational_component.y * sin((angular_displacement)));
         inverse_translation.y = (-translational_component.y *cos((angular_displacement))) + (translational_component.x * sin((angular_displacement)));
 
-        return inverse_transform = Transform2D(inverse_translation, -angular_displacement);
+        return Transform2D(inverse_translation, -angular_displacement);
     }
 
     Transform2D & Transform2D::operator*=(const Transform2D & rhs)

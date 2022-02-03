@@ -1,17 +1,31 @@
 <launch>
-    <!-- Launch Node with parameters inside -->
+    <arg name= "cmd_src" default = "none" doc="Can be set to circle to start the circle node, teleop to control with keyboard or none if another node will publish cmd_vel data"/>
+    <arg name= "robot" default = "nusim" doc="Can be set to nusim to start the simulator, localhost to run nodes from the turtlebot, turtlebotname to run nodes on that turtlebot or none to not run any other nodes"/>
+    <arg name= "use_rviz" default = "false" doc="use_jsp:=true to use RVIZ and see the robot model,tf frames and odometry"/>
+
     <rosparam file="$(find nuturtle_description)/config/diff_params.yaml" />
-    <node name="turtle_interface" pkg="nuturtle_control" type="nuturtle_control" output = "screen">
+    <node name="turtle_interface" pkg="nuturtle_control" type="turtle_interface" output = "screen">
         <rosparam file="$(find nusim)/config/basic_world.yaml" />
     </node>
+    <node name="odometry" pkg="nuturtle_control" type="odometry" output = "screen"/>
 
-    <node name="turtle_interface_node" pkg="nuturtle_control" type="nuturtle_control_node" output = "screen"/>
+
+    <group if="$(eval arg('cmd_src') == 'circle')">
+        <node pkg="nuturtle_control" type="circle" name="circle"> 
+            <rosparam file="$(find nuturtle_control)/config/circle.yaml" />
+        </node>
+
+    </group>
+
+    <group if="$(eval arg('robot') == 'nusim')">
+        <include file = "$(find nusim)/launch/nusim.launch" pass_all_args = "true" />
+    </group>
 
     <rosparam>
-            odom_id: odom
-            body_id: body
-            left_wheel_joint: wheel_left
-            right_wheel_joint: wheel_right
+        odom_id: odom
+        body_id: body
+        left_wheel_joint: wheel_left
+        right_wheel_joint: wheel_right
     </rosparam>
 
 </launch>

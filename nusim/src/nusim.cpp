@@ -55,7 +55,10 @@ class Sim
             nh.getParam("/nusim/y_length",y_length);
             nh.getParam("/nusim/motor_cmd_to_radsec",motor_cmd_to_radsec);
             nh.getParam("/nusim/encoder_ticks_to_rad",encoder_ticks_to_rad);
-
+            nh.getParam("/nusim/motor_cmd_max",motor_cmd_max);
+            motor_cmd_max_lower = motor_cmd_max[0];
+            motor_cmd_max_upper = motor_cmd_max[1];
+            
 
             //Initialize the timer, services, and publishers
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
@@ -90,7 +93,7 @@ class Sim
                 cylinder_marker_y.push_back(cylinders_y_coord[j]);
             }
 
-            DiffDrive = turtlelib::diff_drive(current_config,wheel_angles,wheels_velocity);
+            DiffDrive = turtlelib::DiffDrive(current_config,wheel_angles,wheels_velocity);
 
         }
     
@@ -188,19 +191,36 @@ class Sim
 
         void wheel_cmd_callback(const nuturtlebot_msgs::WheelCommands &wheel_commands) 
         {
+            wheel_Command = wheel_commands;
+            if(wheel_Command.left_velocity > motor_cmd_max_upper){
+                wheel_Command.left_velocity = motor_cmd_max_upper;
+            }
+            if(wheel_Command.right_velocity > motor_cmd_max_upper){
+                wheel_Command.right_velocity = motor_cmd_max_upper;
+            }
+            if(wheel_Command.left_velocity < -motor_cmd_max_lower){
+                wheel_Command.left_velocity = -motor_cmd_max_lower;
+            }
+            if(wheel_Command.right_velocity < -motor_cmd_max_lower){
+                wheel_Command.right_velocity = -motor_cmd_max_lower;
+            }
             //get ticks from subscriber
-            left_tick = wheel_commands.left_velocity;
-            right_tick = wheel_commands.right_velocity;
+            left_tick = wheel_Command.left_velocity;
+            right_tick = wheel_Command.right_velocity;
             //convert ticks to velocity
-            wheels_velocity.phi_left = (left_tick * motor_cmd_to_radsec); 
-            wheels_velocity.phi_right = (right_tick * motor_cmd_to_radsec); 
+            wheels_velocity.left_vel = (left_tick * motor_cmd_to_radsec); 
+            wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec); 
             //use velocities to generate new angles
-            wheel_angles = DiffDrive.angles_From_Rate(wheel_angles,wheels_velocity);
-            current_config = DiffDrive.forward_Kinematics(wheel_angles);
+            // wheel_angles = DiffDrive.angles_From_Rate(wheel_angles,wheels_velocity);
+            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
             //create endoder data
-            sensorData.left_encoder = ((wheels_velocity.phi_left*rate)+wheel_angles.phi_left)/encoder_ticks_to_rad;
-            sensorData.right_encoder = ((wheels_velocity.phi_right*rate)+wheel_angles.phi_right)/encoder_ticks_to_rad;
+            sensorData.left_encoder = (int) (((wheels_velocity.left_vel*rate)+wheel_angles.left_angle)/encoder_ticks_to_rad) %4096;
+            sensorData.right_encoder = (int) (((wheels_velocity.right_vel*rate)+wheel_angles.right_angle)/encoder_ticks_to_rad) %4096;
             encoder_pub.publish(sensorData);
+
+            wheel_angles.left_angle = turtlelib::normalize_angle(((wheels_velocity.left_vel*rate)+wheel_angles.left_angle));
+            wheel_angles.right_angle = turtlelib::normalize_angle(((wheels_velocity.right_vel*rate)+wheel_angles.right_angle));
+            current_config = DiffDrive.forward_Kinematics(wheel_angles);
 
 
         }
@@ -297,14 +317,19 @@ class Sim
         
         int left_tick;
         int right_tick;
-        // from diff_drive
+        // from DiffDrive
         turtlelib::phi_angles wheel_angles;
         turtlelib::config current_config;
         turtlelib::speed wheels_velocity;
-        turtlelib::diff_drive DiffDrive;
+        turtlelib::DiffDrive DiffDrive;
         double motor_cmd_to_radsec;
         double encoder_ticks_to_rad;
         nuturtlebot_msgs::SensorData sensorData;
+        nuturtlebot_msgs::WheelCommands wheel_Command;
+        std::vector<double> motor_cmd_max;
+        double motor_cmd_max_lower;
+        double motor_cmd_max_upper;
+
 
 
 };

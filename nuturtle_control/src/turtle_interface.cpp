@@ -26,7 +26,7 @@ class turtle_interface
 {
     public:
         turtle_interface() {
-            diffDrive = turtlelib::diff_drive();
+            diffDrive = turtlelib::DiffDrive();
 
             nh.getParam("/wheel_radius",wheel_radius);
             nh.getParam("/track_width",track_width);
@@ -65,37 +65,31 @@ class turtle_interface
         void cmd_callback(const geometry_msgs::Twist & data)
         {
             //data is a twist
-            turtlelib::Twist2D input_twist;
-            nuturtlebot_msgs::WheelCommands wheel_commands;
-            turtlelib::speed wheel_vels;
+            
             
             input_twist.theta_dot = data.angular.z;
             input_twist.x_dot = data.linear.x;
             input_twist.y_dot = data.linear.y;
             wheel_vels = diffDrive.inverse_Kinematics(input_twist);
-            wheel_commands.left_velocity = wheel_vels.phi_left;
-            wheel_commands.right_velocity = wheel_vels.phi_right;
+            wheel_commands.left_velocity = wheel_vels.left_vel;
+            wheel_commands.right_velocity = wheel_vels.right_vel;
 
             wheel_cmd_pub.publish(wheel_commands);
         }
 
         void sensor_data_callback(const nuturtlebot_msgs::SensorData & sd) 
         {
-            turtlelib::phi_angles wheel_angles;
-            turtlelib::speed wheel_velocitys;
-            sensor_msgs::JointState jointStates;
+            wheel_angles.left_angle = sd.left_encoder * encoder_ticks_to_rad;
+            wheel_angles.right_angle = sd.right_encoder * encoder_ticks_to_rad;
 
-            wheel_angles.phi_left = sd.left_encoder * encoder_ticks_to_rad;
-            wheel_angles.phi_right = sd.right_encoder * encoder_ticks_to_rad;
-
-            wheel_velocitys.phi_left = sd.left_encoder * motor_cmd_to_radsec;
-            wheel_velocitys.phi_right = sd.right_encoder * motor_cmd_to_radsec;
+            wheel_velocitys.left_vel = sd.left_encoder * motor_cmd_to_radsec;
+            wheel_velocitys.right_vel = sd.right_encoder * motor_cmd_to_radsec;
 
             
-            wheel_angle_vector.push_back(wheel_angles.phi_left);
-            wheel_angle_vector.push_back(wheel_angles.phi_right);
-            wheel_velocity_vector.push_back(wheel_velocitys.phi_left);
-            wheel_velocity_vector.push_back(wheel_velocitys.phi_right);
+            wheel_angle_vector.push_back(wheel_angles.left_angle);
+            wheel_angle_vector.push_back(wheel_angles.right_angle);
+            wheel_velocity_vector.push_back(wheel_velocitys.left_vel);
+            wheel_velocity_vector.push_back(wheel_velocitys.right_vel);
             
             jointStates.position = wheel_angle_vector;
             jointStates.velocity = wheel_velocity_vector;
@@ -120,10 +114,17 @@ class turtle_interface
 
     turtlelib::speed wheel_velocity;
     // turtlelib::phi_angles wheel_angles;
-    turtlelib::diff_drive diffDrive;
+    turtlelib::DiffDrive diffDrive;
     std::vector<double> wheel_angle_vector;
     std::vector<double> wheel_velocity_vector;
     
+    turtlelib::Twist2D input_twist;
+    nuturtlebot_msgs::WheelCommands wheel_commands;
+    turtlelib::speed wheel_vels;
+
+    turtlelib::phi_angles wheel_angles;
+    turtlelib::speed wheel_velocitys;
+    sensor_msgs::JointState jointStates;
 };
 
 

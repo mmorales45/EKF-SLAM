@@ -1,5 +1,5 @@
-#ifndef DIFF_DRIVE_INCLUDE_GUARD_HPP
-#define DIFF_DRIVE_INCLUDE_GUARD_HPP
+#ifndef DiffDrive_INCLUDE_GUARD_HPP
+#define DiffDrive_INCLUDE_GUARD_HPP
 
 /// \file
 /// \brief Modeling the kinematics of a differential drive robot
@@ -21,10 +21,10 @@ namespace turtlelib
     struct speed
     {
         /// \brief the left wheel speed
-        double phi_left = 0.0;
+        double left_vel = 0.0;
 
         /// \brief the right wheel speed
-        double phi_right = 0.0;
+        double right_vel = 0.0;
     };
 
     /// \brief A vector that holds the elements of the current theta,x and y positions of the robot.
@@ -45,26 +45,26 @@ namespace turtlelib
     struct phi_angles
     {
         /// \brief the left wheel angle
-        double phi_left = 0.0;
+        double left_angle = 0.0;
 
         /// \brief the right wheel angle
-        double phi_right = 0.0;
+        double right_angle = 0.0;
     };
 
     /// \brief Calculate Kinemmatics of a robot
-    class diff_drive
+    class DiffDrive
     {
     public:
         /// \brief Create an object with configuration, angles and speeds as 0
-        diff_drive();
+        DiffDrive();
 
         /// \brief Create an object with configuration, angles and angle speeds
         /// \param config_ - x,y,theta of the robot
         /// \param phi_input - angles of the left and right wheels
         /// \param phidot_input - speeds of the left and right wheels
-        diff_drive(config config_,phi_angles phi_input,speed phidot_input);
+        DiffDrive(config config_,phi_angles phi_input,speed phidot_input);
 
-        diff_drive(config config_);
+        DiffDrive(config config_);
         
         /// \brief Calculate a twist from new wheel angles
         /// \param new_angles - The new angles of the wheel

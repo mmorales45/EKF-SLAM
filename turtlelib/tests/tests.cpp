@@ -12,71 +12,71 @@
 using namespace turtlelib;
 
 //////////////////////////////////////////// Inverse Kinematics
-TEST_CASE("Inverse kinematics Robot driving forward", "[diff_drive]") {
-    diff_drive diff = diff_drive();
+TEST_CASE("Inverse kinematics Robot driving forward", "[DiffDrive]") {
+    DiffDrive diff = DiffDrive();
     Twist2D twist;
     speed phi_rates;
     twist.x_dot = 1;
     twist.y_dot = 0;
     twist.theta_dot = 0;
     phi_rates = diff.inverse_Kinematics(twist);
-    CHECK(phi_rates.phi_left == Approx(30.303030303)); 
-    CHECK(phi_rates.phi_right == Approx(30.303030303)); 
+    CHECK(phi_rates.left_vel == Approx(30.303030303)); 
+    CHECK(phi_rates.right_vel == Approx(30.303030303)); 
 }
 
-TEST_CASE("Inverse kinematics Robot driving backward", "[diff_drive]") {
-    diff_drive diff = diff_drive();
+TEST_CASE("Inverse kinematics Robot driving backward", "[DiffDrive]") {
+    DiffDrive diff = DiffDrive();
     Twist2D twist;
     speed phi_rates;
     twist.x_dot = -1;
     twist.y_dot = 0;
     twist.theta_dot = 0;
     phi_rates = diff.inverse_Kinematics(twist);
-    CHECK(phi_rates.phi_left == Approx(-30.303030303)); 
-    CHECK(phi_rates.phi_right == Approx(-30.303030303)); 
+    CHECK(phi_rates.left_vel == Approx(-30.303030303)); 
+    CHECK(phi_rates.right_vel == Approx(-30.303030303)); 
 }
 
 
-TEST_CASE("Inverse kinematics Diff Pure Rotation", "[diff_drive]") {
-    diff_drive diff = diff_drive();
+TEST_CASE("Inverse kinematics Diff Pure Rotation", "[DiffDrive]") {
+    DiffDrive diff = DiffDrive();
     Twist2D twist;
     speed phi_rates;
     twist.x_dot = 0;
     twist.y_dot = 0;
     twist.theta_dot = PI/2;
     phi_rates = diff.inverse_Kinematics(twist);
-    CHECK(phi_rates.phi_left == Approx(-3.8079910953)); 
-    CHECK(phi_rates.phi_right == Approx(3.8079910953));  
+    CHECK(phi_rates.left_vel == Approx(-3.8079910953)); 
+    CHECK(phi_rates.right_vel == Approx(3.8079910953));  
 }
 
-TEST_CASE("Inverse kinematics Diff Pure Rotation Inverse", "[diff_drive]") {
-    diff_drive diff = diff_drive();
+TEST_CASE("Inverse kinematics Diff Pure Rotation Inverse", "[DiffDrive]") {
+    DiffDrive diff = DiffDrive();
     Twist2D twist;
     speed phi_rates;
     twist.x_dot = 0;
     twist.y_dot = 0;
     twist.theta_dot = -PI/2;
     phi_rates = diff.inverse_Kinematics(twist);
-    CHECK(phi_rates.phi_left == Approx(3.8079910953)); 
-    CHECK(phi_rates.phi_right == Approx(-3.8079910953)); 
+    CHECK(phi_rates.left_vel == Approx(3.8079910953)); 
+    CHECK(phi_rates.right_vel == Approx(-3.8079910953)); 
 }
 
 
-TEST_CASE("Inverse kinematics Diff Follow Arc", "[diff_drive]") {
-    diff_drive diff = diff_drive();
+TEST_CASE("Inverse kinematics Diff Follow Arc", "[DiffDrive]") {
+    DiffDrive diff = DiffDrive();
     Twist2D twist;
     speed phi_rates;
     twist.x_dot = PI/4;
     twist.y_dot = 0;
     twist.theta_dot = PI/2;
     phi_rates = diff.inverse_Kinematics(twist);
-    CHECK(phi_rates.phi_left == Approx(19.9919532501)); 
-    CHECK(phi_rates.phi_right == Approx(27.6079354406)); 
+    CHECK(phi_rates.left_vel == Approx(19.9919532501)); 
+    CHECK(phi_rates.right_vel == Approx(27.6079354406)); 
 }
 
 
-TEST_CASE("Inverse kinematics Impossible to follow test", "[diff_drive]") {
-    diff_drive diff = diff_drive();
+TEST_CASE("Inverse kinematics Impossible to follow test", "[DiffDrive]") {
+    DiffDrive diff = DiffDrive();
     Twist2D twist;
     speed phi_rates;
     twist.x_dot = 1;
@@ -88,21 +88,21 @@ TEST_CASE("Inverse kinematics Impossible to follow test", "[diff_drive]") {
 //////////////////////////////////////////// Inverse Kinematics
 //////////////////////////////////////////// Forwad Kinematics
 
-TEST_CASE("Forward kinematics Robot driving forward", "[diff_drive]") {
+TEST_CASE("Forward kinematics Robot driving forward", "[DiffDrive]") {
     config config_,new_config;
     phi_angles phi_,phi_new,phi_old;
     speed phi_dot;
     config_.x = 0;
     config_.y = 0;
     config_.theta = 0;
-    phi_.phi_left = 0;
-    phi_.phi_right = 0;
-    phi_dot.phi_left = 0;
-    phi_dot.phi_right = 0;
-    diff_drive diff = diff_drive(config_,phi_,phi_dot);
+    phi_.left_angle = 0;
+    phi_.right_angle = 0;
+    phi_dot.left_vel = 0;
+    phi_dot.right_vel = 0;
+    DiffDrive diff = DiffDrive(config_,phi_,phi_dot);
 
-    phi_new.phi_left = PI/4;
-    phi_new.phi_right = PI/4;
+    phi_new.left_angle = PI/4;
+    phi_new.right_angle = PI/4;
 
     new_config = diff.forward_Kinematics(phi_new);
     CHECK(new_config.x == Approx(0.033*(PI/4))); 
@@ -110,21 +110,21 @@ TEST_CASE("Forward kinematics Robot driving forward", "[diff_drive]") {
     CHECK(new_config.theta == Approx(0)); 
 }
 
-TEST_CASE("Forward kinematics Robot driving rotation", "[diff_drive]") {
+TEST_CASE("Forward kinematics Robot driving rotation", "[DiffDrive]") {
     config config_,new_config;
     phi_angles phi_,phi_new,phi_old;
     speed phi_dot;
     config_.x = 0;
     config_.y = 0;
     config_.theta = 0;
-    phi_.phi_left = 0;
-    phi_.phi_right = 0;
-    phi_dot.phi_left = 0;
-    phi_dot.phi_right = 0;
-    diff_drive diff = diff_drive(config_,phi_,phi_dot);
+    phi_.left_angle = 0;
+    phi_.right_angle = 0;
+    phi_dot.left_vel = 0;
+    phi_dot.right_vel = 0;
+    DiffDrive diff = DiffDrive(config_,phi_,phi_dot);
 
-    phi_new.phi_left = PI/4;
-    phi_new.phi_right = -PI/4;
+    phi_new.left_angle = PI/4;
+    phi_new.right_angle = -PI/4;
 
     new_config = diff.forward_Kinematics(phi_new);
     CHECK(new_config.x == Approx(0.0)); 
@@ -133,7 +133,7 @@ TEST_CASE("Forward kinematics Robot driving rotation", "[diff_drive]") {
 }
 
 
-TEST_CASE("Forward kinematics Robot driving arc", "[diff_drive]") {
+TEST_CASE("Forward kinematics Robot driving arc", "[DiffDrive]") {
     config config_,new_config;
     phi_angles phi_,phi_new,phi_old;
     speed phi_dot;
@@ -142,14 +142,14 @@ TEST_CASE("Forward kinematics Robot driving arc", "[diff_drive]") {
     config_.x = 0;
     config_.y = 0;
     config_.theta = 0;
-    phi_.phi_left = 0;
-    phi_.phi_right = 0;
-    phi_dot.phi_left = 0;
-    phi_dot.phi_right = 0;
-    diff_drive diff = diff_drive(config_,phi_,phi_dot);
+    phi_.left_angle = 0;
+    phi_.right_angle = 0;
+    phi_dot.left_vel = 0;
+    phi_dot.right_vel = 0;
+    DiffDrive diff = DiffDrive(config_,phi_,phi_dot);
 
-    phi_new.phi_left = 19.992;
-    phi_new.phi_right = 27.6079;
+    phi_new.left_angle = 19.992;
+    phi_new.right_angle = 27.6079;
     
     new_config = diff.forward_Kinematics(phi_new);
     CHECK(new_config.x == Approx(0.5)); 
@@ -159,21 +159,21 @@ TEST_CASE("Forward kinematics Robot driving arc", "[diff_drive]") {
 
 //////////////////////////////////////////// Forwad Kinematics
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-TEST_CASE("forward Kinematics", "[diff_drive]") {
+TEST_CASE("forward Kinematics", "[DiffDrive]") {
     config config_,new_config;
     phi_angles phi_,phi_new,phi_old;
     speed phi_dot;
     config_.x = 0;
     config_.y = 0;
     config_.theta = 0;
-    phi_.phi_left = 0;
-    phi_.phi_right = 0;
-    phi_dot.phi_left = 0;
-    phi_dot.phi_right = 0;
-    diff_drive diff = diff_drive(config_,phi_,phi_dot);
+    phi_.left_angle = 0;
+    phi_.right_angle = 0;
+    phi_dot.left_vel = 0;
+    phi_dot.right_vel = 0;
+    DiffDrive diff = DiffDrive(config_,phi_,phi_dot);
 
-    phi_new.phi_left = PI/4;
-    phi_new.phi_right = PI/4;
+    phi_new.left_angle = PI/4;
+    phi_new.right_angle = PI/4;
 
     new_config = diff.forward_Kinematics(phi_new);
     CHECK(new_config.x == Approx(0.033*(PI/4))); 
