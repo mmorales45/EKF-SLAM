@@ -21,7 +21,6 @@
 #include <turtlelib/rigid2d.hpp>
 #include <turtlelib/diff_drive.hpp>
 #include <nav_msgs/Odometry.h>
-#include <nuturtle_control/Configuration.h>
 #include <nuturtle_control/Control.h>
 
 class circle
@@ -36,9 +35,9 @@ class circle
             control_service = nh.advertiseService("control", &circle::control_callback, this);
             reverse_service = nh.advertiseService("reverse", &circle::reverse_callback, this);
             stop_service = nh.advertiseService("stop", &circle::stop_callback, this);
-            cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd",10);
+            cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel",1);
 
-            timer = nh.createTimer(ros::Duration(1/rate), &circle::main_loop, this);
+            timer = nh.createTimer(ros::Duration(1/100), &circle::main_loop, this);
         }
           
         bool control_callback(nuturtle_control::Control::Request& data, nuturtle_control::Control::Response& )
@@ -69,14 +68,19 @@ class circle
             twist.linear.x = 0;
             twist.angular.z = 0;
             twist.linear.y = 0;
-            cmd_vel_pub.publish(twist);
+
+            // cmd_vel_pub.publish(twist);
             return true;
         }
 
         void main_loop(const ros::TimerEvent &)
         {
-            if(stop_flag != 1){
+            if(stop_flag == 0){
                 cmd_vel_pub.publish(twist);
+            }
+            else if(stop_flag == 1){
+                cmd_vel_pub.publish(twist);
+                stop_flag = 2;
             }
         }
         

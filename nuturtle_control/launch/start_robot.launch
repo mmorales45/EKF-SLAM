@@ -32,7 +32,7 @@
         </group>
 
         <group ns="blue">
-            <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nusim)/config/nusim.rviz -f 'world'" required="true"/>
+            <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_control)/config/nuturtle.rviz -f 'world'" required="true"/>
             <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=blue" />
             <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
             <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>

@@ -52,8 +52,8 @@ class odometry
             new_vel.left_vel = js.velocity[0];
             new_vel.right_vel = js.velocity[1];
             // ROS_WARN("left: %f right: %f",new_vel.left_vel,new_vel.right_vel);
-            new_angles.left_angle = js.position[0] - old_angles.left_angle;
-            new_angles.right_angle = js.position[1] - old_angles.right_angle;
+            new_angles.left_angle = js.position[0];
+            new_angles.right_angle = js.position[1];
             // twist = DiffDrive.Twist_from_wheelVel(new_vel);
             // // ROS_WARN("x: %f y: %f theta: %f ",twist.x_dot,twist.y_dot,twist.theta_dot);
             // current_config = DiffDrive.forward_Kinematics(new_angles);

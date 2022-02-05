@@ -212,6 +212,15 @@ class Sim
             //convert ticks to velocity
             wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec); 
             wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec); 
+
+            current_config = DiffDrive.forward_Kinematics(wheel_angles);
+            sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
+            sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
+            // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
+            encoder_pub.publish(sensorData);
+
+            wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
+            wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
             // ROS_WARN("left: %f right: %f",wheels_velocity.left_vel,wheels_velocity.right_vel);
             //use velocities to generate new angles
             // wheel_angles = DiffDrive.angles_From_Rate(wheel_angles,wheels_velocity);
@@ -233,14 +242,15 @@ class Sim
         ///
         void main_loop(const ros::TimerEvent &)
          {
-            sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
-            sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
-            // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
-            encoder_pub.publish(sensorData);
+            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
+            // sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
+            // sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
+            // // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
+            // encoder_pub.publish(sensorData);
 
-            wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
-            wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
-            current_config = DiffDrive.forward_Kinematics(wheel_angles);
+            // wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
+            // wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
+            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
 
             joint_state.header.stamp = ros::Time::now();
             joint_state.position[0] = 0.0;

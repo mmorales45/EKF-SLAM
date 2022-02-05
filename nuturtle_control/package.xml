@@ -69,6 +69,8 @@
   <exec_depend>turtlebot3_teleop</exec_depend>
   <build_export_depend>turtlebot3_teleop</build_export_depend>
 
+  <depend>catch_ros</depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

@@ -54,7 +54,7 @@ class turtle_interface
                 nh.getParam("/motor_cmd_max",motor_cmd_max);
             }
 
-            cmd_sub = nh.subscribe("cmd", 10, &turtle_interface::cmd_callback, this);
+            cmd_sub = nh.subscribe("cmd_vel", 10, &turtle_interface::cmd_callback, this);
             sensor_data_sub = nh.subscribe("sensor_data",10,&turtle_interface::sensor_data_callback,this);
             
             wheel_cmd_pub = nh.advertise<nuturtlebot_msgs::WheelCommands>("wheel_cmd",10);
@@ -86,6 +86,8 @@ class turtle_interface
         {
             wheel_angles.left_angle = sd.left_encoder * encoder_ticks_to_rad;
             wheel_angles.right_angle = sd.right_encoder * encoder_ticks_to_rad;
+
+
             // ROS_WARN("left: %f right: %f",wheel_angles.left_ang21416le,wheel_angles.right_angle);
             wheel_velocitys.left_vel = (sd.left_encoder-old_left)* motor_cmd_to_radsec;
             wheel_velocitys.right_vel = (sd.right_encoder-old_right) * motor_cmd_to_radsec;
@@ -103,7 +105,7 @@ class turtle_interface
             // wheel_vels = diffDrive.inverse_Kinematics(input_twist);
             wheel_commands.left_velocity = wheel_vels.left_vel;
             wheel_commands.right_velocity = wheel_vels.right_vel;
-
+            
 
             jointStates.position[0] = (wheel_angles.left_angle);
             jointStates.position[1] = (wheel_angles.right_angle);

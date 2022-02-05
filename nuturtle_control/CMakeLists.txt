@@ -8,6 +8,7 @@ project(nuturtle_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+catch_ros
 geometry_msgs
 message_generation
 message_runtime
@@ -115,7 +116,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES nuturtle_control
- CATKIN_DEPENDS nusim message_runtime roscpp 
+ CATKIN_DEPENDS catch_ros nusim message_runtime roscpp 
 #  DEPENDS system_lib
 )
 
@@ -219,6 +220,10 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## Testing ##
 #############
 
+if(CATKIN_ENABLE_TESTING)
+  add_subdirectory(test)
+endif()
+
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_nuturtle_control.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
@@ -227,3 +232,4 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
