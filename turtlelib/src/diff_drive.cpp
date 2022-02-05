@@ -90,6 +90,7 @@ namespace turtlelib
         double rot;
         speed wheel_speeds;
         Twist2D twist;
+        config return_config;
 
         phi_angles new_wheel_angles, angle_diff;
         
@@ -114,8 +115,8 @@ namespace turtlelib
         configuration.x = updated_trans.x;
         configuration.y = updated_trans.y;
         configuration.theta = rot;
-
-        return configuration;
+        return_config = configuration;
+        return return_config;
     }
 
     config DiffDrive::forward_Kinematics(Twist2D twist)

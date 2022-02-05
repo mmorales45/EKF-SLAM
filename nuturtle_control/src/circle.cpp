@@ -28,6 +28,7 @@ class circle
 {
     public:
         circle() {
+            rate = 100;
             stop_flag = 0;
             nh.getParam("circle/frequency",frequency);
             twist.angular.z =0;
@@ -35,9 +36,9 @@ class circle
             control_service = nh.advertiseService("control", &circle::control_callback, this);
             reverse_service = nh.advertiseService("reverse", &circle::reverse_callback, this);
             stop_service = nh.advertiseService("stop", &circle::stop_callback, this);
-            cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel",1);
+            cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd",10);
 
-            timer = nh.createTimer(ros::Duration(1/frequency), &circle::main_loop, this);
+            timer = nh.createTimer(ros::Duration(1/rate), &circle::main_loop, this);
         }
           
         bool control_callback(nuturtle_control::Control::Request& data, nuturtle_control::Control::Response& )
@@ -94,6 +95,8 @@ class circle
     double frequency;
 
     int stop_flag;
+
+    double rate;
     
     
     

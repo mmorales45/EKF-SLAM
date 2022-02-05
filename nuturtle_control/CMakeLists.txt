@@ -18,7 +18,7 @@ sensor_msgs
 std_msgs
 tf2
 tf2_ros
-turtlelib
+turtlebot3_teleop
 )
 
 ## System dependencies are found with CMake's conventions
@@ -64,7 +64,7 @@ turtlelib
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  Configuration.srv
+  SetPose.srv
   Control.srv
 #   Service2.srv
 )

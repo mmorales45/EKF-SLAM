@@ -61,11 +61,11 @@ class Sim
             
 
             //Initialize the timer, services, and publishers
-            timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 1000);
+            timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 100);
             marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/markerArray", 1, true);
             walls_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/walls/walls", 1, true);
-            encoder_pub  = nh.advertise<nuturtlebot_msgs::SensorData>("/red/sensor_data", 1, true);
-            wheel_cmd_sub = nh.subscribe("red/wheel_cmd", 1000, &Sim::wheel_cmd_callback, this);
+            encoder_pub  = nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", 10, true);
+            wheel_cmd_sub = nh.subscribe("red/wheel_cmd", 100, &Sim::wheel_cmd_callback, this);
             
             
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
@@ -82,10 +82,10 @@ class Sim
             //set initial coordinates for the robot as well as the header and child ids
             transformStamped.header.frame_id = "world";
             transformStamped.child_frame_id = "red-base_footprint";
-            current_Pose.position.x = robot_coords[0];
-            current_Pose.position.y = robot_coords[1];
-            theta = robot_coords[2];
-            q.setRPY(0, 0, theta);
+            current_config.x = robot_coords[0];
+            current_config.y = robot_coords[1];
+            current_config.theta = robot_coords[2];
+            q.setRPY(0, 0, current_config.theta);
             //add values to x and y coordiante vectors
             obstacle_array_size = (cylinders_x_coord.size());
             for (int j = 0;j<obstacle_array_size;j++){
@@ -99,7 +99,7 @@ class Sim
     
         /// \brief sets the timestep to 0 and teleports robot to intial position
         ///
-        /// \param data - empty
+        /// \param data - emptyl
         /// \returns response - true 
         bool reset(std_srvs::Empty::Request& , std_srvs::Empty::Response& )
         {
@@ -198,29 +198,33 @@ class Sim
             if(wheel_Command.right_velocity > motor_cmd_max_upper){
                 wheel_Command.right_velocity = motor_cmd_max_upper;
             }
-            if(wheel_Command.left_velocity < -motor_cmd_max_lower){
-                wheel_Command.left_velocity = -motor_cmd_max_lower;
+            if(wheel_Command.left_velocity < motor_cmd_max_lower){
+                wheel_Command.left_velocity = motor_cmd_max_lower;
             }
-            if(wheel_Command.right_velocity < -motor_cmd_max_lower){
-                wheel_Command.right_velocity = -motor_cmd_max_lower;
+            if(wheel_Command.right_velocity < motor_cmd_max_lower){
+                wheel_Command.right_velocity = motor_cmd_max_lower;
             }
             //get ticks from subscriber
             left_tick = wheel_Command.left_velocity;
             right_tick = wheel_Command.right_velocity;
+            
+            // ROS_WARN("left: %d right: %d",left_tick,right_tick);
             //convert ticks to velocity
-            wheels_velocity.left_vel = (left_tick * motor_cmd_to_radsec); 
+            wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec); 
             wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec); 
+            // ROS_WARN("left: %f right: %f",wheels_velocity.left_vel,wheels_velocity.right_vel);
             //use velocities to generate new angles
             // wheel_angles = DiffDrive.angles_From_Rate(wheel_angles,wheels_velocity);
             // current_config = DiffDrive.forward_Kinematics(wheel_angles);
             //create endoder data
-            sensorData.left_encoder = (int) (((wheels_velocity.left_vel*rate)+wheel_angles.left_angle)/encoder_ticks_to_rad) %4096;
-            sensorData.right_encoder = (int) (((wheels_velocity.right_vel*rate)+wheel_angles.right_angle)/encoder_ticks_to_rad) %4096;
-            encoder_pub.publish(sensorData);
+            // sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad) %4096;
+            // sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad) %4096;
+            // // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
+            // encoder_pub.publish(sensorData);
 
-            wheel_angles.left_angle = turtlelib::normalize_angle(((wheels_velocity.left_vel*rate)+wheel_angles.left_angle));
-            wheel_angles.right_angle = turtlelib::normalize_angle(((wheels_velocity.right_vel*rate)+wheel_angles.right_angle));
-            current_config = DiffDrive.forward_Kinematics(wheel_angles);
+            // wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
+            // wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
+            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
 
 
         }
@@ -229,6 +233,15 @@ class Sim
         ///
         void main_loop(const ros::TimerEvent &)
          {
+            sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
+            sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
+            // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
+            encoder_pub.publish(sensorData);
+
+            wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
+            wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
+            current_config = DiffDrive.forward_Kinematics(wheel_angles);
+
             joint_state.header.stamp = ros::Time::now();
             joint_state.position[0] = 0.0;
             joint_state.position[1] = 0.0;
@@ -238,9 +251,13 @@ class Sim
             // joint_state_pub.publish(joint_state); ///remove
             //update position of the robot 
             transformStamped.header.stamp = ros::Time::now();
-            transformStamped.transform.translation.x = current_Pose.position.x;
-            transformStamped.transform.translation.y = current_Pose.position.y;
-            transformStamped.transform.translation.z = current_Pose.position.z;
+            // transformStamped.transform.translation.x = current_Pose.position.x;
+            // transformStamped.transform.translation.y = current_Pose.position.y;
+            transformStamped.transform.translation.x = current_config.x;
+            transformStamped.transform.translation.y = current_config.y;
+            transformStamped.transform.translation.z = 0.0;
+            theta = current_config.theta;
+            q.setRPY(0, 0, theta);
             transformStamped.transform.rotation.x = q.x();
             transformStamped.transform.rotation.y = q.y();
             transformStamped.transform.rotation.z = q.z();
@@ -330,7 +347,10 @@ class Sim
         double motor_cmd_max_lower;
         double motor_cmd_max_upper;
 
-
+        int new_tick_left;
+        int new_tick_right;
+        int old_tick_left;
+        int old_tick_right;
 
 };
 
