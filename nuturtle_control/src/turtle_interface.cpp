@@ -76,7 +76,7 @@ class turtle_interface
             //data is a twist
             input_twist.theta_dot = data.angular.z;
             input_twist.x_dot = data.linear.x;
-            input_twist.y_dot = data.linear.y;
+            // input_twist.y_dot = data.linear.y;
             wheel_vels = diffDrive.inverse_Kinematics(input_twist);
 
             
@@ -91,7 +91,7 @@ class turtle_interface
             // ROS_WARN("left: %f right: %f",wheel_angles.left_ang21416le,wheel_angles.right_angle);
             wheel_velocitys.left_vel = (sd.left_encoder-old_left)* motor_cmd_to_radsec;
             wheel_velocitys.right_vel = (sd.right_encoder-old_right) * motor_cmd_to_radsec;
-            ROS_WARN("left new: %d left old: %d right new: %d right old: %d",sd.left_encoder,old_left,sd.right_encoder,old_right);
+            // ROS_WARN("left new: %d left old: %d right new: %d right old: %d",sd.left_encoder,old_left,sd.right_encoder,old_right);
             old_left = sd.left_encoder;
             old_right = sd.right_encoder;
             // ROS_WARN("left: %f right: %f",wheel_velocitys.left_vel,wheel_velocitys.right_vel);
