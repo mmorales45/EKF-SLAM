@@ -222,7 +222,11 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 if(CATKIN_ENABLE_TESTING)
   add_subdirectory(test)
+  add_rostest(launch/turtle_interface.test DEPENDENCIES turtle_interface_test)
+  add_rostest(launch/turtle_odom.test DEPENDENCIES turtle_odom_test_node)
+  add_rostest(launch/turtle_circle.test)
 endif()
+
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_nuturtle_control.cpp)
