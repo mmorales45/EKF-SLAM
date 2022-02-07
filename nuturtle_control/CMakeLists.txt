@@ -8,18 +8,18 @@ project(nuturtle_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-catch_ros
-geometry_msgs
-message_generation
-message_runtime
-nusim
-nuturtlebot_msgs
-roscpp
-sensor_msgs
-std_msgs
-tf2
-tf2_ros
-turtlebot3_teleop
+  catch_ros
+  geometry_msgs
+  message_generation
+  message_runtime
+  nusim
+  nuturtlebot_msgs
+  roscpp
+  sensor_msgs
+  std_msgs
+  tf2
+  tf2_ros
+  turtlebot3_teleop
 )
 
 ## System dependencies are found with CMake's conventions
@@ -65,8 +65,8 @@ turtlebot3_teleop
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  SetPose.srv
   Control.srv
+  SetPose.srv
 #   Service2.srv
 )
 
@@ -80,8 +80,8 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  std_msgs  # Or other packages containing msgs
   geometry_msgs
+  std_msgs  # Or other packages containing msgs
 )
 
 ################################################
@@ -116,7 +116,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES nuturtle_control
- CATKIN_DEPENDS catch_ros nusim message_runtime roscpp 
+ CATKIN_DEPENDS catch_ros geometry_msgs message_runtime nusim roscpp std_msgs
 #  DEPENDS system_lib
 )
 
@@ -190,13 +190,13 @@ add_dependencies(turtle_interface odometry circle ${${PROJECT_NAME}_EXPORTED_TAR
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS turtle_interface odometry circle
+install(TARGETS circle odometry turtle_interface
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-install(TARGETS turtle_interface odometry circle
+install(TARGETS circle odometry turtle_interface
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
@@ -210,11 +210,10 @@ install(DIRECTORY include/${PROJECT_NAME}/
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(FILES
+  loader.sh
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 #############
 ## Testing ##

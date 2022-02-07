@@ -22,28 +22,29 @@
 #include <turtlelib/rigid2d.hpp>
 #include <turtlelib/diff_drive.hpp>
 #include <nav_msgs/Odometry.h>
-#include <nuturtle_control/SetPose.h>
+// #include <nuturtle_control/SetPose.h>
 
 class odometry
 {
     public:
         odometry() {
+            loadParams();
             rate = 500;
-            odom.header.frame_id = "odom";
-            odom.child_frame_id = "blue-base_footprint";
-            transformStamped.header.frame_id = "odom";
-            transformStamped.child_frame_id = "blue-base_footprint";
-            nh.getParam("/nusim/robot",robot_coords);
-            // current_config.x = robot_coords[0];
-            // current_config.y = robot_coords[1];
-            // current_config.theta = robot_coords[2];
+            odom.header.frame_id = odom_id;
+            odom.child_frame_id = body_id;
+            transformStamped.header.frame_id = odom_id;
+            transformStamped.child_frame_id = body_id;
+            nh.getParam("/robot",robot_coords);
+            current_config.x = robot_coords[0];
+            current_config.y = robot_coords[1];
+            current_config.theta = robot_coords[2];
 
             DiffDrive = turtlelib::DiffDrive(current_config);
-            loadParams();
+            
             joint_state_sub = nh.subscribe("/joint_states",10,&odometry::js_callback,this);
             odom_pub = nh.advertise<nav_msgs::Odometry>("odom",100);
-            set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
-            timer = nh.createTimer(ros::Duration(1/rate), &odometry::main_loop, this);
+            // set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
+            timer = nh.createTimer(ros::Duration(1.0/rate), &odometry::main_loop, this);
         }
 
         void js_callback(const sensor_msgs::JointState & js)
@@ -63,40 +64,40 @@ class odometry
         
         }
 
-        bool set_pose_callback(nuturtle_control::SetPose::Request& data, nuturtle_control::SetPose::Request& )
-        {
-            current_config.theta = data.theta;
-            current_config.x = data.x;
-            current_config.y = data.y;
-            DiffDrive = turtlelib::DiffDrive(current_config);
-            return true;
-        }
+        // bool set_pose_callback(nuturtle_control::SetPose::Request& data, nuturtle_control::SetPose::Request& )
+        // {
+        //     current_config.theta = data.theta;
+        //     current_config.x = data.x;
+        //     current_config.y = data.y;
+        //     DiffDrive = turtlelib::DiffDrive(current_config);
+        //     return true;
+        // }
 
         void loadParams()
         {
             if(!nh.getParam("/odom_id",odom_id)){
-                ROS_INFO_STREAM("Please make sure the parameters are correct! for motor_cmd_to_radsec");
+                ROS_INFO_STREAM("Please make sure the parameters are correct! for odom");
                 ros::shutdown();
             }
             else{
                 nh.getParam("/odom_id",odom_id);
             }
             if(!nh.getParam("/body_id",body_id)){
-                ROS_INFO_STREAM("Please make sure the parameters are correct! for motor_cmd_to_radsec");
+                ROS_INFO_STREAM("Please make sure the parameters are correct! for body");
                 ros::shutdown();
             }
             else{
                 nh.getParam("/body_id",body_id);
             }
             if(!nh.getParam("/left_wheel_joint",left_wheel_joint)){
-                ROS_INFO_STREAM("Please make sure the parameters are correct! for motor_cmd_to_radsec");
+                ROS_INFO_STREAM("Please make sure the parameters are correct! for left wheel");
                 ros::shutdown();
             }
             else{
                 nh.getParam("/left_wheel_joint",left_wheel_joint);
             }
             if(!nh.getParam("/right_wheel_joint",right_wheel_joint)){
-                ROS_INFO_STREAM("Please make sure the parameters are correct! for motor_cmd_to_radsec");
+                ROS_INFO_STREAM("Please make sure the parameters are correct! for right wheel");
                 ros::shutdown();
             }
             else{

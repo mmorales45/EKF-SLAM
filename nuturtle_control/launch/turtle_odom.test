@@ -1,10 +1,9 @@
 <launch>
-  <rosparam>
-        odom_id: odom
-        body_id: "red-base_footprint"
-        left_wheel_joint: "red-wheel_left_link"
-        right_wheel_joint: "red-wheel_right_link"
-  </rosparam>
+  <param name ="odom_id" value ="odom" />
+  <param name ="body_id" value ="blue-base_footprint" />
+  <param name ="left_wheel_joint" value ="blue-wheel_left_link" />
+  <param name ="right_wheel_joint" value ="blue-wheel_right_link" />
+  
   <group ns="blue">
       <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=blue" />
       <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
@@ -12,6 +11,7 @@
   </group>
 
   <rosparam file="$(find nuturtle_description)/config/diff_params.yaml" />
+  <rosparam file="$(find nusim)/config/basic_world.yaml" />
   <node name="odometry" pkg="nuturtle_control" type="odometry" output = "screen">
     <remap from="/nusim/robot" to="/robot"/>
   </node> 

@@ -1,7 +1,7 @@
 <launch>
   <node pkg="nuturtle_control" type="circle" name="circle"> 
-    <rosparam file="$(find nuturtle_control)/config/circle.yaml" />
-  </node> 
+    <param name ="frequency" value ="100" />
+  </node>
 
   <param name="hztest1/topic" value="cmd_vel" />
   <param name="hztest1/hz" value="100.0" />

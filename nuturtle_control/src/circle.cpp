@@ -57,6 +57,7 @@ class circle
 
         bool reverse_callback(std_srvs::Empty::Request& , std_srvs::Empty::Response& )
         {
+            stop_flag = 0;
             twist.linear.x = -x_dot;
             twist.angular.z = -thetadot;
             twist.linear.y = 0;

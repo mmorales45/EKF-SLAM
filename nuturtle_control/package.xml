@@ -2,7 +2,7 @@
 <package format="2">
   <name>nuturtle_control</name>
   <version>0.0.0</version>
-  <description>The nuturtle_control package</description>
+  <description>Controls the real or simulated robot</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -58,8 +58,8 @@
 
   <build_depend>nuturtlebot_msgs</build_depend>
   <exec_depend>nuturtlebot_msgs</exec_depend>
-  <build_depend>turtlelib</build_depend>
   <exec_depend>turtlelib</exec_depend>
+  
 
   <build_depend>nusim</build_depend>
   <exec_depend>nusim</exec_depend>
@@ -70,8 +70,24 @@
   <build_export_depend>turtlebot3_teleop</build_export_depend>
 
   <depend>catch_ros</depend>
+  <test_depend>rostest</test_depend>
+
+  <build_depend>tf2</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
 
 
+
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>nuturtle_description</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->

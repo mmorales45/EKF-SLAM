@@ -105,9 +105,11 @@ class Sim
         {
             timestep.data = 0;
             timestep_pub.publish(timestep);
-            current_Pose.position.x = robot_coords[0];
-            current_Pose.position.y = robot_coords[1];
+            current_config.x = robot_coords[0];
+            current_config.y = robot_coords[1];
             theta = robot_coords[2];
+            current_config.theta = theta;
+            DiffDrive = turtlelib::DiffDrive(current_config);
         return true;
         }
 
@@ -117,9 +119,10 @@ class Sim
         /// \returns response - true 
         bool teleport(nusim::Teleport::Request& data, nusim::Teleport::Response& )
         {
-            current_Pose.position.x = data.x;
-            current_Pose.position.y = data.y;
+            current_config.x = data.x;
+            current_config.y = data.y;
             theta = data.theta;
+            DiffDrive = turtlelib::DiffDrive(current_config);
             return true;
         }
 
