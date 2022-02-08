@@ -1,3 +1,20 @@
+/// \file
+/// \brief Script that controls the turtlebot based on cmd_vel commands
+///
+/// PARAMETERS:
+///     wheel_radius (double): The radius of the turtlebot's wheel
+///     track_width (double): The distance between the wheels of the turtlebot
+///     collision_radius (double): radius of the colision size 
+///     motor_cmd_to_radsec (double): converts between ticks to rad/sec
+///     encoder_ticks_to_rad (double): converts between ticks to radians
+///     motor_cmd_max (std::vector<double>): limits for motor_cmd commands
+/// PUBLISHERS:
+///     wheel_cmd_pub (nuturtlebot_msgs/WheelCommands): Publishes wheel_cmd commands 
+///     joint_states_pub (sensor_msgs/JointState): Publishes the positions and velocities of the robot's wheels
+/// SUBSCRIBERS:
+///     cmd_sub (geometry_msgs/Twist): Receive cmd_vel values to make the robot move
+///     sensor_data_sub (nuturtlebot_msgs/SensorData): Get the currents encoder values for the robot's wheels
+
 #include <ros/ros.h>
 #include <std_msgs/UInt64.h>
 #include <iostream>
@@ -21,6 +38,7 @@
 #include <turtlelib/rigid2d.hpp>
 #include <turtlelib/diff_drive.hpp>
 
+/// \brief Move the robot based on cmd_vel commands and then calculate the wheel data based on sensor data
 
 class turtle_interface
 {
@@ -31,7 +49,6 @@ class turtle_interface
             nh.getParam("/wheel_radius",wheel_radius);
             nh.getParam("/track_width",track_width);
             nh.getParam("/collision_radius",collision_radius);
-            // nh.getParam("/motor_cmd_max",motor_cmd_max);
             if(!nh.getParam("/motor_cmd_to_radsec",motor_cmd_to_radsec)){
                 ROS_INFO_STREAM("Please make sure the parameters are correct! for motor_cmd_to_radsec");
                 ros::shutdown();
@@ -71,53 +88,40 @@ class turtle_interface
             timer = nh.createTimer(ros::Duration(1/rate), &turtle_interface::main_loop, this);
         }
 
+        /// \brief Receive twist values from cmd_vel to create wheel velocities
+        ///
+        /// \param data - A twist consisting of both linear and angular x,y,z components
         void cmd_callback(const geometry_msgs::Twist & data)
         {
-            //data is a twist
             input_twist.theta_dot = data.angular.z;
             input_twist.x_dot = data.linear.x;
-            // input_twist.y_dot = data.linear.y;
-            wheel_vels = diffDrive.inverse_Kinematics(input_twist);
-
-            
+            wheel_vels = diffDrive.inverse_Kinematics(input_twist);       
         }
 
+        /// \brief Receive the encoder information from the turtlebot3's wheels to calculate the wheel's velocities
+        ///
+        /// \param sd - encoder values for both the left and right wheels
         void sensor_data_callback(const nuturtlebot_msgs::SensorData & sd) 
         {
             wheel_angles.left_angle = sd.left_encoder * encoder_ticks_to_rad;
             wheel_angles.right_angle = sd.right_encoder * encoder_ticks_to_rad;
-
-
-            // ROS_WARN("left: %f right: %f",wheel_angles.left_ang21416le,wheel_angles.right_angle);
             wheel_velocitys.left_vel = (sd.left_encoder-old_left)* motor_cmd_to_radsec;
             wheel_velocitys.right_vel = (sd.right_encoder-old_right) * motor_cmd_to_radsec;
-            // ROS_WARN("left new: %d left old: %d right new: %d right old: %d",sd.left_encoder,old_left,sd.right_encoder,old_right);
             old_left = sd.left_encoder;
             old_right = sd.right_encoder;
-            // ROS_WARN("left: %f right: %f",wheel_velocitys.left_vel,wheel_velocitys.right_vel);
-
-            // wheel_cmd_pub.publish(wheel_commands);
-
         }
 
+        /// \brief A timer that continously publishes the wheel_commands and joint states
+        ///
         void main_loop(const ros::TimerEvent &)
         {
-            // wheel_vels = diffDrive.inverse_Kinematics(input_twist);
             wheel_commands.left_velocity = wheel_vels.left_vel;
             wheel_commands.right_velocity = wheel_vels.right_vel;
-            
-
             jointStates.position[0] = (wheel_angles.left_angle);
             jointStates.position[1] = (wheel_angles.right_angle);
-            jointStates.velocity[0] = (wheel_velocitys.left_vel);
-            jointStates.velocity[1] = (wheel_velocitys.right_vel);
-            // ROS_WARN("left: %f right: %f",jointStates.position[0],jointStates.position[1]);
-            // ROS_WARN("left: %f right: %f",jointStates.velocity[0],jointStates.velocity[1]);
-            
-            // jointStates.position = wheel_angle_vector;
-            // jointStates.velocity = wheel_velocity_vector;
+            jointStates.velocity[0] = (wheel_vels.left_vel*motor_cmd_to_radsec);
+            jointStates.velocity[1] = (wheel_vels.right_vel*motor_cmd_to_radsec);
             jointStates.header.stamp = ros::Time::now();
-
             wheel_cmd_pub.publish(wheel_commands);
             joint_states_pub.publish(jointStates);
         }
@@ -137,7 +141,6 @@ class turtle_interface
     ros::Publisher joint_states_pub;
 
     turtlelib::speed wheel_velocity;
-    // turtlelib::phi_angles wheel_angles;
     turtlelib::DiffDrive diffDrive;
     std::vector<double> wheel_angle_vector;
     std::vector<double> wheel_velocity_vector;
@@ -157,6 +160,8 @@ class turtle_interface
     double rate;
 };
 
+
+/// \brief the main function that calls the class
 
 int main(int argc, char * argv[])
 {

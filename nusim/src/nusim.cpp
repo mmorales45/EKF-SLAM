@@ -99,7 +99,7 @@ class Sim
     
         /// \brief sets the timestep to 0 and teleports robot to intial position
         ///
-        /// \param data - emptyl
+        /// \param data - empty
         /// \returns response - true 
         bool reset(std_srvs::Empty::Request& , std_srvs::Empty::Response& )
         {

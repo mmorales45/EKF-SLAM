@@ -145,17 +145,20 @@ ${catkin_INCLUDE_DIRS}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(turtle_interface src/turtle_interface.cpp)
+add_dependencies(turtle_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(turtle_interface
   ${catkin_LIBRARIES}
   turtlelib
 )
 add_executable(odometry src/odometry.cpp)
+add_dependencies(odometry ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(odometry
   ${catkin_LIBRARIES}
   turtlelib
 )
 
 add_executable(circle src/circle.cpp)
+add_dependencies(circle ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(circle  
   ${catkin_LIBRARIES}
   turtlelib
@@ -169,7 +172,7 @@ target_link_libraries(circle
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(turtle_interface odometry circle ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+## add_dependencies(turtle_interface odometry circle ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 
@@ -203,6 +206,7 @@ install(TARGETS circle odometry turtle_interface
 )
 
 ## Mark cpp header files for installation
+install(DIRECTORY launch/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"

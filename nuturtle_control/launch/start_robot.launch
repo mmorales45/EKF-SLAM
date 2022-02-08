@@ -10,17 +10,16 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 0 0 1 world odom" />
     <rosparam file="$(find nusim)/config/basic_world.yaml" />
     <rosparam file="$(find nuturtle_description)/config/diff_params.yaml" />
-    <node name="turtle_interface" pkg="nuturtle_control" type="turtle_interface" output = "screen">
+    <!-- <node name="turtle_interface" pkg="nuturtle_control" type="turtle_interface" output = "screen">
         <rosparam file="$(find nusim)/config/basic_world.yaml" />
-    </node>
+    </node> -->
 
     <param name ="odom_id" type="string" value ="odom" />
     <param name ="body_id" type="string" value ="blue-base_footprint" />
     <param name ="left_wheel_joint" value ="blue-wheel_left_link" />
     <param name ="right_wheel_joint" value ="blue-wheel_right_link" />
 
-    <node name="odometry" pkg="nuturtle_control" type="odometry" output = "screen"/>
-    
+    <!-- <node name="odometry" pkg="nuturtle_control" type="odometry" output = "screen"/> -->
 
     <!-- cmd_src args -->
     <group if="$(eval arg('cmd_src') == 'circle')">
@@ -30,9 +29,16 @@
     </group>
 
     <group if="$(eval arg('cmd_src') == 'teleop')">
-        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_key"/> 
+        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_key" output="screen"/> 
     </group>
     <!--  -->
+
+    <group ns="blue">
+            
+        <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=blue" />
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+        <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+    </group>
 
     <group if="$(eval arg('robot') == 'nusim')">
         <group ns="red">
@@ -43,12 +49,8 @@
             </node>
         </group>
 
-        <group ns="blue">
-            
-            <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=blue" />
-            <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-            <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
-        </group>
+        <node name="odometry" pkg="nuturtle_control" type="odometry"/>
+        <node name="turtle_interface" pkg="nuturtle_control" type="turtle_interface"/>        
 
         <!-- Launch Node with parameters inside -->
         <node name="nusim" pkg="nusim" type="nusim" output = "screen">
@@ -63,6 +65,16 @@
         <include file = "$(find nuturtle_control)/launch/basic_remote.launch" pass_all_args = "true" >
             <arg name="robot"                       value="$(arg robot)"/>
         </include>
+        <node machine="turtlebot" name="odometry" pkg="nuturtle_control" type="odometry"/>
+        <node machine="turtlebot" name="turtle_interface" pkg="nuturtle_control" type="turtle_interface"/>
+    </group>
+
+    <group if="$(eval arg('robot') == 'april')">
+        <include file = "$(find nuturtle_control)/launch/basic_remote.launch" pass_all_args = "true" >
+            <arg name="robot"                       value="$(arg robot)"/>
+        </include>
+        <node machine="turtlebot" name="odometry" pkg="nuturtle_control" type="odometry"/>
+        <node machine="turtlebot" name="turtle_interface" pkg="nuturtle_control" type="turtle_interface"/>
     </group>
 
 </launch>

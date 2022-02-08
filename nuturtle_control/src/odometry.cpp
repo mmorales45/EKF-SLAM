@@ -1,3 +1,19 @@
+/// \file
+/// \brief Node that updates the odometry between the odom and blue turtlebot3
+///
+/// PARAMETERS:
+///     robot (std::vector<double>): The initial x,y,theta of the turtlebot
+///     odom_id (std::string): The name of the odom frame
+///     body_id (std::string): Name of the body id
+///     left_wheel_joint (std::string): Name of the left wheel joint
+///     right_wheel_joint (std::string): Name of the right wheel joint
+/// PUBLISHERS:
+///     odom_pub (nav_msgs/Odometry): Update the odometry based on the Turtlebot's data
+/// SUBSCRIBERS:
+///     joint_state_sub (sensor_msgs/JointState): Receive the wheels' position and velocities to updates then odometry
+/// SERVICES:
+///     set_pose_service (nuturtle_control/SetPose): Set the location of the blue Turtlebot by specifying a x,y,theta
+
 #include <ros/ros.h>
 #include <std_msgs/UInt64.h>
 #include <iostream>
@@ -22,7 +38,9 @@
 #include <turtlelib/rigid2d.hpp>
 #include <turtlelib/diff_drive.hpp>
 #include <nav_msgs/Odometry.h>
-// #include <nuturtle_control/SetPose.h>
+#include <nuturtle_control/SetPose.h>
+
+/// \brief Create and update the odometry between the world and blue turtlebot
 
 class odometry
 {
@@ -38,41 +56,40 @@ class odometry
             current_config.x = robot_coords[0];
             current_config.y = robot_coords[1];
             current_config.theta = robot_coords[2];
-
             DiffDrive = turtlelib::DiffDrive(current_config);
             
             joint_state_sub = nh.subscribe("/joint_states",10,&odometry::js_callback,this);
             odom_pub = nh.advertise<nav_msgs::Odometry>("odom",100);
-            // set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
+            set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
             timer = nh.createTimer(ros::Duration(1.0/rate), &odometry::main_loop, this);
         }
 
+        /// \brief Get the updated information of the Turtlebots through their wheel positions and velocities
+        ///
+        /// \param js - Has the updated positions and velocities for both the left and right link
         void js_callback(const sensor_msgs::JointState & js)
         {
-
             new_vel.left_vel = js.velocity[0];
             new_vel.right_vel = js.velocity[1];
-            // ROS_WARN("left: %f right: %f",new_vel.left_vel,new_vel.right_vel);
             new_angles.left_angle = js.position[0];
             new_angles.right_angle = js.position[1];
-            // twist = DiffDrive.Twist_from_wheelVel(new_vel);
-            // // ROS_WARN("x: %f y: %f theta: %f ",twist.x_dot,twist.y_dot,twist.theta_dot);
-            // current_config = DiffDrive.forward_Kinematics(new_angles);
-
-            // old_angles.left_angle = new_angles.left_angle;
-            // old_angles.right_angle = new_angles.right_angle;
-        
         }
 
-        // bool set_pose_callback(nuturtle_control::SetPose::Request& data, nuturtle_control::SetPose::Request& )
-        // {
-        //     current_config.theta = data.theta;
-        //     current_config.x = data.x;
-        //     current_config.y = data.y;
-        //     DiffDrive = turtlelib::DiffDrive(current_config);
-        //     return true;
-        // }
+        /// \brief Teleport the Turtlebot3 to a specified location
+        ///
+        /// \param data - x,y, and theta values for where the robot should be moved to
+        /// \returns response - true 
+        bool set_pose_callback(nuturtle_control::SetPose::Request& data, nuturtle_control::SetPose::Request& )
+        {
+            current_config.theta = data.theta;
+            current_config.x = data.x;
+            current_config.y = data.y;
+            DiffDrive = turtlelib::DiffDrive(current_config);
+            return true;
+        }
 
+        /// \brief Loads the paramters from the parameter server to be used in the node
+        ///
         void loadParams()
         {
             if(!nh.getParam("/odom_id",odom_id)){
@@ -104,25 +121,18 @@ class odometry
                 nh.getParam("/right_wheel_joint",right_wheel_joint);
             }
         }
+
+        /// \brief A timer that continuosly publishes odometry, creates transforms, and updates the DiffDrive class members
+        ///
         void main_loop(const ros::TimerEvent &)
         {
-            // twist = DiffDrive.Twist_from_wheelVel(new_vel);
-            // // ROS_WARN("x: %f y: %f theta: %f ",twist.x_dot,twist.y_dot,twist.theta_dot);
-            // current_config = DiffDrive.forward_Kinematics(new_angles);
-
-            // old_angles.left_angle = new_angles.left_angle;
-            // old_angles.right_angle = new_angles.right_angle;
             twist = DiffDrive.Twist_from_wheelVel(new_vel);
-            // ROS_WARN("x: %f y: %f theta: %f ",twist.x_dot,twist.y_dot,twist.theta_dot);
             current_config = DiffDrive.forward_Kinematics(new_angles);
 
             old_angles.left_angle = new_angles.left_angle;
             old_angles.right_angle = new_angles.right_angle;
-            /////////////////////////////////////////////////////////
 
-            // odom.header.frame_id = "odom";
             odom.header.stamp = ros::Time::now();
-            // odom.child_frame_id = "red-base_footprint";
             odom.pose.pose.position.x = current_config.x;
             odom.pose.pose.position.y = current_config.y;
             q.setRPY(0, 0, current_config.theta);
@@ -134,11 +144,7 @@ class odometry
             odom.twist.twist.angular.z = twist.theta_dot;
             odom.twist.twist.linear.x = twist.x_dot;
             odom.twist.twist.linear.y = twist.y_dot;
-            // odom_pub.publish(odom);
 
-            /////////////////////////////////////////////
-            // transformStamped.header.frame_id = "odom";
-            // transformStamped.child_frame_id = "red-base_footprint";
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_config.x;
             transformStamped.transform.translation.y = current_config.y;
@@ -146,9 +152,6 @@ class odometry
             transformStamped.transform.rotation.y = q.y();
             transformStamped.transform.rotation.z = q.z();
             transformStamped.transform.rotation.w = q.w();
-
-            // broadcaster.sendTransform(transformStamped);
-            // ROS_WARN("value of x: %f,value of y: %f,value of theta: %f",odom.pose.pose.position.x,transformStamped.transform.translation.y,current_config.theta);
 
             odom_pub.publish(odom);
             broadcaster.sendTransform(transformStamped);
@@ -185,6 +188,7 @@ class odometry
     
 };
 
+/// \brief the main function that calls the class
 
 int main(int argc, char * argv[])
 {
