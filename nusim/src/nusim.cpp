@@ -126,6 +126,8 @@ class Sim
             return true;
         }
 
+        /// \brief teleports the robot to a position set by the user
+        ///
         void make_arena()
         {
             x_walls.markers.resize(4);
@@ -191,7 +193,9 @@ class Sim
          
         }
 
-
+        /// \brief Get the wheel_command values and turn them into ticks
+        ///
+        /// \param sd - Wheel commands
         void wheel_cmd_callback(const nuturtlebot_msgs::WheelCommands &wheel_commands) 
         {
             wheel_Command = wheel_commands;
@@ -207,56 +211,17 @@ class Sim
             if(wheel_Command.right_velocity < motor_cmd_max_lower){
                 wheel_Command.right_velocity = motor_cmd_max_lower;
             }
-            //get ticks from subscriber
             left_tick = wheel_Command.left_velocity;
             right_tick = wheel_Command.right_velocity;
             
-            // ROS_WARN("left: %d right: %d",left_tick,right_tick);
-            //convert ticks to velocity
             wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec); 
             wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec); 
-
-            
-            // sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
-            // sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
-            // // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
-            // encoder_pub.publish(sensorData);
-
-            // wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
-            // wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
-            // ROS_WARN("left: %f, right: %f",wheel_angles.left_angle,wheel_angles.right_angle);
-            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
-            // ROS_WARN("left: %f right: %f",wheels_velocity.left_vel,wheels_velocity.right_vel);
-            //use velocities to generate new angles
-            // wheel_angles = DiffDrive.angles_From_Rate(wheel_angles,wheels_velocity);
-            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
-            //create endoder data
-            // sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad) %4096;
-            // sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad) %4096;
-            // // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
-            // encoder_pub.publish(sensorData);
-
-            // wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
-            // wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
-            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
-
-
         }
 
         /// \brief A timer that updates the simulation
         ///
         void main_loop(const ros::TimerEvent &)
          {
-            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
-            // sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
-            // sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
-            // // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
-            // encoder_pub.publish(sensorData);
-
-            // wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
-            // wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
-            // current_config = DiffDrive.forward_Kinematics(wheel_angles);
-
             sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
             sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
             // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
@@ -273,11 +238,7 @@ class Sim
             //update timestep
             timestep.data++;
             timestep_pub.publish(timestep);  
-            // joint_state_pub.publish(joint_state); ///remove
-            //update position of the robot 
             transformStamped.header.stamp = ros::Time::now();
-            // transformStamped.transform.translation.x = current_Pose.position.x;
-            // transformStamped.transform.translation.y = current_Pose.position.y;
             transformStamped.transform.translation.x = current_config.x;
             transformStamped.transform.translation.y = current_config.y;
             transformStamped.transform.translation.z = 0.0;

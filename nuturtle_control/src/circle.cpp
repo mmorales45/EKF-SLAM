@@ -1,3 +1,15 @@
+/// \file
+/// \brief Node makes the Turtlebot move in a circle
+///
+/// PARAMETERS:
+///     frequency (double): Determines the amount of times a second the loop runs
+/// PUBLISHERS:
+///     cmd_vel_pub (geometry_msgs/Twist): Publish to cmd_vel to have the robot move
+/// SERVICES:
+///     control_service (nuturtle_control/Control): Go in a circle based on a angular velocity and radius
+///     reverse_service (std_srvs/Empty): Stop the robot 
+///     stop_service (std_srvs/Empty): Make the robot go in reverse
+
 #include <ros/ros.h>
 #include <std_msgs/UInt64.h>
 #include <iostream>
@@ -23,6 +35,8 @@
 #include <nav_msgs/Odometry.h>
 #include <nuturtle_control/Control.h>
 
+/// \brief Create a circle based on input from a user
+
 class circle
 {
     public:
@@ -37,10 +51,13 @@ class circle
             stop_service = nh.advertiseService("stop", &circle::stop_callback, this);
             cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel",1);
             
-            // timer = nh.createTimer(ros::Duration(1/100), &circle::main_loop, this);
             main_loop();
         }
-          
+
+        /// \brief Make the robot go in a circle
+        ///
+        /// \param data - Make a circle based on a radius and angular velocity
+        /// \returns response - true 
         bool control_callback(nuturtle_control::Control::Request& data, nuturtle_control::Control::Response& )
         {  
             stop_flag = 0;
@@ -55,6 +72,10 @@ class circle
             return true;
         }
 
+        /// \brief Make the robot go in reverse 
+        ///
+        /// \param Empty - Empty
+        /// \returns response - true 
         bool reverse_callback(std_srvs::Empty::Request& , std_srvs::Empty::Response& )
         {
             stop_flag = 0;
@@ -64,6 +85,10 @@ class circle
             return true;
         }
 
+        /// \brief Stop the robot and stop the node from publishing twist values
+        ///
+        /// \param Empty - Empty
+        /// \returns response - true 
         bool stop_callback(std_srvs::Empty::Request& , std_srvs::Empty::Response& )
         {
             stop_flag = 1;
@@ -75,16 +100,8 @@ class circle
             return true;
         }
 
-        // void main_loop(const ros::TimerEvent &)
-        // {
-        //     if(stop_flag == 0){
-        //         cmd_vel_pub.publish(twist);
-        //     }
-        //     else if(stop_flag == 1){
-        //         cmd_vel_pub.publish(twist);
-        //         stop_flag = 2;
-        //     }
-        // }
+        /// \brief A timer that updates the simulation
+        ///
         void main_loop()
         {
             ros::Rate r(frequency);
@@ -122,6 +139,8 @@ class circle
     
     
 };
+
+/// \brief the main function that calls the class
 
 int main(int argc, char * argv[])
 {
