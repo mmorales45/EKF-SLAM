@@ -1,5 +1,5 @@
 <launch>
-    <arg name="robot" default = "localhost"/>
+    <arg name="robot" default = "localhost" doc="Can be set to nusim to start the simulator, localhost to run nodes from the turtlebot, turtlebotname to run nodes on that turtlebot or none to not run any other nodes"/> 
 
     <machine name="turtlebot" env-loader="/home/msr/install/share/nuturtle_control/loader.sh" address="$(arg robot)" user="msr" default="true" />
 

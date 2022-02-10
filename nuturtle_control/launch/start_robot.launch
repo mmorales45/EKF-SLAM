@@ -1,7 +1,7 @@
 <launch>
     <arg name= "cmd_src" default = "none" doc="Can be set to circle to start the circle node, teleop to control with keyboard or none if another node will publish cmd_vel data"/>
     <arg name= "robot" default = "nusim" doc="Can be set to nusim to start the simulator, localhost to run nodes from the turtlebot, turtlebotname to run nodes on that turtlebot or none to not run any other nodes"/>
-    <arg name= "use_rviz" default = "false" doc="use_jsp:=true to use RVIZ and see the robot model,tf frames and odometry"/>
+    <arg name= "use_rviz" default = "false" doc="use_rviz:=true to use RVIZ and see the robot model,tf frames and odometry"/>
     
     
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_control)/config/nuturtle.rviz -f 'world'" required="true" if="$(arg use_rviz)"/>
