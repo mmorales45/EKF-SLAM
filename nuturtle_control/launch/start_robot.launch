@@ -31,7 +31,6 @@
     <group if="$(eval arg('cmd_src') == 'teleop')">
         <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_key" output="screen"/> 
     </group>
-    <!--  -->
 
     <group ns="blue">
             
