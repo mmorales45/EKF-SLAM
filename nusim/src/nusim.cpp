@@ -109,7 +109,7 @@ class Sim
             current_config.y = robot_coords[1];
             theta = robot_coords[2];
             current_config.theta = theta;
-            DiffDrive = turtlelib::DiffDrive(current_config);
+            // DiffDrive = turtlelib::DiffDrive(current_config);
         return true;
         }
 
@@ -121,8 +121,9 @@ class Sim
         {
             current_config.x = data.x;
             current_config.y = data.y;
+            current_config.theta = data.theta;
             theta = data.theta;
-            DiffDrive = turtlelib::DiffDrive(current_config);
+            // DiffDrive = turtlelib::DiffDrive(current_config);
             return true;
         }
 
@@ -229,8 +230,8 @@ class Sim
 
             wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
             wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
-            ROS_WARN("left: %f, right: %f",wheel_angles.left_angle,wheel_angles.right_angle);
-            current_config = DiffDrive.forward_Kinematics(wheel_angles);
+            // ROS_WARN("left: %f, right: %f",wheel_angles.left_angle,wheel_angles.right_angle);
+            current_config = DiffDrive.forward_Kinematics(wheel_angles,current_config);
             
             joint_state.header.stamp = ros::Time::now();
             joint_state.position[0] = 0.0;
@@ -238,6 +239,7 @@ class Sim
             //update timestep
             timestep.data++;
             timestep_pub.publish(timestep);  
+            ROS_WARN("x: %f y:%f theta:%f",current_config.x,current_config.y,current_config.theta);
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_config.x;
             transformStamped.transform.translation.y = current_config.y;

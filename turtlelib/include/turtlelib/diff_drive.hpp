@@ -84,10 +84,15 @@ namespace turtlelib
         /// \return - the updated configuration 
         config forward_Kinematics(phi_angles new_angles);
 
+
+        config forward_Kinematics(phi_angles new_angles,config new_config);
+
         /// \brief Calculate the current x,y,z using forward kinematics using twist
         /// \param twist - the x_dot,y_dot and theta_dot
         /// \return - the updated configuration 
         config forward_Kinematics(Twist2D twist);
+
+        
 
 
     private:

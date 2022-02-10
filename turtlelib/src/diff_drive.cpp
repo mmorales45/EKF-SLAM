@@ -119,6 +119,45 @@ namespace turtlelib
         return return_config;
     }
 
+    config DiffDrive::forward_Kinematics(phi_angles new_angles,config new_config)
+    {
+        Transform2D transform, Twb,TbbPrime, TwbPrime;
+        Vector2D trans, updated_trans;
+        double rot;
+        speed wheel_speeds;
+        Twist2D twist;
+        config return_config;
+
+        phi_angles new_wheel_angles, angle_diff;
+        configuration.x = new_config.x;
+        configuration.y = new_config.y;
+        configuration.theta = new_config.theta;
+
+        phi_dot.left_vel = (new_angles.left_angle - phi__.left_angle);
+        phi_dot.right_vel = (new_angles.right_angle - phi__.right_angle);
+
+        phi__.left_angle = new_angles.left_angle;
+        phi__.right_angle = new_angles.right_angle;
+
+        twist.theta_dot = (wheel_radius/(2*body_radius))*(-phi_dot.left_vel+phi_dot.right_vel);
+        twist.x_dot = (wheel_radius/2)*(phi_dot.left_vel+phi_dot.right_vel);
+        twist.y_dot = 0.0;
+
+        trans.x = configuration.x;
+        trans.y = configuration.y;
+        Twb = Transform2D(trans,configuration.theta);
+        TbbPrime = integrate_twist(twist);
+        TwbPrime = Twb*TbbPrime;
+        updated_trans = TwbPrime.translation();
+        rot = normalize_angle(TwbPrime.rotation());
+        
+        configuration.x = updated_trans.x;
+        configuration.y = updated_trans.y;
+        configuration.theta = rot;
+        return_config = configuration;
+        return return_config;
+    }
+
     config DiffDrive::forward_Kinematics(Twist2D twist)
     {
         Transform2D transform, Twb,TbbPrime, TwbPrime;

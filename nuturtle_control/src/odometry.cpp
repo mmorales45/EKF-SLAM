@@ -84,7 +84,7 @@ class odometry
             current_config.theta = data.theta;
             current_config.x = data.x;
             current_config.y = data.y;
-            DiffDrive = turtlelib::DiffDrive(current_config);
+            // DiffDrive = turtlelib::DiffDrive(current_config);
             return true;
         }
 
@@ -127,7 +127,7 @@ class odometry
         void main_loop(const ros::TimerEvent &)
         {
             twist = DiffDrive.Twist_from_wheelVel(new_vel);
-            current_config = DiffDrive.forward_Kinematics(new_angles);
+            current_config = DiffDrive.forward_Kinematics(new_angles,current_config);
 
             old_angles.left_angle = new_angles.left_angle;
             old_angles.right_angle = new_angles.right_angle;
@@ -184,7 +184,7 @@ class odometry
 
     double rate;
     tf2::Quaternion q;
-
+    
     
 };
 

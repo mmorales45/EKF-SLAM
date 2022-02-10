@@ -71,6 +71,9 @@ class turtle_interface
                 nh.getParam("/motor_cmd_max",motor_cmd_max);
             }
 
+            motor_cmd_max_lower = motor_cmd_max[0];
+            motor_cmd_max_upper = motor_cmd_max[1];
+
             cmd_sub = nh.subscribe("cmd_vel", 10, &turtle_interface::cmd_callback, this);
             sensor_data_sub = nh.subscribe("sensor_data",10,&turtle_interface::sensor_data_callback,this);
             
@@ -85,6 +88,15 @@ class turtle_interface
             
             jointStates.name.push_back("red-wheel_left_joint");
             jointStates.name.push_back("red-wheel_right_joint");
+
+            jointStates_blue.header.stamp = ros::Time::now();
+            jointStates_blue.position.push_back(0);
+            jointStates_blue.position.push_back(0);
+            jointStates_blue.velocity.push_back(0);
+            jointStates_blue.velocity.push_back(0);
+            
+            jointStates_blue.name.push_back("blue-wheel_left_joint");
+            jointStates_blue.name.push_back("blue-wheel_right_joint");
             timer = nh.createTimer(ros::Duration(1/rate), &turtle_interface::main_loop, this);
         }
 
@@ -115,15 +127,37 @@ class turtle_interface
         ///
         void main_loop(const ros::TimerEvent &)
         {
-            wheel_commands.left_velocity = wheel_vels.left_vel;
-            wheel_commands.right_velocity = wheel_vels.right_vel;
+            wheel_commands.left_velocity = wheel_vels.left_vel/motor_cmd_to_radsec;
+            wheel_commands.right_velocity = wheel_vels.right_vel/motor_cmd_to_radsec;
+            wheel_Commands = wheel_commands;
+            if(wheel_Commands.left_velocity > motor_cmd_max_upper){
+                wheel_Commands.left_velocity = motor_cmd_max_upper;
+            }
+            if(wheel_Commands.right_velocity > motor_cmd_max_upper){
+                wheel_Commands.right_velocity = motor_cmd_max_upper;
+            }
+            if(wheel_Commands.left_velocity < motor_cmd_max_lower){
+                wheel_Commands.left_velocity = motor_cmd_max_lower;
+            }
+            if(wheel_Commands.right_velocity < motor_cmd_max_lower){
+                wheel_Commands.right_velocity = motor_cmd_max_lower;
+            }
             jointStates.position[0] = (wheel_angles.left_angle);
             jointStates.position[1] = (wheel_angles.right_angle);
-            jointStates.velocity[0] = (wheel_vels.left_vel*motor_cmd_to_radsec);
-            jointStates.velocity[1] = (wheel_vels.right_vel*motor_cmd_to_radsec);
+            jointStates.velocity[0] = (wheel_vels.left_vel);
+            jointStates.velocity[1] = (wheel_vels.right_vel);
+            // jointStates.velocity[0] = (wheel_vels.left_vel*motor_cmd_to_radsec);
+            // jointStates.velocity[1] = (wheel_vels.right_vel*motor_cmd_to_radsec);
             jointStates.header.stamp = ros::Time::now();
-            wheel_cmd_pub.publish(wheel_commands);
+
+            jointStates_blue.position[0] = (wheel_angles.left_angle);
+            jointStates_blue.position[1] = (wheel_angles.right_angle);
+            jointStates_blue.velocity[0] = (wheel_vels.left_vel);
+            jointStates_blue.velocity[1] = (wheel_vels.right_vel);
+            jointStates_blue.header.stamp = ros::Time::now();
+            wheel_cmd_pub.publish(wheel_Commands);
             joint_states_pub.publish(jointStates);
+            // joint_states_pub.publish(jointStates_blue);
         }
           
     private:
@@ -147,17 +181,21 @@ class turtle_interface
     
     turtlelib::Twist2D input_twist;
     nuturtlebot_msgs::WheelCommands wheel_commands;
+    nuturtlebot_msgs::WheelCommands wheel_Commands;
     turtlelib::speed wheel_vels;
 
     turtlelib::phi_angles wheel_angles;
     turtlelib::speed wheel_velocitys;
     sensor_msgs::JointState jointStates;
+    sensor_msgs::JointState jointStates_blue;
     ros::Timer timer;
 
     int old_left;
     int old_right;
 
     double rate;
+    double motor_cmd_max_lower;
+    double motor_cmd_max_upper;
 };
 
 
