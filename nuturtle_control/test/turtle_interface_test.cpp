@@ -3,13 +3,21 @@
 #include <geometry_msgs/Twist.h>
 #include <nuturtlebot_msgs/WheelCommands.h>
 #include <nuturtlebot_msgs/SensorData.h>
+#include <sensor_msgs/JointState.h>
 
 geometry_msgs::Twist cmd_vel;
 nuturtlebot_msgs::WheelCommands wheel_cmd;
+sensor_msgs::JointState jointStates;
 
 void wheel_cmd_callback(const nuturtlebot_msgs::WheelCommands & msg)
 {
   wheel_cmd = msg;
+  
+}
+
+void js_callback(const sensor_msgs::JointState & js)
+{
+  jointStates = js;
   
 }
 
@@ -18,11 +26,11 @@ TEST_CASE("Purely Translational Wheel_cmds", "[nuturtle_control]") {
   ros::NodeHandle nh; // this initializes time
 
   ros::Publisher cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel",1);
-  ros::Subscriber wheel_cmd_sub = nh.subscribe("/wheel_cmd", 1, wheel_cmd_callback);
+  ros::Subscriber js_sub = nh.subscribe("/wheel_cmd", 1, wheel_cmd_callback);
 
   geometry_msgs::Twist twist;
-  twist.linear.x = 1.0;
-  twist.angular.z = 1.0;
+  twist.linear.x = 0.1;
+  twist.angular.z = 0.1;
 
   ros::Rate r(500);
   while(1){
@@ -34,8 +42,8 @@ TEST_CASE("Purely Translational Wheel_cmds", "[nuturtle_control]") {
       break;
     }
   }  
-  CHECK(wheel_cmd.left_velocity == 27);
-  CHECK(wheel_cmd.right_velocity == 32);
+  CHECK(wheel_cmd.left_velocity == 116);
+  CHECK(wheel_cmd.right_velocity == 136);
 }
 
 
@@ -47,8 +55,8 @@ TEST_CASE("Purely Rotational Wheel_cmds", "[nuturtle_control]") {
   ros::Subscriber wheel_cmd_sub = nh.subscribe("/wheel_cmd", 1, wheel_cmd_callback);
 
   geometry_msgs::Twist twist;
-  twist.linear.x = 1.0;
-  // twist.angular.z = 1.0;
+  // twist.linear.x = 0.1;
+  twist.angular.z = 0.1;
 
   ros::Rate r(500);
   while(1){
@@ -60,8 +68,8 @@ TEST_CASE("Purely Rotational Wheel_cmds", "[nuturtle_control]") {
       break;
     }
   }  
-  CHECK(wheel_cmd.left_velocity == 30);
-  CHECK(wheel_cmd.right_velocity == 30);
+  CHECK(wheel_cmd.left_velocity == -10);
+  CHECK(wheel_cmd.right_velocity == 10);
 }
 
 TEST_CASE("Sensor Encoder data", "[nuturtle_control]") {
@@ -69,7 +77,7 @@ TEST_CASE("Sensor Encoder data", "[nuturtle_control]") {
   ros::NodeHandle nh; // this initializes time
 
   ros::Publisher sense_pub = nh.advertise<nuturtlebot_msgs::SensorData>("/sensor_data",1);
-  ros::Subscriber wheel_cmd_sub = nh.subscribe("/joint_states", 1, wheel_cmd_callback);
+  ros::Subscriber wheel_cmd_sub = nh.subscribe("/joint_states", 1, js_callback);
 
   nuturtlebot_msgs::SensorData sense_data;
   sense_data.left_encoder = 10;
@@ -80,10 +88,11 @@ TEST_CASE("Sensor Encoder data", "[nuturtle_control]") {
     i++;
     sense_pub.publish(sense_data);
     ros::spinOnce();
-    if (i > 1000){
+    r.sleep();
+    if (i > 500){
       break;
     }
   }  
-  CHECK(wheel_cmd.left_velocity == 30);
-  CHECK(wheel_cmd.right_velocity == 30);
+  CHECK(jointStates.position[0] == 0.0153398078);
+  CHECK(jointStates.position[1] == 0.0153398078);
 }
