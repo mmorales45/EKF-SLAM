@@ -71,12 +71,20 @@ namespace turtlelib
         /// \return a twist composing of x_dot,y_dot and theta_dot
         Twist2D Twist_from_wheelRates(phi_angles new_angles);
 
+        /// \brief Calculate a twist from wheel velocities
+        /// \param new_vel - Wheel velocities
+        /// \return a twist composing of x_dot,y_dot and theta_dot
         Twist2D Twist_from_wheelVel(speed new_vel);
+
+        /// \brief Calculate the angles of the wheels
+        /// \param old_angels - The previous angles of the wheels
+        /// \param wheel_vel - The velocity of the wheels
+        /// \return - The angles of the wheels
         phi_angles angles_From_Rate(phi_angles old_angels, speed wheel_vel);
 
         /// \brief Calculate the speed using inverse kinematics
         /// \param twist - the x_dot,y_dot and theta_dot
-        /// \return - the speed of the robot
+        /// \return - The speed of the robot
         speed inverse_Kinematics(Twist2D twist);
 
         /// \brief Calculate the current x,y,z using forward kinematics
@@ -84,16 +92,16 @@ namespace turtlelib
         /// \return - the updated configuration 
         config forward_Kinematics(phi_angles new_angles);
 
-
+        /// \brief Calculate the current x,y,z using forward kinematics
+        /// \param new_angles - the new angles of the robot
+        /// \param new_config - The current configuration of the wheel
+        /// \return - the updated configuration 
         config forward_Kinematics(phi_angles new_angles,config new_config);
 
         /// \brief Calculate the current x,y,z using forward kinematics using twist
         /// \param twist - the x_dot,y_dot and theta_dot
         /// \return - the updated configuration 
         config forward_Kinematics(Twist2D twist);
-
-        
-
 
     private:
         speed phi_dot;
