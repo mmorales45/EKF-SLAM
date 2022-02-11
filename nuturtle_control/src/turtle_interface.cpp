@@ -46,6 +46,7 @@ class turtle_interface
         turtle_interface() {
             diffDrive = turtlelib::DiffDrive();
             rate = 500;
+            //import parameters
             nh.getParam("/wheel_radius",wheel_radius);
             nh.getParam("/track_width",track_width);
             nh.getParam("/collision_radius",collision_radius);
@@ -79,7 +80,7 @@ class turtle_interface
             
             wheel_cmd_pub = nh.advertise<nuturtlebot_msgs::WheelCommands>("wheel_cmd",10);
             joint_states_pub = nh.advertise<sensor_msgs::JointState>("/joint_states",10);
-            
+            //create joint states for red robot
             jointStates.header.stamp = ros::Time::now();
             jointStates.position.push_back(0);
             jointStates.position.push_back(0);
@@ -88,7 +89,7 @@ class turtle_interface
             
             jointStates.name.push_back("red-wheel_left_joint");
             jointStates.name.push_back("red-wheel_right_joint");
-
+            //create joint states for blue robot if wheels should move
             jointStates_blue.header.stamp = ros::Time::now();
             jointStates_blue.position.push_back(0);
             jointStates_blue.position.push_back(0);
@@ -115,6 +116,7 @@ class turtle_interface
         /// \param sd - encoder values for both the left and right wheels
         void sensor_data_callback(const nuturtlebot_msgs::SensorData & sd) 
         {
+            //convert sensor data to velocities and angles
             wheel_angles.left_angle = sd.left_encoder * encoder_ticks_to_rad;
             wheel_angles.right_angle = sd.right_encoder * encoder_ticks_to_rad;
             wheel_velocitys.left_vel = (sd.left_encoder-old_left)* motor_cmd_to_radsec;
@@ -130,6 +132,7 @@ class turtle_interface
             wheel_commands.left_velocity = wheel_vels.left_vel/motor_cmd_to_radsec;
             wheel_commands.right_velocity = wheel_vels.right_vel/motor_cmd_to_radsec;
             wheel_Commands = wheel_commands;
+            //limit wheels commands
             if(wheel_Commands.left_velocity > motor_cmd_max_upper){
                 wheel_Commands.left_velocity = motor_cmd_max_upper;
             }
@@ -142,12 +145,12 @@ class turtle_interface
             if(wheel_Commands.right_velocity < motor_cmd_max_lower){
                 wheel_Commands.right_velocity = motor_cmd_max_lower;
             }
+
+            //publish joint states and wheel commands
             jointStates.position[0] = (wheel_angles.left_angle);
             jointStates.position[1] = (wheel_angles.right_angle);
             jointStates.velocity[0] = (wheel_vels.left_vel);
             jointStates.velocity[1] = (wheel_vels.right_vel);
-            // jointStates.velocity[0] = (wheel_vels.left_vel*motor_cmd_to_radsec);
-            // jointStates.velocity[1] = (wheel_vels.right_vel*motor_cmd_to_radsec);
             jointStates.header.stamp = ros::Time::now();
 
             jointStates_blue.position[0] = (wheel_angles.left_angle);
@@ -157,10 +160,10 @@ class turtle_interface
             jointStates_blue.header.stamp = ros::Time::now();
             wheel_cmd_pub.publish(wheel_Commands);
             joint_states_pub.publish(jointStates);
-            // joint_states_pub.publish(jointStates_blue);
         }
           
     private:
+    //create private variables
     ros::NodeHandle nh;
     double wheel_radius;
     double track_width;

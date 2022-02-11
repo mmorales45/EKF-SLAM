@@ -219,6 +219,12 @@ install(FILES
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
+#catkin_lint: ignore_once wrong_bin_install_destination
+install(PROGRAMS
+  loader.sh
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
 #############
 ## Testing ##
 #############

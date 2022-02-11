@@ -70,14 +70,8 @@ class Sim
             
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
-            // joint_state_pub = nh.advertise<sensor_msgs::JointState>("/red/joint_states", 1000);   //remove    
             make_arena();
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
-            //Add initial values of 0.0 for joint's position
-            joint_state.name.push_back("red-wheel_left_joint");
-            joint_state.name.push_back("red-wheel_right_joint");
-            joint_state.position.push_back(0.0);
-            joint_state.position.push_back(0.0);
 
             //set initial coordinates for the robot as well as the header and child ids
             transformStamped.header.frame_id = "world";
@@ -109,7 +103,6 @@ class Sim
             current_config.y = robot_coords[1];
             theta = robot_coords[2];
             current_config.theta = theta;
-            // DiffDrive = turtlelib::DiffDrive(current_config);
         return true;
         }
 
@@ -123,11 +116,10 @@ class Sim
             current_config.y = data.y;
             current_config.theta = data.theta;
             theta = data.theta;
-            // DiffDrive = turtlelib::DiffDrive(current_config);
             return true;
         }
 
-        /// \brief teleports the robot to a position set by the user
+        /// \brief Creates arena for the turtlebot3 by using 4 walls
         ///
         void make_arena()
         {
@@ -200,6 +192,7 @@ class Sim
         void wheel_cmd_callback(const nuturtlebot_msgs::WheelCommands &wheel_commands) 
         {
             wheel_Command = wheel_commands;
+            //limit wheel commands
             if(wheel_Command.left_velocity > motor_cmd_max_upper){
                 wheel_Command.left_velocity = motor_cmd_max_upper;
             }
@@ -225,18 +218,13 @@ class Sim
          {
             sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
             sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
-            // ROS_WARN("left: %d right: %d",sensorData.left_encoder,sensorData.right_encoder);
             encoder_pub.publish(sensorData);
 
             wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
             wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
-            // ROS_WARN("left: %f, right: %f",wheel_angles.left_angle,wheel_angles.right_angle);
             current_config = DiffDrive.forward_Kinematics(wheel_angles,current_config);
             
-            joint_state.header.stamp = ros::Time::now();
-            joint_state.position[0] = 0.0;
-            joint_state.position[1] = 0.0;
-            //update timestep
+            //update timestep and transforms
             timestep.data++;
             timestep_pub.publish(timestep);  
             ROS_WARN("x: %f y:%f theta:%f",current_config.x,current_config.y,current_config.theta);
@@ -286,9 +274,9 @@ class Sim
 
     
     private:
+    //create private variables
         ros::NodeHandle nh;
         ros::Publisher timestep_pub;
-        // ros::Publisher joint_state_pub; ///remove
         ros::Publisher marker_pub;
         ros::Publisher walls_pub;
         ros::Publisher encoder_pub;

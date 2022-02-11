@@ -11,10 +11,12 @@ The circle node makes the robot create circles through the use of three services
 
 ### turtle_interface
 turtle_interface allows for the control of the robot based on the /cmd_vel topic measurements and then publishing to /wheel_cmd and /joint_states.
+
 ### odometry
+The odometry node publishes odometry messages and transforms between the robot and odom frame.
 
 ## Launchfile
-The `start_robot.launch` file is the primary launchfile for the package and consists of controlling the Turtlebot3 in multiple scenarios such as controlling a simualated robot, starting a real robot from the robot itself and starting the robot from the user's computer. 
+The `start_robot.launch` file is the primary launchfile for the package and consists of controlling the Turtlebot3 in multiple scenarios such as controlling a simulated robot, starting a real robot from the robot itself and starting the robot from the user's computer. 
 
 To run the launchfile, run the following line.
 
@@ -82,4 +84,13 @@ The stop service will stop the Turtlebot3 and stop publishing to cmd_vel
 rosservice call /stop "{}"
 ```
 
+## Videos and Answers
+
+### Only Translation
+
+
+### Only Rotation
+
+
+### Circles
 

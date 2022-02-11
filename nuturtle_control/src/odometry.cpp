@@ -48,6 +48,7 @@ class odometry
         odometry() {
             loadParams();
             rate = 500;
+            //set frame ids and initial position of robot
             odom.header.frame_id = odom_id;
             odom.child_frame_id = body_id;
             transformStamped.header.frame_id = odom_id;
@@ -127,14 +128,16 @@ class odometry
         void main_loop(const ros::TimerEvent &)
         {
             twist = DiffDrive.Twist_from_wheelVel(new_vel);
+            //update configuration based on forward kinematics
             current_config = DiffDrive.forward_Kinematics(new_angles,current_config);
-
+            //make the new angles the old ones
             old_angles.left_angle = new_angles.left_angle;
             old_angles.right_angle = new_angles.right_angle;
-
+            //publish odom and transform
             odom.header.stamp = ros::Time::now();
             odom.pose.pose.position.x = current_config.x;
             odom.pose.pose.position.y = current_config.y;
+            //create quaternion from theta
             q.setRPY(0, 0, current_config.theta);
             odom.pose.pose.orientation.x = q.x();
             odom.pose.pose.orientation.y = q.y();
@@ -157,6 +160,7 @@ class odometry
             broadcaster.sendTransform(transformStamped);
         }
     private:
+    //create private variables
     ros::NodeHandle nh;
     ros::Subscriber joint_state_sub;
     ros::Publisher odom_pub;

@@ -60,11 +60,12 @@ class circle
         /// \returns response - true 
         bool control_callback(nuturtle_control::Control::Request& data, nuturtle_control::Control::Response& )
         {  
+            // use angular velocity to calculate linear velocity
             stop_flag = 0;
             thetadot = data.angular_velocity;
             radius = data.radius;
             x_dot = thetadot*radius;
-
+            //create twist message
             twist.linear.x = x_dot;
             twist.angular.z = thetadot;
             twist.linear.y = 0;
@@ -78,6 +79,7 @@ class circle
         /// \returns response - true 
         bool reverse_callback(std_srvs::Empty::Request& , std_srvs::Empty::Response& )
         {
+            //mark flag as 0 to indicate its not stopped
             stop_flag = 0;
             twist.linear.x = -x_dot;
             twist.angular.z = -thetadot;
@@ -91,12 +93,12 @@ class circle
         /// \returns response - true 
         bool stop_callback(std_srvs::Empty::Request& , std_srvs::Empty::Response& )
         {
+            //mark flag as 1 to indicate it stopped
             stop_flag = 1;
             twist.linear.x = 0;
             twist.angular.z = 0;
             twist.linear.y = 0;
 
-            // cmd_vel_pub.publish(twist);
             return true;
         }
 
@@ -119,6 +121,7 @@ class circle
         }
         
     private:
+    //create private variables
     ros::NodeHandle nh;
     ros::ServiceServer control_service;
     ros::ServiceServer reverse_service;
