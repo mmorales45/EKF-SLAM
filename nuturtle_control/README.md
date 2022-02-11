@@ -62,6 +62,15 @@ An examples of the launchfile being called with some of the arguments above is b
 
 There are three services provided by the `circle` node that can be called.
 
+###
+
+The set_pose service will teleport the blue robot to a specified x,y and theta. It can be called by looking at the example below.
+```
+rosservice call /set_pose "x: 0.0
+y: 0.0
+theta: 0.0" 
+
+```
 ### control
 
 The control service will draw a circle based on two arguments, the angular velocity and the radius of the circle. It can be called by using the example below.
@@ -84,7 +93,7 @@ The stop service will stop the Turtlebot3 and stop publishing to cmd_vel
 rosservice call /stop "{}"
 ```
 
-## Videos and Answers
+## Videos and Analysis
 
 ### Only Translation
 
