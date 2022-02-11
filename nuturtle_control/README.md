@@ -62,14 +62,13 @@ An examples of the launchfile being called with some of the arguments above is b
 
 There are three services provided by the `circle` node that can be called.
 
-###
+### set_pose
 
 The set_pose service will teleport the blue robot to a specified x,y and theta. It can be called by looking at the example below.
 ```
 rosservice call /set_pose "x: 0.0
 y: 0.0
-theta: 0.0" 
-
+theta: 0.0"
 ```
 ### control
 

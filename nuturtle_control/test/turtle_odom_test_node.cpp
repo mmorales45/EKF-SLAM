@@ -6,8 +6,9 @@
 #include <nuturtle_control/SetPose.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_listener.h>
- #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 
+// create global variables 
 geometry_msgs::Twist cmd_vel;
 nuturtlebot_msgs::WheelCommands wheel_cmd;
 nav_msgs::Odometry odom_var;
@@ -20,11 +21,12 @@ void odom_callback(const nav_msgs::Odometry& data)
 
 TEST_CASE("Transform Odom and base_footprint", "[nuturtle_control]") {
   int i;
-  ros::NodeHandle nh; // this initializes time
+  ros::NodeHandle nh; 
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener tfListener(tfBuffer);
-  double x,y;
+  double x,y,w;
   ros::Rate r(100);
+  // wait for 1 second
   while(1){
     i++;
     geometry_msgs::TransformStamped transformStamped;
@@ -39,25 +41,28 @@ TEST_CASE("Transform Odom and base_footprint", "[nuturtle_control]") {
 
     x = transformStamped.transform.translation.x;
     y = transformStamped.transform.translation.y;
+    w = transformStamped.transform.rotation.w;
     ros::spinOnce();
     r.sleep();
     if (i > 100){
       break;
     }
   }
-
+// identity transform
 CHECK(x == 0.0);
 CHECK(y == 0.0);
+CHECK(w == 1.0);
 
 }
 
-TEST_CASE("Set Pose", "[nuturtle_control]") {
+TEST_CASE("Set Pose Test", "[nuturtle_control]") {
   int i;
-  ros::NodeHandle nh; // this initializes time
+  ros::NodeHandle nh; 
   ros::ServiceClient set_pose_srv = nh.serviceClient<nuturtle_control::SetPose>("/set_pose");
   ros::Subscriber odom_sub = nh.subscribe("/odom", 1, odom_callback);
 
   ros::Rate r(100);
+  // request service with specified variables
   nuturtle_control::SetPose set_pose_msg;
   set_pose_msg.request.x = 1.0;
   set_pose_msg.request.y = 1.0;
@@ -65,8 +70,6 @@ TEST_CASE("Set Pose", "[nuturtle_control]") {
   set_pose_srv.call(set_pose_msg); 
   while(1){
     i++;    
-    int flag = 0;   
-    flag =1;
     ros::spinOnce();
     r.sleep();
     if (i > 100){
