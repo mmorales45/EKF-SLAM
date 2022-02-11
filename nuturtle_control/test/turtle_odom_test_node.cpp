@@ -41,7 +41,7 @@ TEST_CASE("Transform Odom and base_footprint", "[nuturtle_control]") {
     y = transformStamped.transform.translation.y;
     ros::spinOnce();
     r.sleep();
-    if (i > 1000){
+    if (i > 100){
       break;
     }
   }
@@ -58,19 +58,18 @@ TEST_CASE("Set Pose", "[nuturtle_control]") {
   ros::Subscriber odom_sub = nh.subscribe("/odom", 1, odom_callback);
 
   ros::Rate r(100);
+  nuturtle_control::SetPose set_pose_msg;
+  set_pose_msg.request.x = 1.0;
+  set_pose_msg.request.y = 1.0;
+  set_pose_msg.request.theta = 0;
+  set_pose_srv.call(set_pose_msg); 
   while(1){
-    i++;
-    // ros::service::waitForService("/set_pose");
-    nuturtle_control::SetPose set_pose_msg;
-    int flag = 0;
-    set_pose_msg.request.x = 1.0;
-    set_pose_msg.request.y = 1.0;
-    set_pose_msg.request.theta = 0;
-    set_pose_srv.call(set_pose_msg);    
+    i++;    
+    int flag = 0;   
     flag =1;
     ros::spinOnce();
     r.sleep();
-    if (i > 1000){
+    if (i > 100){
       break;
     }
   }
@@ -80,6 +79,6 @@ TEST_CASE("Set Pose", "[nuturtle_control]") {
   CHECK(odom_var.pose.pose.orientation.x == 0.0);
   CHECK(odom_var.pose.pose.orientation.y == 0.0);
   CHECK(odom_var.pose.pose.orientation.z == 0.0);
-  CHECK(odom_var.pose.pose.orientation.z == 0.0);
+  CHECK(odom_var.pose.pose.orientation.w == 1.0);
 }
 
