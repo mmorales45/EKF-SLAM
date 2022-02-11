@@ -230,7 +230,15 @@ install(PROGRAMS
 #############
 
 if(CATKIN_ENABLE_TESTING)
-  add_subdirectory(test)
+  find_package(rostest REQUIRED)
+
+  catch_add_rostest_node(turtle_interface_test test/turtle_interface_test.cpp)
+  target_link_libraries(turtle_interface_test ${catkin_LIBRARIES})
+
+
+  catch_add_rostest_node(turtle_odom_test_node test/turtle_odom_test_node.cpp)
+  target_link_libraries(turtle_odom_test_node ${catkin_LIBRARIES})
+
   add_rostest(launch/turtle_interface.test DEPENDENCIES turtle_interface_test)
   add_rostest(launch/turtle_odom.test DEPENDENCIES turtle_odom_test_node)
   add_rostest(launch/turtle_circle.test)
