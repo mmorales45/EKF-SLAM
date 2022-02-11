@@ -24,7 +24,9 @@
     </group>
 
     <group if="$(eval arg('cmd_src') == 'teleop')">
-        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_key" output="screen"/> 
+        <include file ="$(find turtlebot3_teleop)/launch/turtlebot3_teleop_key.launch">
+            <arg name="model" value="burger" />
+        </include>
     </group>
 
     <group ns="blue">
@@ -61,7 +63,7 @@
         <node machine="turtlebot" name="turtle_interface" pkg="nuturtle_control" type="turtle_interface"/>
     </group>
 
-    <group if="$(eval arg('robot') == 'leonardo')">
+    <group if="$(eval arg('robot') == 'shredder')">
         <include file = "$(find nuturtle_control)/launch/basic_remote.launch" pass_all_args = "true" >
             <arg name="robot"                       value="$(arg robot)"/>
         </include>

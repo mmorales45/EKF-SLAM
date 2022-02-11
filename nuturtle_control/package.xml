@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>nuturtle_control</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>Controls the real or simulated robot</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="mmoral45@todo.todo">mmoral45</maintainer>
+  <maintainer email="marcomorales2022@u.northwestern.edu">mmoral45</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
+  <license>APLv2</license>
 
 
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
@@ -89,6 +89,7 @@
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>rosserial_python</exec_depend>
+  <exec_depend>turtlebot3_teleop</exec_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
