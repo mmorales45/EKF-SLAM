@@ -121,8 +121,8 @@ include_directories(
 
 ## Declare a C++ librarsy
 add_library(${PROJECT_NAME}
-	src/rigid2d.cpp
-  src/diff_drive.cpp
+	src/diff_drive.cpp
+  src/rigid2d.cpp
 )
 add_executable(frame_main src/frame_main.cpp)
 
