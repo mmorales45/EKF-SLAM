@@ -64,6 +64,8 @@ namespace turtlelib
         /// \param phidot_input - speeds of the left and right wheels
         DiffDrive(config config_,phi_angles phi_input,speed phidot_input);
 
+        /// \brief Create an object with configuration,
+        /// \param config_ - x,y,theta of the robot
         DiffDrive(config config_);
         
         /// \brief Calculate a twist from new wheel angles

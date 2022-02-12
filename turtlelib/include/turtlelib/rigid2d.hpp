@@ -247,10 +247,7 @@ namespace turtlelib
         /// \brief \see operator<<(...) (declared outside this class)
         /// for a description
         friend std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
-
-        // Transform2D integrate_twist(const Twist2D & twist);
         
-
     private:
         Vector2D translational_component;
         double angular_displacement;
