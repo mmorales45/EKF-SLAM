@@ -36,7 +36,11 @@
 
 #include <nuturtlebot_msgs/WheelCommands.h>
 #include <nuturtlebot_msgs/SensorData.h>
+#include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <sensor_msgs/LaserScan.h>
 
+#include<random>
 
 /// \brief Creates a simulator and visualizer for the turtlebot3
 
@@ -56,6 +60,21 @@ class Sim
             nh.getParam("/nusim/motor_cmd_to_radsec",motor_cmd_to_radsec);
             nh.getParam("/nusim/encoder_ticks_to_rad",encoder_ticks_to_rad);
             nh.getParam("/nusim/motor_cmd_max",motor_cmd_max);
+            nh.getParam("/nusim/sim_flag",sim_flag);
+            nh.getParam("/nusim/slip_min",slip_min);
+            nh.getParam("/nusim/slip_max",slip_max);
+            nh.getParam("/nusim/max_range",max_range);
+            nh.getParam("/nusim/basic_sensor_variance",basic_sensor_variance);
+            nh.getParam("/nusim/samples",samples);
+            nh.getParam("/nusim/resolution",resolution);
+            nh.getParam("/nusim/min_angle",min_angle);
+            nh.getParam("/nusim/max_angle",max_angle);
+            nh.getParam("/nusim/min_scan_range",min_scan_range);
+            nh.getParam("/nusim/max_scan_range",max_scan_range);
+            nh.getParam("/nusim/robot_noise_mean",robot_noise_mean);
+            nh.getParam("/nusim/robot_noise_stddev",robot_noise_stddev);
+            
+            
             motor_cmd_max_lower = motor_cmd_max[0];
             motor_cmd_max_upper = motor_cmd_max[1];
             
@@ -63,15 +82,19 @@ class Sim
             //Initialize the timer, services, and publishers
             timestep_pub = nh.advertise<std_msgs::UInt64>("/nusim/timestep", 100);
             marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/markerArray", 1, true);
+            fake_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/Fake_markerArray", 1, true);
             walls_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/walls/walls", 1, true);
             encoder_pub  = nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", 10, true);
             wheel_cmd_sub = nh.subscribe("red/wheel_cmd", 100, &Sim::wheel_cmd_callback, this);
+            path_pub  = nh.advertise<nav_msgs::Path>("nusim/path", 10, true);
+        
             
             
             reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
             teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
             make_arena();
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
+            timer_fake = nh.createTimer(ros::Duration(1.0/5.0), &Sim::fake_loop, this);
 
             //set initial coordinates for the robot as well as the header and child ids
             transformStamped.header.frame_id = "world";
@@ -88,9 +111,55 @@ class Sim
             }
 
             DiffDrive = turtlelib::DiffDrive(current_config,wheel_angles,wheels_velocity);
+            marker.markers.resize(obstacle_array_size);
+            for (int i = 0;i<obstacle_array_size;i++)
+            {
+                marker.markers[i].header.stamp = ros::Time();
+                marker.markers[i].header.frame_id = "world";
+                shape = visualization_msgs::Marker::CYLINDER;
+                marker.markers[i].type = shape;
+                marker.markers[i].ns = "obstacles";
+                marker.markers[i].action = visualization_msgs::Marker::ADD;
+                marker.markers[i].id = i;
 
+                marker.markers[i].pose.position.x = cylinder_marker_x[i];
+                marker.markers[i].pose.position.y = cylinder_marker_y[i];
+                marker.markers[i].pose.position.z = 0.125;
+                marker.markers[i].pose.orientation.x = 0.0;
+                marker.markers[i].pose.orientation.y = 0.0;
+                marker.markers[i].pose.orientation.z = 0.0;
+                marker.markers[i].pose.orientation.w = 1.0;
+
+                marker.markers[i].scale.x = (2*radius);
+                marker.markers[i].scale.y = (2*radius);
+                marker.markers[i].scale.z = 0.25;
+                
+                marker.markers[i].color.r = 1.0;
+                marker.markers[i].color.g = 0.0;
+                marker.markers[i].color.b = 0.0;
+                marker.markers[i].color.a = 1.0;
+            }
+            marker_pub.publish(marker);
+            std::normal_distribution<> left_vel_noise(0, .01);
+            std::normal_distribution<> right_vel_noise(0, .01);
+            std::normal_distribution<> slip(0.5, slip_max);
+            std::normal_distribution<> fake_obstacle_noise(0, basic_sensor_variance);
+            left_noise = left_vel_noise(get_random());
+            right_noise = right_vel_noise(get_random());
+            slip_noise = slip(get_random());
+            obstacle_noise = fake_obstacle_noise(get_random());
         }
-    
+
+        std::mt19937 & get_random()
+        {
+            // static variables inside a function are created once and persist for the remainder of the program
+            static std::random_device rd{}; 
+            static std::mt19937 mt{rd()};
+            // we return a reference to the pseudo-random number genrator object. This is always the
+            // same object every time get_random is called
+            return mt;
+        }
+
         /// \brief sets the timestep to 0 and teleports robot to intial position
         ///
         /// \param data - empty
@@ -176,14 +245,69 @@ class Sim
     
                 x_walls.markers[i].scale.z = 0.25;
                 
-                x_walls.markers[i].color.r = 0.13;
-                x_walls.markers[i].color.g = 0.54;
-                x_walls.markers[i].color.b = 0.13;
+                x_walls.markers[i].color.r = 1.0;
+                x_walls.markers[i].color.g = 0.0;
+                x_walls.markers[i].color.b = 0.0;
                 x_walls.markers[i].color.a = 1.0;
             }
             walls_pub.publish(x_walls);
 
          
+        }
+
+        void make_fake_obstacles()
+        {
+            fake_marker.markers.resize(obstacle_array_size);
+            for (int i = 0;i<obstacle_array_size;i++)
+            {
+                fake_marker.markers[i].header.stamp = ros::Time();
+                fake_marker.markers[i].header.frame_id = "world";
+                shape = visualization_msgs::Marker::CYLINDER;
+                fake_marker.markers[i].type = shape;
+                fake_marker.markers[i].ns = "fake_obstacles";
+
+                fake_marker.markers[i].id = i;
+
+                fake_marker.markers[i].pose.position.x = cylinder_marker_x[i]+obstacle_noise;
+                fake_marker.markers[i].pose.position.y = cylinder_marker_y[i]+obstacle_noise;
+                fake_marker.markers[i].pose.position.z = 0.125;
+                fake_marker.markers[i].pose.orientation.x = 0.0;
+                fake_marker.markers[i].pose.orientation.y = 0.0;
+                fake_marker.markers[i].pose.orientation.z = 0.0;
+                fake_marker.markers[i].pose.orientation.w = 1.0;
+
+                fake_marker.markers[i].scale.x = (2*radius);
+                fake_marker.markers[i].scale.y = (2*radius);
+                fake_marker.markers[i].scale.z = 0.25;
+                
+                fake_marker.markers[i].color.r = 1.0;
+                fake_marker.markers[i].color.g = 0.0;
+                fake_marker.markers[i].color.b = 0.0;
+                fake_marker.markers[i].color.a = 1.0;
+
+                distance = sqrt(pow(cylinder_marker_x[i]-current_config.x,2)+(cylinder_marker_y[i]-current_config.y,2));
+                if (distance < max_range){
+                    fake_marker.markers[i].action = visualization_msgs::Marker::ADD;
+                }
+                else{
+                    fake_marker.markers[i].action = visualization_msgs::Marker::DELETE;
+                }
+            }
+            fake_marker_pub.publish(fake_marker);
+        }
+
+        void make_fake_laser()
+        {
+            fake_laser.header.frame_id = "red-base_footprint";
+            fake_laser.header.stamp = ros::Time::now();;
+            fake_laser.angle_min = 0;
+            fake_laser.angle_max = turtlelib::PI*2;
+            // fake_laser.time_increment = ;
+            // fake_laser.scan_time = ;
+            // fake_laser.range_min = ;
+            // fake_laser.range_max = ;
+            // fake_laser.ranges[i] = ;
+
         }
 
         /// \brief Get the wheel_command values and turn them into ticks
@@ -205,29 +329,34 @@ class Sim
             if(wheel_Command.right_velocity < motor_cmd_max_lower){
                 wheel_Command.right_velocity = motor_cmd_max_lower;
             }
+            
             left_tick = wheel_Command.left_velocity;
             right_tick = wheel_Command.right_velocity;
             
-            wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec); 
-            wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec); 
+            wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec)+left_noise*(left_tick* motor_cmd_to_radsec); 
+            wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec)+right_noise*(left_tick* motor_cmd_to_radsec); 
+
+            
         }
 
         /// \brief A timer that updates the simulation
         ///
         void main_loop(const ros::TimerEvent &)
          {
+            
+
             sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
             sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
-            encoder_pub.publish(sensorData);
+            // encoder_pub.publish(sensorData);
 
-            wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
-            wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
+            wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle))+slip_noise*wheels_velocity.left_vel/rate;
+            wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle))+slip_noise*wheels_velocity.right_vel/rate;
             current_config = DiffDrive.forward_Kinematics(wheel_angles,current_config);
             
             //update timestep and transforms
             timestep.data++;
             timestep_pub.publish(timestep);  
-            ROS_WARN("x: %f y:%f theta:%f",current_config.x,current_config.y,current_config.theta);
+            // ROS_WARN("x: %f y:%f theta:%f",current_config.x,current_config.y,current_config.theta);
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_config.x;
             transformStamped.transform.translation.y = current_config.y;
@@ -238,40 +367,61 @@ class Sim
             transformStamped.transform.rotation.y = q.y();
             transformStamped.transform.rotation.z = q.z();
             transformStamped.transform.rotation.w = q.w();
-            broadcaster.sendTransform(transformStamped);
+            
+            if (sim_flag == "sim"){
+                encoder_pub.publish(sensorData);
+                broadcaster.sendTransform(transformStamped);
+            }
+            // broadcaster.sendTransform(transformStamped);
             //publish the markers'/cylinders' position 
             //Create marker array
-            marker.markers.resize(obstacle_array_size);
-            for (int i = 0;i<obstacle_array_size;i++)
-            {
-                marker.markers[i].header.stamp = ros::Time();
-                marker.markers[i].header.frame_id = "world";
-                shape = visualization_msgs::Marker::CYLINDER;
-                marker.markers[i].type = shape;
-                marker.markers[i].ns = "obstacles";
-                marker.markers[i].action = visualization_msgs::Marker::ADD;
-                marker.markers[i].id = i;
+            // marker.markers.resize(obstacle_array_size);
+            // for (int i = 0;i<obstacle_array_size;i++)
+            // {
+            //     marker.markers[i].header.stamp = ros::Time();
+            //     marker.markers[i].header.frame_id = "world";
+            //     shape = visualization_msgs::Marker::CYLINDER;
+            //     marker.markers[i].type = shape;
+            //     marker.markers[i].ns = "obstacles";
+            //     marker.markers[i].action = visualization_msgs::Marker::ADD;
+            //     marker.markers[i].id = i;
 
-                marker.markers[i].pose.position.x = cylinder_marker_x[i];
-                marker.markers[i].pose.position.y = cylinder_marker_y[i];
-                marker.markers[i].pose.position.z = 0.125;
-                marker.markers[i].pose.orientation.x = 0.0;
-                marker.markers[i].pose.orientation.y = 0.0;
-                marker.markers[i].pose.orientation.z = 0.0;
-                marker.markers[i].pose.orientation.w = 1.0;
+            //     marker.markers[i].pose.position.x = cylinder_marker_x[i];
+            //     marker.markers[i].pose.position.y = cylinder_marker_y[i];
+            //     marker.markers[i].pose.position.z = 0.125;
+            //     marker.markers[i].pose.orientation.x = 0.0;
+            //     marker.markers[i].pose.orientation.y = 0.0;
+            //     marker.markers[i].pose.orientation.z = 0.0;
+            //     marker.markers[i].pose.orientation.w = 1.0;
 
-                marker.markers[i].scale.x = (2*radius);
-                marker.markers[i].scale.y = (2*radius);
-                marker.markers[i].scale.z = 0.25;
+            //     marker.markers[i].scale.x = (2*radius);
+            //     marker.markers[i].scale.y = (2*radius);
+            //     marker.markers[i].scale.z = 0.25;
                 
-                marker.markers[i].color.r = 1.0;
-                marker.markers[i].color.g = 0.0;
-                marker.markers[i].color.b = 0.0;
-                marker.markers[i].color.a = 1.0;
-            }
-            marker_pub.publish(marker);
-         }
+            //     marker.markers[i].color.r = 1.0;
+            //     marker.markers[i].color.g = 0.0;
+            //     marker.markers[i].color.b = 0.0;
+            //     marker.markers[i].color.a = 1.0;
+            // }
+            // marker_pub.publish(marker);
 
+            current_path.header.stamp = ros::Time::now();
+            current_path.header.frame_id = "world";
+            path_pose.header.stamp = ros::Time::now();
+            path_pose.header.frame_id = "red-base_footprint";
+            path_pose.pose.position.x = current_config.x;
+            path_pose.pose.position.y = current_config.y;
+            path_pose.pose.orientation.x = q.x();
+            path_pose.pose.orientation.y = q.y();
+            path_pose.pose.orientation.z = q.z();
+            path_pose.pose.orientation.w = q.w();
+            current_path.poses.push_back(path_pose);
+            path_pub.publish(current_path);
+         }
+        void fake_loop(const ros::TimerEvent &)
+        {
+            make_fake_obstacles();
+        }
     
     private:
     //create private variables
@@ -280,9 +430,11 @@ class Sim
         ros::Publisher marker_pub;
         ros::Publisher walls_pub;
         ros::Publisher encoder_pub;
+        ros::Publisher path_pub;
         ros::Subscriber wheel_cmd_sub;
 
         ros::Timer timer;
+        ros::Timer timer_fake;
         double rate;
         std_msgs::UInt64 timestep;
         ros::ServiceServer reset_service;
@@ -295,7 +447,8 @@ class Sim
         double theta;
         visualization_msgs::MarkerArray marker;
         visualization_msgs::MarkerArray x_walls;
-
+    
+        
         int obstacle_array_size;
         uint32_t shape;
         int num_obstacles;
@@ -327,6 +480,35 @@ class Sim
         int new_tick_right;
         int old_tick_left;
         int old_tick_right;
+    
+        double left_noise;
+        double right_noise;
+        double slip_min;
+        double slip_max;
+        double slip_noise;
+        double obstacle_noise;
+        double basic_sensor_variance;
+        double distance;
+        double max_range;
+        visualization_msgs::MarkerArray fake_marker;
+        ros::Publisher fake_marker_pub;
+        nav_msgs::Path current_path;
+        geometry_msgs::PoseStamped path_pose;
+        std::string sim_flag;
+        sensor_msgs::LaserScan fake_laser;
+        double samples;
+        double resolution;
+        double min_angle;
+        double max_angle;
+        double min_scan_range;
+        double max_scan_range;
+        double robot_noise_mean;
+        double robot_noise_stddev;
+
+
+
+
+
 
 };
 
