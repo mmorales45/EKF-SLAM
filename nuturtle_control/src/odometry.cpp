@@ -39,6 +39,8 @@
 #include <turtlelib/diff_drive.hpp>
 #include <nav_msgs/Odometry.h>
 #include <nuturtle_control/SetPose.h>
+#include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseStamped.h>
 
 /// \brief Create and update the odometry between the world and blue turtlebot
 
@@ -61,6 +63,7 @@ class odometry
             
             joint_state_sub = nh.subscribe("/joint_states",10,&odometry::js_callback,this);
             odom_pub = nh.advertise<nav_msgs::Odometry>("odom",100);
+            path_pub  = nh.advertise<nav_msgs::Path>("odometry/path", 10, true);
             set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
             timer = nh.createTimer(ros::Duration(1.0/rate), &odometry::main_loop, this);
         }
@@ -89,6 +92,21 @@ class odometry
             return true;
         }
 
+        void make_path()
+        {
+            current_path.header.stamp = ros::Time::now();
+            current_path.header.frame_id = "world";
+            path_pose.header.stamp = ros::Time::now();
+            path_pose.header.frame_id = "blue-base_footprint";
+            path_pose.pose.position.x = current_config.x;
+            path_pose.pose.position.y = current_config.y;
+            path_pose.pose.orientation.x = q.x();
+            path_pose.pose.orientation.y = q.y();
+            path_pose.pose.orientation.z = q.z();
+            path_pose.pose.orientation.w = q.w();
+            current_path.poses.push_back(path_pose);
+            path_pub.publish(current_path);
+        }
         /// \brief Loads the paramters from the parameter server to be used in the node
         ///
         void loadParams()
@@ -127,6 +145,7 @@ class odometry
         ///
         void main_loop(const ros::TimerEvent &)
         {
+            make_path();
             twist = DiffDrive.Twist_from_wheelVel(new_vel);
             //update configuration based on forward kinematics
             current_config = DiffDrive.forward_Kinematics(new_angles,current_config);
@@ -164,6 +183,7 @@ class odometry
     ros::NodeHandle nh;
     ros::Subscriber joint_state_sub;
     ros::Publisher odom_pub;
+    ros::Publisher path_pub;
     ros::ServiceServer set_pose_service;
 
     std::string odom_id;
@@ -188,6 +208,8 @@ class odometry
 
     double rate;
     tf2::Quaternion q;
+    nav_msgs::Path current_path;
+    geometry_msgs::PoseStamped path_pose;
     
     
 };

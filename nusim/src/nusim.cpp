@@ -42,6 +42,13 @@
 
 #include<random>
 
+
+struct intersection_points {
+    double x1;
+    double x2;
+    double y1;
+    double y2;
+};
 /// \brief Creates a simulator and visualizer for the turtlebot3
 
 class Sim
@@ -69,10 +76,12 @@ class Sim
             nh.getParam("/nusim/resolution",resolution);
             nh.getParam("/nusim/min_angle",min_angle);
             nh.getParam("/nusim/max_angle",max_angle);
-            nh.getParam("/nusim/min_scan_range",min_scan_range);
-            nh.getParam("/nusim/max_scan_range",max_scan_range);
+            nh.getParam("/nusim/scan_time",scan_time);
+            nh.getParam("/nusim/min",min_scan_range);
+            nh.getParam("/nusim/max",max_scan_range);
             nh.getParam("/nusim/robot_noise_mean",robot_noise_mean);
             nh.getParam("/nusim/robot_noise_stddev",robot_noise_stddev);
+            nh.getParam("/nusim/collision_radius",collision_radius);
             
             
             motor_cmd_max_lower = motor_cmd_max[0];
@@ -87,6 +96,7 @@ class Sim
             encoder_pub  = nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", 10, true);
             wheel_cmd_sub = nh.subscribe("red/wheel_cmd", 100, &Sim::wheel_cmd_callback, this);
             path_pub  = nh.advertise<nav_msgs::Path>("nusim/path", 10, true);
+            fake_sensor_pub  = nh.advertise<sensor_msgs::LaserScan>("nusim/laser_scan_data", 10, true);
         
             
             
@@ -140,14 +150,16 @@ class Sim
                 marker.markers[i].color.a = 1.0;
             }
             marker_pub.publish(marker);
-            std::normal_distribution<> left_vel_noise(0, .01);
-            std::normal_distribution<> right_vel_noise(0, .01);
-            std::normal_distribution<> slip(0.5, slip_max);
-            std::normal_distribution<> fake_obstacle_noise(0, basic_sensor_variance);
-            left_noise = left_vel_noise(get_random());
-            right_noise = right_vel_noise(get_random());
-            slip_noise = slip(get_random());
-            obstacle_noise = fake_obstacle_noise(get_random());
+            // std::normal_distribution<> left_vel_noise(0, .01);
+            // std::normal_distribution<> right_vel_noise(0, .01);
+            // std::normal_distribution<> slip(0.5, slip_max);
+            // // std::normal_distribution<> fake_obstacle_noise(0, basic_sensor_variance);
+            // left_noise = left_vel_noise(get_random());
+            // right_noise = right_vel_noise(get_random());
+            // slip_noise = slip(get_random());
+            // obstacle_noise = fake_obstacle_noise(get_random());
+
+            collision_flag = false;
         }
 
         std::mt19937 & get_random()
@@ -254,22 +266,46 @@ class Sim
 
          
         }
-
+        
         void make_fake_obstacles()
         {
+            turtlelib::Vector2D red_trans;
+            double red_angle;
+            red_trans.x = current_config.x;
+            red_trans.y = current_config.y;
+            red_angle = current_config.theta;
+            turtlelib::Transform2D T_WR;
+            T_WR = turtlelib::Transform2D(red_trans,red_angle);
+            turtlelib::Transform2D T_RW;
+            T_RW = T_WR.inv();
+            turtlelib::Vector2D new_trans = T_WR.translation();
+            double new_angle = T_WR.rotation();
+
+            
             fake_marker.markers.resize(obstacle_array_size);
             for (int i = 0;i<obstacle_array_size;i++)
             {
+                std::normal_distribution<> fake_obstacle_noise(0, basic_sensor_variance);
+                obstacle_noise = fake_obstacle_noise(get_random());
+                turtlelib::Vector2D obs_trans;
+                obs_trans.x = cylinder_marker_x[i];
+                obs_trans.y = cylinder_marker_y[i];
+                turtlelib::Transform2D T_WO;
+                T_WO = turtlelib::Transform2D(obs_trans);
+                turtlelib::Transform2D T_RO;
+                T_RO = T_RW*T_WO;
+                turtlelib::Vector2D new_obs = T_RO.translation();
+
                 fake_marker.markers[i].header.stamp = ros::Time();
-                fake_marker.markers[i].header.frame_id = "world";
+                fake_marker.markers[i].header.frame_id = "red-base_footprint";
                 shape = visualization_msgs::Marker::CYLINDER;
                 fake_marker.markers[i].type = shape;
                 fake_marker.markers[i].ns = "fake_obstacles";
 
                 fake_marker.markers[i].id = i;
 
-                fake_marker.markers[i].pose.position.x = cylinder_marker_x[i]+obstacle_noise;
-                fake_marker.markers[i].pose.position.y = cylinder_marker_y[i]+obstacle_noise;
+                fake_marker.markers[i].pose.position.x = new_obs.x+obstacle_noise;
+                fake_marker.markers[i].pose.position.y = new_obs.y+obstacle_noise;
                 fake_marker.markers[i].pose.position.z = 0.125;
                 fake_marker.markers[i].pose.orientation.x = 0.0;
                 fake_marker.markers[i].pose.orientation.y = 0.0;
@@ -280,12 +316,13 @@ class Sim
                 fake_marker.markers[i].scale.y = (2*radius);
                 fake_marker.markers[i].scale.z = 0.25;
                 
-                fake_marker.markers[i].color.r = 1.0;
+                fake_marker.markers[i].color.r = 0.0;
                 fake_marker.markers[i].color.g = 0.0;
-                fake_marker.markers[i].color.b = 0.0;
+                fake_marker.markers[i].color.b = 1.0;
                 fake_marker.markers[i].color.a = 1.0;
-
-                distance = sqrt(pow(cylinder_marker_x[i]-current_config.x,2)+(cylinder_marker_y[i]-current_config.y,2));
+                fake_marker.markers[i].frame_locked = true;
+                // distance = sqrt(pow(cylinder_marker_x[i]-current_config.x,2)+(cylinder_marker_y[i]-current_config.y,2));                
+                distance = get_distance(current_config.x,current_config.y,cylinder_marker_x[i],cylinder_marker_y[i]);
                 if (distance < max_range){
                     fake_marker.markers[i].action = visualization_msgs::Marker::ADD;
                 }
@@ -294,19 +331,206 @@ class Sim
                 }
             }
             fake_marker_pub.publish(fake_marker);
+            
         }
+
+        double get_distance(double x1, double y1, double x2, double y2)
+        {
+            double calc_distance;
+            calc_distance = sqrt(pow(x2-x1,2)+pow(y2-y1,2));
+            return calc_distance;
+        }
+        
+        void check_for_collision()
+        {
+            double collision_distance;
+            for (int i = 0;i<obstacle_array_size;i++)
+            {
+                collision_distance = get_distance(current_config.x,current_config.y,cylinder_marker_x[i],cylinder_marker_y[i]);
+                if ((collision_distance<(collision_radius+radius)) && (collision_flag==false))
+                {   
+                    collision_flag=true;
+
+                    ROS_WARN("COLLISION!");
+                }
+
+                if ((collision_distance>collision_radius+radius))
+                {   
+
+                    collision_flag=false;
+
+                }
+
+                if (collision_flag==true)
+                {
+                    current_config.x = collision_x;
+                    current_config.y = collision_y;
+                    current_config.theta = collision_theta;
+                    // collision_flag=false;
+                }
+            }
+        }
+        double get_dr(double dx, double dy)
+        {
+            double dr;
+            dr = sqrt(pow(dx,2)+pow(dy,2));
+            return dr;
+        }
+
+        double get_D(double x1,double y1,double x2, double y2)
+        {
+            double D;
+            D = x1*y2-x2*y1;
+            return D;
+        }
+
+        double get_sgn(double var)
+        {
+            double sgn;
+            if (var<0)
+            {
+                sgn = -1;
+            }
+            else{
+                sgn = 1;
+            }
+            return sgn;
+        }
+
+        intersection_points get_points_intersection(double D, double dx, double dy,double r,double dr)
+        {
+            intersection_points points_of_interest;
+            // double x1,y1,x2,y2;
+            points_of_interest.x1 = (D*dy+get_sgn(dy)*dx*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
+            points_of_interest.x2 = (D*dy-get_sgn(dy)*dx*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
+            points_of_interest.y1 = (-D*dy+get_sgn(dx)*fabs(dy)*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
+            points_of_interest.y2 = (-D*dy-get_sgn(dx)*fabs(dy)*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
+
+            return points_of_interest;
+        }
+
+        double get_discriminant(double D, double r, double dr)
+        {
+            double discriminant;
+            discriminant = pow(r,2)*pow(dr,2)-pow(D,2);
+            return discriminant;
+        }
+
 
         void make_fake_laser()
         {
-            fake_laser.header.frame_id = "red-base_footprint";
-            fake_laser.header.stamp = ros::Time::now();;
-            fake_laser.angle_min = 0;
-            fake_laser.angle_max = turtlelib::PI*2;
-            // fake_laser.time_increment = ;
-            // fake_laser.scan_time = ;
-            // fake_laser.range_min = ;
-            // fake_laser.range_max = ;
-            // fake_laser.ranges[i] = ;
+            turtlelib::Vector2D min_range_vector;
+            turtlelib::Vector2D max_range_vector;
+            double scan_angle;
+            double D, discriminant;
+            double dx,dy;
+            double dr;
+            intersection_points intersections;
+
+            turtlelib::Vector2D red_trans;
+            turtlelib::Vector2D red_trans_in_obstacle;
+            double red_angle;
+            red_trans.x = current_config.x;
+            red_trans.y = current_config.y;
+            red_angle = current_config.theta;
+            turtlelib::Transform2D T_WR;
+            T_WR = turtlelib::Transform2D(red_trans,red_angle);
+            turtlelib::Transform2D T_RW;
+            T_RW = T_WR.inv();
+            std::vector<turtlelib::Vector2D> obstacle_robot_obs;
+            std::vector<turtlelib::Vector2D> robot_obs_robot;
+            obstacle_robot_obs.resize(3);
+            robot_obs_robot.resize(3);
+            // for (int i = 0;i<obstacle_array_size;i++)
+            // {
+            //     turtlelib::Vector2D obstacle_translational;
+            //     obstacle_translational.x = cylinder_marker_x[i];
+            //     obstacle_translational.y = cylinder_marker_y[i];
+            //     turtlelib::Transform2D T_WO;
+            //     T_WO = turtlelib::Transform2D(obstacle_translational);
+            //     turtlelib::Transform2D T_OW;
+            //     T_OW = T_WO.inv();
+            //     turtlelib::Transform2D T_OR;
+            //     T_OR = T_OW*T_WR;
+            //     turtlelib::Transform2D T_RO;
+            //     T_RO = T_OR.inv();
+            //     turtlelib::Vector2D new_obs = T_OR.translation();
+            //     obstacle_robot_obs[i] = new_obs;
+            //     // ROS_WARN("%f at %d obs",obstacle_robot_obs[i].x, i);
+            //     // red_trans_in_obstacle = T_OR(red_trans);
+            //     // robot_obs_robot[i] = red_trans_in_obstacle;
+            //     // ROS_WARN("%f at %d ror",robot_obs_robot[i].x, i);
+
+            // }
+            fake_laser.header.frame_id = "red-base_scan";
+            fake_laser.header.stamp = ros::Time::now();
+            fake_laser.angle_min = min_angle;
+            fake_laser.angle_max = max_angle;
+            fake_laser.angle_increment = resolution;
+            fake_laser.time_increment = 0.5/1000000000.0;
+            fake_laser.scan_time = scan_time/1000000000.0;
+            fake_laser.range_min = min_scan_range;
+            fake_laser.range_max = max_scan_range;
+            fake_laser.ranges.resize(samples);
+            // fake_laser.ranges[i] = 1.0;
+            for (int i = 0;i<samples;i++)
+            {
+                double new_distance1;
+                double new_distance2;
+                // fake_laser.ranges[i] = 1.0;
+                scan_angle = turtlelib::deg2rad(i);
+                min_range_vector.x = min_scan_range*cos(scan_angle);
+                min_range_vector.y = min_scan_range*sin(scan_angle);
+                max_range_vector.x = max_scan_range*cos(scan_angle);
+                max_range_vector.y = max_scan_range*sin(scan_angle);
+                for (int j = 0;j<obstacle_array_size;j++)
+                {
+                    turtlelib::Vector2D obstacle_translational;
+                    obstacle_translational.x = cylinder_marker_x[j];
+                    obstacle_translational.y = cylinder_marker_y[j];
+                    turtlelib::Transform2D T_WO;
+                    T_WO = turtlelib::Transform2D(obstacle_translational);
+                    turtlelib::Transform2D T_OW;
+                    T_OW = T_WO.inv();
+                    turtlelib::Transform2D T_OR;
+                    T_OR = T_OW*T_WR;
+                    turtlelib::Transform2D T_RO;
+                    T_RO = T_OR.inv();
+                    turtlelib::Vector2D new_obs = T_OR.translation();
+                    obstacle_robot_obs[j] = new_obs;
+                    // ROS_WARN("%f at %d obs",obstacle_robot_obs[i].x, i);
+                    // red_trans_in_obstacle = T_OR(red_trans);
+                    // robot_obs_robot[i] = red_trans_in_obstacle;
+                    // ROS_WARN("%f at %d ror",robot_obs_robot[i].x, i);
+
+
+                    new_distance1 = 0;
+                    new_distance2 = 0;
+                    turtlelib::Vector2D first_point = T_OR(min_range_vector)+obstacle_robot_obs[j];
+                    turtlelib::Vector2D second_point = T_OR(max_range_vector)+obstacle_robot_obs[j];
+                    D = get_D(first_point.x,first_point.y,second_point.x,second_point.y);
+                    dx = (second_point.x - first_point.x);
+                    dy = (second_point.y - first_point.y);
+                    dr = get_dr(dx,dy);
+                    discriminant = get_discriminant(D,radius,dr);
+                    ROS_WARN("%f at %d",discriminant, i);
+                    if (discriminant>=0.0){
+                        ROS_WARN("NEW POINT?");
+                        intersections = get_points_intersection(D,dx,dy,radius,dr);
+                        new_distance1 = get_distance(first_point.x,first_point.y,intersections.x1,intersections.y1);
+                        // new_distance2 = get_distance(first_point.x,first_point.y,intersections.x2,intersections.y2);
+
+                        // fake_laser.ranges[i] = std::max(new_distance1+0.12,new_distance2+0.12);
+                    }   
+                
+
+                }
+                
+                fake_laser.ranges[i] = std::min(new_distance1,100.0);
+                
+
+            }
+            fake_sensor_pub.publish(fake_laser);
 
         }
 
@@ -333,9 +557,20 @@ class Sim
             left_tick = wheel_Command.left_velocity;
             right_tick = wheel_Command.right_velocity;
             
+            std::normal_distribution<> left_vel_noise(0, .02);
+            std::normal_distribution<> right_vel_noise(0, .02);
+            // std::normal_distribution<> slip(0.5, slip_max);
+            // std::normal_distribution<> fake_obstacle_noise(0, basic_sensor_variance);
+            left_noise = left_vel_noise(get_random());
+            right_noise = right_vel_noise(get_random());
+            // slip_noise = slip(get_random());
+            
+            // wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec); 
+            // wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec); 
             wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec)+left_noise*(left_tick* motor_cmd_to_radsec); 
-            wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec)+right_noise*(left_tick* motor_cmd_to_radsec); 
-
+            wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec)+right_noise*(right_tick* motor_cmd_to_radsec); 
+            // slip_wheels_velocity.left_vel = wheels_velocity.left_vel + left_noise*(left_tick* motor_cmd_to_radsec)
+            // slip_wheels_velocity.right_vel = wheels_velocity.right_vel + right_noise*(right_tick* motor_cmd_to_radsec); 
             
         }
 
@@ -343,20 +578,29 @@ class Sim
         ///
         void main_loop(const ros::TimerEvent &)
          {
+            std::uniform_real_distribution<> slip(slip_min, slip_max);
+            // slip_noise = slip(get_random());
+            // ROS_WARN("%f",slip_noise);
+            slip_noise = slip(get_random());
             
-
-            sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle)/encoder_ticks_to_rad);
-            sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle)/encoder_ticks_to_rad);
+            sensorData.left_encoder = (int) (((wheels_velocity.left_vel*(1/rate))+(wheel_angles2.left_angle))/encoder_ticks_to_rad);
+            slip_noise = slip(get_random());
+            sensorData.right_encoder = (int) (((wheels_velocity.right_vel*(1/rate))+(wheel_angles2.right_angle))/encoder_ticks_to_rad);
             // encoder_pub.publish(sensorData);
 
-            wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle))+slip_noise*wheels_velocity.left_vel/rate;
-            wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle))+slip_noise*wheels_velocity.right_vel/rate;
+            wheel_angles.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles.left_angle));
+            wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
+            wheel_angles2.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles2.left_angle))+slip_noise*wheels_velocity.left_vel/rate;
+            wheel_angles2.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles2.right_angle))+slip_noise*wheels_velocity.right_vel/rate;
+            // wheel_angles2.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles2.left_angle));
+            // wheel_angles2.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles2.right_angle));
             current_config = DiffDrive.forward_Kinematics(wheel_angles,current_config);
-            
+
             //update timestep and transforms
             timestep.data++;
             timestep_pub.publish(timestep);  
             // ROS_WARN("x: %f y:%f theta:%f",current_config.x,current_config.y,current_config.theta);
+            
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_config.x;
             transformStamped.transform.translation.y = current_config.y;
@@ -371,6 +615,12 @@ class Sim
             if (sim_flag == "sim"){
                 encoder_pub.publish(sensorData);
                 broadcaster.sendTransform(transformStamped);
+            }
+            check_for_collision();
+            if (collision_flag == false){
+                collision_x = current_config.x;
+                collision_y = current_config.y;
+                collision_theta = current_config.theta;
             }
             // broadcaster.sendTransform(transformStamped);
             //publish the markers'/cylinders' position 
@@ -421,6 +671,7 @@ class Sim
         void fake_loop(const ros::TimerEvent &)
         {
             make_fake_obstacles();
+            make_fake_laser();
         }
     
     private:
@@ -432,6 +683,7 @@ class Sim
         ros::Publisher encoder_pub;
         ros::Publisher path_pub;
         ros::Subscriber wheel_cmd_sub;
+        ros::Publisher fake_sensor_pub;
 
         ros::Timer timer;
         ros::Timer timer_fake;
@@ -465,8 +717,11 @@ class Sim
         int right_tick;
         // from DiffDrive
         turtlelib::phi_angles wheel_angles;
+        turtlelib::phi_angles wheel_angles2;
         turtlelib::config current_config;
         turtlelib::speed wheels_velocity;
+        turtlelib::speed slip_wheels_velocity;
+
         turtlelib::DiffDrive DiffDrive;
         double motor_cmd_to_radsec;
         double encoder_ticks_to_rad;
@@ -500,10 +755,17 @@ class Sim
         double resolution;
         double min_angle;
         double max_angle;
+        double scan_time;
         double min_scan_range;
         double max_scan_range;
         double robot_noise_mean;
         double robot_noise_stddev;
+
+        bool collision_flag;
+        double collision_x;
+        double collision_y;
+        double collision_theta;
+        double collision_radius;
 
 
 
