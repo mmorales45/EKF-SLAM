@@ -11,7 +11,7 @@
 namespace turtlelib
 {
 
-    DiffDrive::DiffDrive()
+    DiffDrive::DiffDrive() //# ue initializer lists
     {
         configuration.x = 0;
         configuration.y = 0;
@@ -56,7 +56,7 @@ namespace turtlelib
     Twist2D DiffDrive::Twist_from_wheelVel(speed new_vel){
         Twist2D twist;
         // Please look at Equations 3 and 4 on the Kinematics.pdf to see handwritten notes on the calculations
-        twist.theta_dot = (wheel_radius/(2*body_radius))*(-new_vel.left_vel+new_vel.right_vel);
+        twist.theta_dot = (wheel_radius/(2*body_radius))*(-new_vel.left_vel+new_vel.right_vel); // # 2.0 rather than 2
         twist.x_dot = (wheel_radius/2)*(new_vel.left_vel+new_vel.right_vel);
         twist.y_dot = 0.0;
         return twist;
@@ -64,7 +64,7 @@ namespace turtlelib
 
     phi_angles DiffDrive::angles_From_Rate(phi_angles old_angels, speed wheel_vel){
         phi_angles new_angles;
-        new_angles.left_angle = old_angels.left_angle + wheel_vel.left_vel * 1;
+        new_angles.left_angle = old_angels.left_angle + wheel_vel.left_vel * 1; // # multiplying by 1 and mixing integers and floating point
         new_angles.right_angle =  old_angels.right_angle + wheel_vel.right_vel * 1;
 
         return new_angles;
@@ -123,7 +123,7 @@ namespace turtlelib
     {
         Transform2D transform, Twb,TbbPrime, TwbPrime;
         Vector2D trans, updated_trans;
-        double rot;
+        double rot; // # Unitialized variable
         speed wheel_speeds;
         Twist2D twist;
         config return_config;
@@ -163,7 +163,7 @@ namespace turtlelib
     {
         Transform2D transform, Twb,TbbPrime, TwbPrime;
         Vector2D trans, updated_trans;
-        double rot;
+        double rot; // # unitialized variable
         speed wheel_speeds;
 
         trans.x = configuration.x;

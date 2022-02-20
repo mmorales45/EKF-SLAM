@@ -147,7 +147,7 @@ class turtle_interface
             }
 
             //publish joint states and wheel commands
-            jointStates.position[0] = (wheel_angles.left_angle);
+            jointStates.position[0] = (wheel_angles.left_angle); // # .at rather than []
             jointStates.position[1] = (wheel_angles.right_angle);
             jointStates.velocity[0] = (wheel_vels.left_vel);
             jointStates.velocity[1] = (wheel_vels.right_vel);

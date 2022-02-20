@@ -1,0 +1,16 @@
+catkin_lint -W2
+catkin_make
+Code does not compile due to include_directories(include) and in catkin_package (see my changes)
+nusim and nuturtle_control do not introduce any new include files, so they should not have an include directory.
+likely you have an empty include/ direactory for these packages on your computer. 
+
+roslaunch file spews a bunch of warnings that you have output as debugging information these messages should be removed or set to the debug level. 
+
+Some C++ comments (use member initialization in constructors)
+
+Task A.
+Task B
+Task D
+Task E
+Task C
+Task F
