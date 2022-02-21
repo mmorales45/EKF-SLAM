@@ -7,10 +7,16 @@
 ///     cylinders_y_coord (std::vector<double>): The y coordaintes of the three red cylinders
 ///     robot (std::vector<double>): vector/array of the robot's iniital coordinates in x,y,and theta
 ///     radius (double): the radius of the red cylinders
+/// SUBSCRIBERS:
+///     wheel_cmd_sub (nuturtlebot_msgs/WheelCommands): Get the wheels commands for converting to encorder data
 /// PUBLISHES:
 ///     timestep_pub (std_msgs/UInt64): Tracks the simulation's current timestep
 ///     joint_state_pub (sensor_msgs/JointState): Publishes joint positions to red/joint_states
 ///     marker_pub (visualization_msgs/MarkerArray): Creates obstacles as red cylinders in RVIZ
+///     walls_pub (visualization_msgs/MarkerArray): Creates walls
+///     encoder_pub (nuturtlebot_msgs/SensorData): Publish the encorder data
+///     path_pub (nav_msgs/Path): Create the path that the red(simulated) robot follows
+///     fake_sensor_pub (sensor_msgs/LaserScan): Create the fake obstacles relative to the robot
 /// SERVICES:
 ///     reset (nusim/reset): Sets the timestep to 0 and teleports turtlebot to the initial position
 ///     teleport (nusim/Teleport): Teleports the turtblebot to a user defined position
@@ -42,7 +48,8 @@
 
 #include<random>
 
-
+/// \brief Create a struct that holds the two sets of intersection points for obstacles.
+/// \returns A struct composed of four double points.
 struct intersection_points {
     double x1;
     double x2;
@@ -50,14 +57,16 @@ struct intersection_points {
     double y2;
 };
 
+/// \brief Create a struct that holds the two sets of intersection points for the wall.
+/// \returns A struct composed of four double points.
 struct wall_points {
     double x1;
     double x2;
     double y1;
     double y2;
 };
-/// \brief Creates a simulator and visualizer for the turtlebot3
 
+/// \brief Creates a simulator and visualizer for the turtlebot3
 class Sim
 {
     public:
@@ -273,7 +282,7 @@ class Sim
 
          
         }
-        
+        /// \brief Creates obstacles with noise relative to the robot
         void make_fake_obstacles()
         {
             turtlelib::Vector2D red_trans;
@@ -285,9 +294,6 @@ class Sim
             T_WR = turtlelib::Transform2D(red_trans,red_angle);
             turtlelib::Transform2D T_RW;
             T_RW = T_WR.inv();
-            turtlelib::Vector2D new_trans = T_WR.translation();
-            double new_angle = T_WR.rotation();
-
             
             fake_marker.markers.resize(obstacle_array_size);
             for (int i = 0;i<obstacle_array_size;i++)
@@ -341,13 +347,22 @@ class Sim
             
         }
 
+        /// \brief Calculate the distance between 
+        ///
+        /// \param x1 - x-coordinate of the first point.
+        /// \param y1 - y-coordinate of the first point.
+        /// \param x2 - x-coordinate of the second point.
+        /// \param y2 - y-coordinate of the second point.
+        ///
+        /// \returns calc_distance - Calculate the distance. 
         double get_distance(double x1, double y1, double x2, double y2)
         {
             double calc_distance;
             calc_distance = sqrt(pow(x2-x1,2)+pow(y2-y1,2));
             return calc_distance;
         }
-        
+
+        /// \brief Check to see if the robot collided with an obstacle.
         void check_for_collision()
         {
             double collision_distance;
@@ -377,6 +392,13 @@ class Sim
                 }
             }
         }
+
+        /// \brief Calculate distance between intersections.
+        ///
+        /// \param dx - Change in x.
+        /// \param dy - Change iny.
+        ///
+        /// \returns dr - Distance between intersections.
         double get_dr(double dx, double dy)
         {
             double dr;
@@ -384,6 +406,14 @@ class Sim
             return dr;
         }
 
+        /// \brief Calculate determinant.
+        ///
+        /// \param x1 - x-coordinate of the first point.
+        /// \param y1 - y-coordinate of the first point.
+        /// \param x2 - x-coordinate of the second point.
+        /// \param y2 - y-coordinate of the second point.
+        ///
+        /// \returns D - The determinant.
         double get_D(double x1,double y1,double x2, double y2)
         {
             double D;
@@ -391,6 +421,11 @@ class Sim
             return D;
         }
 
+        /// \brief Calculate if sgn if 1 or -1.
+        ///
+        /// \param var - variable to check if sgn is pos or neg.
+        ///
+        /// \returns sgn - (1) or -1.
         double get_sgn(double var)
         {
             double sgn;
@@ -404,6 +439,15 @@ class Sim
             return sgn;
         }
 
+        /// \brief Calculate coordinates of intersection.
+        ///
+        /// \param D - The determinant.
+        /// \param dx - Change in x.
+        /// \param dy - Change in y.
+        /// \param r - Radius of obstacle.
+        /// \param dr - Distance between intersection points.
+        ///
+        /// \returns points_of_interest - Intersection points.
         intersection_points get_points_intersection(double D, double dx, double dy,double r,double dr)
         {
             intersection_points points_of_interest;
@@ -416,6 +460,13 @@ class Sim
             return points_of_interest;
         }
 
+        /// \brief Calculate discriminant.
+        ///
+        /// \param D - The determinant.
+        /// \param r - Radius of obstacle.
+        /// \param dr - Distance between intersection points.
+        ///
+        /// \returns discriminant - Determining incidence of the line and circle.
         double get_discriminant(double D, double r, double dr)
         {
             double discriminant;
@@ -423,13 +474,22 @@ class Sim
             return discriminant;
         }
 
+        /// \brief Create line.
+        ///
+        /// \param x1 - x intersection of point 1.
+        /// \param y1 - y intersection of point 1.
+        /// \param x2 - x intersection of point 2.
+        /// \param y2 - y intersection of point 2.
+        ///
+        /// \returns slope - Slope between points.
         double create_line(double x1,double y1,double x2,double y2)
         {
             double slope = (y2-y1)/(x2-x1);
             return slope;
-
         }
-
+        
+        /// \brief Creates a vector of wall points.
+        ///
         std::vector<wall_points> create_walls()
         {
             wall_points wall_left,wall_bot,wall_right,wall_top;
@@ -462,6 +522,8 @@ class Sim
             return new_walls;
 
         }
+
+        /// \brief Creates fake laser data points for obstacles and walls.
         void make_fake_laser()
         {
             turtlelib::Vector2D min_range_vector;
@@ -470,7 +532,6 @@ class Sim
             double D, discriminant;
             double dx,dy;
             double dx_infinite,dy_infinite;
-            double delta_infinite;
             double dr;
             intersection_points intersections;
 
@@ -503,13 +564,11 @@ class Sim
             fake_laser.range_min = min_scan_range;
             fake_laser.range_max = max_scan_range;
             fake_laser.ranges.resize(samples);
-            // fake_laser.ranges[i] = 1.0;
             for (int i = 0;i<samples;i++)
             {
                 std::vector<double> distance_list;
                 double new_distance1;
                 double new_distance2;
-                // fake_laser.ranges[i] = 1.0;
                 scan_angle = turtlelib::deg2rad(i);
                 min_range_vector.x = min_scan_range*cos(scan_angle);
                 min_range_vector.y = min_scan_range*sin(scan_angle);
@@ -517,7 +576,6 @@ class Sim
                 max_range_vector.y = max_scan_range*sin(scan_angle);
                 turtlelib::Vector2D first_point = (min_range_vector);
                 turtlelib::Vector2D second_point = (max_range_vector);
-                // D = get_D(first_point.x,first_point.y,second_point.x,second_point.y);
                 dx_infinite = (second_point.x - first_point.x);
                 dy_infinite = (second_point.y - first_point.y);
                 dr = get_dr(dx_infinite,dy_infinite);
@@ -587,20 +645,16 @@ class Sim
                             new_distance1 = max_scan_range+1;
                         }
                         distance_list.push_back(new_distance1);
-
                     }   
                     else
                     {
                         new_distance1 = max_scan_range+1;
                     }
-
-
                 }
 
                 double distance_to_use = max_scan_range+1;
                 for (int k = 0;k<distance_list.size();k++)
                 {
-                    // ROS_WARN("distances %f at %d",distance_list[k],i);
                     if (k==0){
                         distance_to_use = distance_list[0];
                     }
@@ -612,35 +666,23 @@ class Sim
                         }
                     }
                 }
-                
-                // if (distance_to_use<get_distance(points_compare_x,points_compare_y,first_point.x,first_point.y))
-                // {
-                //     ROS_WARN("get_distance %f at %d",get_distance(points_compare_x,points_compare_y,second_point.x,second_point.y),i);
-                //     distance_to_use = 0;
-                // }
-                // ROS_WARN("%f current x",current_config.x);
+
                 turtlelib::Vector2D robot_in_robot;
                 turtlelib::Vector2D robot_offset_in_robot;
                 robot_in_robot.x = current_config.x;
                 robot_in_robot.y = current_config.y;
                 robot_offset_in_robot.x = current_config.x +cos(scan_angle+current_config.theta);
                 robot_offset_in_robot.y = current_config.y +sin(scan_angle+current_config.theta);
-                // robot_in_robot = T_RW(robot_in_robot);
-                // robot_offset_in_robot = T_RW(robot_offset_in_robot);
+
                 if (distance_to_use>= max_scan_range)
                 {
                     double x1 = robot_in_robot.x;
                     double y1 = robot_in_robot.y;
                     double x2 = robot_offset_in_robot.x;
                     double y2 = robot_offset_in_robot.y ;
-                    
-
-
-
                     double d_12_x, d_34_x,d_12_1_x,d_34_1_x;
                     double d_12_y, d_34_y,d_12_1_y,d_34_1_y;
                     double px,py;
-                    
                     std::vector<wall_points> laser_wall;
                     laser_wall = create_walls();
                     std::vector<double> wall_distances;
@@ -649,18 +691,11 @@ class Sim
                         // ROS_WARN("%d %d",i,h);   
                         turtlelib::Vector2D walls_p1, walls_p2;
                         double temp_dist;
-                        double x3,y3,x4,y4;
-                        double new_D;
                         walls_p1.x = laser_wall[h].x1;    
                         walls_p1.y = laser_wall[h].y1;   
                         walls_p2.x = laser_wall[h].x2;   
                         walls_p2.y = laser_wall[h].y2;        
-                        // walls_p1 = T_RW(walls_p1);
-                        // walls_p2 = T_RW(walls_p2);
-                        x3 = walls_p1.x;
-                        y3 = walls_p1.y;
-                        x4 = walls_p2.x;
-                        y4 = walls_p2.y;
+
 
                         d_12_x = get_D(x1,y1,x2,y2);
                         d_34_x = get_D(walls_p1.x,walls_p1.y,walls_p2.x,walls_p2.y);
@@ -672,9 +707,6 @@ class Sim
                         d_12_1_y = get_D(y1,1.0,y2,1.0);
                         d_34_1_y = get_D(walls_p1.y,1.0,walls_p2.y,1.0);
 
-                        // new_D = ((x1-x2)*(y3-y4))-((y1-y2)*(x3-x4));
-                        // px = (((x1*y2-y1*x2)*(x3-x4))-((x1-x2)*(x3*y4-y3*x4)))/new_D;
-                        // py = (((x1*y2-y1*x2)*(y3-y4))-((y1-y2)*(x3*y4-y3*x4)))/new_D;
                         px = get_D(d_12_x,d_12_1_x,d_34_x,d_34_1_x)/get_D(d_12_1_x,d_12_1_y,d_34_1_x,d_34_1_y);
                         py = get_D(d_12_y,d_12_1_y,d_34_y,d_34_1_y)/get_D(d_12_1_x,d_12_1_y,d_34_1_x,d_34_1_y);
                         turtlelib::Vector2D p_vect;
@@ -684,25 +716,17 @@ class Sim
                         px = p_vect.x;
                         py = p_vect.y;
 
-                        // temp_dist = get_distance(0.0,0.0,px,py);
                         temp_dist = sqrt(px*px+py*py);
-                        // wall_distances.push_back(temp_dists);
-                        // ROS_WARN("%f %d",temp_dist,i);
 
                         if (temp_dist<get_distance(px,py,first_point.x,first_point.y))
                         {
-                            // ROS_WARN("get_distance %f at %d",get_distance(points_compare_x,points_compare_y,second_point.x,second_point.y),i);
                             temp_dist = max_scan_range+1;
                         }
 
                         if (temp_dist<max_scan_range)
                         {
                             wall_distances.push_back(temp_dist);
-                            // distance_to_use = temp_dist;
-                            // ROS_WARN("%f %d",distance_to_use,h);
                         }
-                        
-
                     }
 
                     for (int l = 0;l<wall_distances.size();l++)
@@ -715,28 +739,8 @@ class Sim
                         if(distance_to_use>wall_distances[l])
                         {
                             distance_to_use = wall_distances[l];
-                        }
-                        
+                        }                        
                     }
-
-                    
-
-                    // d_12_x = get_D(x1,y1,x2,y2);
-                    // d_34_x = get_D(right_wall_p1[0],right_wall_p1[1],right_wall_p2[0],right_wall_p2[1]);
-                    // d_12_1_x = get_D(x1,1.0,x2,1.0);
-                    // d_34_1_x = get_D(right_wall_p1[0],1.0,right_wall_p2[0],1.0);
-
-                    // d_12_y = get_D(x1,y1,x2,y2);
-                    // d_34_y = get_D(right_wall_p1[0],right_wall_p1[1],right_wall_p2[0],right_wall_p2[1]);
-                    // d_12_1_y = get_D(y1,1.0,y2,1.0);
-                    // d_34_1_y = get_D(right_wall_p1[1],1.0,right_wall_p2[1],1.0);
-
-                    // px = get_D(d_12_x,d_12_1_x,d_34_x,d_34_1_x)/get_D(d_12_1_x,d_12_1_y,d_34_1_x,d_34_1_y);
-                    // py = get_D(d_12_y,d_12_1_y,d_34_y,d_34_1_y)/get_D(d_12_1_x,d_12_1_y,d_34_1_x,d_34_1_y);
-                    // distance_to_use = get_distance(x1,y1,px,py);
-                    // ROS_WARN("px: %f at %d \n",px,i);
-                    // ROS_WARN("px: %f, py: %f at %d \n",px,py,i);
-
                 }
                 ROS_WARN("actually use %f at %d",distance_to_use,i);
                 if(distance_to_use > max_scan_range)
@@ -776,18 +780,12 @@ class Sim
             
             std::normal_distribution<> left_vel_noise(0, .02);
             std::normal_distribution<> right_vel_noise(0, .02);
-            // std::normal_distribution<> slip(0.5, slip_max);
-            // std::normal_distribution<> fake_obstacle_noise(0, basic_sensor_variance);
+
             left_noise = left_vel_noise(get_random());
             right_noise = right_vel_noise(get_random());
-            // slip_noise = slip(get_random());
-            
-            // wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec); 
-            // wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec); 
+
             wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec)+left_noise*(left_tick* motor_cmd_to_radsec); 
             wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec)+right_noise*(right_tick* motor_cmd_to_radsec); 
-            // slip_wheels_velocity.left_vel = wheels_velocity.left_vel + left_noise*(left_tick* motor_cmd_to_radsec)
-            // slip_wheels_velocity.right_vel = wheels_velocity.right_vel + right_noise*(right_tick* motor_cmd_to_radsec); 
             
         }
 
@@ -983,12 +981,6 @@ class Sim
         double collision_y;
         double collision_theta;
         double collision_radius;
-
-
-
-
-
-
 };
 
 /// \brief the main function that calls the class
