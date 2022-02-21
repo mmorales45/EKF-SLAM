@@ -49,6 +49,13 @@ struct intersection_points {
     double y1;
     double y2;
 };
+
+struct wall_points {
+    double x1;
+    double x2;
+    double y1;
+    double y2;
+};
 /// \brief Creates a simulator and visualizer for the turtlebot3
 
 class Sim
@@ -402,9 +409,9 @@ class Sim
             intersection_points points_of_interest;
             // double x1,y1,x2,y2;
             points_of_interest.x1 = (D*dy+get_sgn(dy)*dx*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
+            points_of_interest.y1 = (-D*dx+fabs(dy)*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
             points_of_interest.x2 = (D*dy-get_sgn(dy)*dx*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
-            points_of_interest.y1 = (-D*dy+get_sgn(dx)*fabs(dy)*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
-            points_of_interest.y2 = (-D*dy-get_sgn(dx)*fabs(dy)*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
+            points_of_interest.y2 = (-D*(dx)-fabs(dy)*sqrt(pow(r,2)*pow(dr,2)-pow(D,2)))/(pow(dr,2));
 
             return points_of_interest;
         }
@@ -416,7 +423,45 @@ class Sim
             return discriminant;
         }
 
+        double create_line(double x1,double y1,double x2,double y2)
+        {
+            double slope = (y2-y1)/(x2-x1);
+            return slope;
 
+        }
+
+        std::vector<wall_points> create_walls()
+        {
+            wall_points wall_left,wall_bot,wall_right,wall_top;
+            std::vector<wall_points> new_walls;
+            new_walls.resize(4);
+            wall_left.x1 = -x_length/2 +0.1;
+            wall_left.y1 = -y_length/2;
+            wall_left.x2 = -x_length/2 +0.1;
+            wall_left.y2 = y_length/2;
+            new_walls[2] = wall_left;
+
+            wall_bot.x1 = -x_length/2;
+            wall_bot.y1 = -y_length/2 +0.1;
+            wall_bot.x2 = x_length/2;
+            wall_bot.y2 = -y_length/2 +0.1;
+            new_walls[3] = wall_bot;
+            
+            wall_right.x1 = x_length/2 -0.1;
+            wall_right.y1 = -y_length/2;
+            wall_right.x2 = x_length/2 -0.1;
+            wall_right.y2 = y_length/2;
+            new_walls[0] = wall_right;
+
+            wall_top.x1 = -x_length/2;
+            wall_top.y1 = y_length/2 -0.1;
+            wall_top.x2 = x_length/2;
+            wall_top.y2 = y_length/2 -0.1;
+            new_walls[1] = wall_top;
+
+            return new_walls;
+
+        }
         void make_fake_laser()
         {
             turtlelib::Vector2D min_range_vector;
@@ -424,6 +469,8 @@ class Sim
             double scan_angle;
             double D, discriminant;
             double dx,dy;
+            double dx_infinite,dy_infinite;
+            double delta_infinite;
             double dr;
             intersection_points intersections;
 
@@ -439,34 +486,18 @@ class Sim
             T_RW = T_WR.inv();
             std::vector<turtlelib::Vector2D> obstacle_robot_obs;
             std::vector<turtlelib::Vector2D> robot_obs_robot;
-            obstacle_robot_obs.resize(3);
-            robot_obs_robot.resize(3);
-            // for (int i = 0;i<obstacle_array_size;i++)
-            // {
-            //     turtlelib::Vector2D obstacle_translational;
-            //     obstacle_translational.x = cylinder_marker_x[i];
-            //     obstacle_translational.y = cylinder_marker_y[i];
-            //     turtlelib::Transform2D T_WO;
-            //     T_WO = turtlelib::Transform2D(obstacle_translational);
-            //     turtlelib::Transform2D T_OW;
-            //     T_OW = T_WO.inv();
-            //     turtlelib::Transform2D T_OR;
-            //     T_OR = T_OW*T_WR;
-            //     turtlelib::Transform2D T_RO;
-            //     T_RO = T_OR.inv();
-            //     turtlelib::Vector2D new_obs = T_OR.translation();
-            //     obstacle_robot_obs[i] = new_obs;
-            //     // ROS_WARN("%f at %d obs",obstacle_robot_obs[i].x, i);
-            //     // red_trans_in_obstacle = T_OR(red_trans);
-            //     // robot_obs_robot[i] = red_trans_in_obstacle;
-            //     // ROS_WARN("%f at %d ror",robot_obs_robot[i].x, i);
+            std::vector<double> distance_list;
+            obstacle_robot_obs.resize(obstacle_array_size);
+            robot_obs_robot.resize(obstacle_array_size);
+            double points_compare_x;
+            double points_compare_y;    
 
-            // }
+            // initialize components of the laser message
             fake_laser.header.frame_id = "red-base_scan";
             fake_laser.header.stamp = ros::Time::now();
             fake_laser.angle_min = min_angle;
             fake_laser.angle_max = max_angle;
-            fake_laser.angle_increment = resolution;
+            fake_laser.angle_increment = max_angle/360;
             fake_laser.time_increment = 0.5/1000000000.0;
             fake_laser.scan_time = scan_time/1000000000.0;
             fake_laser.range_min = min_scan_range;
@@ -475,6 +506,7 @@ class Sim
             // fake_laser.ranges[i] = 1.0;
             for (int i = 0;i<samples;i++)
             {
+                std::vector<double> distance_list;
                 double new_distance1;
                 double new_distance2;
                 // fake_laser.ranges[i] = 1.0;
@@ -483,8 +515,19 @@ class Sim
                 min_range_vector.y = min_scan_range*sin(scan_angle);
                 max_range_vector.x = max_scan_range*cos(scan_angle);
                 max_range_vector.y = max_scan_range*sin(scan_angle);
+                turtlelib::Vector2D first_point = (min_range_vector);
+                turtlelib::Vector2D second_point = (max_range_vector);
+                // D = get_D(first_point.x,first_point.y,second_point.x,second_point.y);
+                dx_infinite = (second_point.x - first_point.x);
+                dy_infinite = (second_point.y - first_point.y);
+                dr = get_dr(dx_infinite,dy_infinite);
+
+
+
                 for (int j = 0;j<obstacle_array_size;j++)
                 {
+                    turtlelib::Vector2D test_vec;
+                    turtlelib::Vector2D test_vec2;
                     turtlelib::Vector2D obstacle_translational;
                     obstacle_translational.x = cylinder_marker_x[j];
                     obstacle_translational.y = cylinder_marker_y[j];
@@ -498,35 +541,209 @@ class Sim
                     T_RO = T_OR.inv();
                     turtlelib::Vector2D new_obs = T_OR.translation();
                     obstacle_robot_obs[j] = new_obs;
-                    // ROS_WARN("%f at %d obs",obstacle_robot_obs[i].x, i);
-                    // red_trans_in_obstacle = T_OR(red_trans);
-                    // robot_obs_robot[i] = red_trans_in_obstacle;
-                    // ROS_WARN("%f at %d ror",robot_obs_robot[i].x, i);
 
 
                     new_distance1 = 0;
                     new_distance2 = 0;
-                    turtlelib::Vector2D first_point = T_OR(min_range_vector)+obstacle_robot_obs[j];
-                    turtlelib::Vector2D second_point = T_OR(max_range_vector)+obstacle_robot_obs[j];
-                    D = get_D(first_point.x,first_point.y,second_point.x,second_point.y);
-                    dx = (second_point.x - first_point.x);
-                    dy = (second_point.y - first_point.y);
-                    dr = get_dr(dx,dy);
-                    discriminant = get_discriminant(D,radius,dr);
-                    ROS_WARN("%f at %d",discriminant, i);
-                    if (discriminant>=0.0){
-                        ROS_WARN("NEW POINT?");
-                        intersections = get_points_intersection(D,dx,dy,radius,dr);
-                        new_distance1 = get_distance(first_point.x,first_point.y,intersections.x1,intersections.y1);
-                        // new_distance2 = get_distance(first_point.x,first_point.y,intersections.x2,intersections.y2);
+                    test_vec = T_OR(first_point);
+                    test_vec2 = T_OR(second_point);
 
-                        // fake_laser.ranges[i] = std::max(new_distance1+0.12,new_distance2+0.12);
+                    D = get_D(test_vec.x,test_vec.y,test_vec2.x,test_vec2.y);
+                    dx = (test_vec2.x - test_vec.x);
+                    dy = (test_vec2.y - test_vec.y);
+    
+                    discriminant = get_discriminant(D,radius,dr);
+                    if (discriminant>=0.0){
+                        // ROS_WARN("NEW POINT? at %d",i);
+                        intersections = get_points_intersection(D,dx,dy,radius,dr);
+
+                        turtlelib::Vector2D laser_points;
+                        turtlelib::Vector2D laser_points2;
+                        laser_points.x = intersections.x1;
+                        laser_points.y = intersections.y1;
+                        laser_points2.x = intersections.x2;
+                        laser_points2.y = intersections.y2;
+                        laser_points = T_RO(laser_points);
+                        laser_points2 = T_RO(laser_points2);
+                        new_distance1 = get_distance(0,0,laser_points.x,laser_points.y);
+                        new_distance2 = get_distance(0,0,laser_points2.x,laser_points2.y);
+
+                        if (new_distance1>new_distance2)
+                        {
+                            new_distance1 = new_distance2;
+                            points_compare_x = laser_points2.x;
+                            points_compare_y = laser_points2.y;
+                        }
+                        else
+                        {
+                            new_distance1 = new_distance1;
+                            points_compare_x = laser_points.x;
+                            points_compare_y = laser_points.y;
+                        }
+
+                        if (new_distance1<get_distance(points_compare_x,points_compare_y,first_point.x,first_point.y))
+                        {
+                            ROS_WARN("get_distance %f at %d",get_distance(points_compare_x,points_compare_y,second_point.x,second_point.y),i);
+                            new_distance1 = max_scan_range+1;
+                        }
+                        distance_list.push_back(new_distance1);
+
                     }   
-                
+                    else
+                    {
+                        new_distance1 = max_scan_range+1;
+                    }
+
 
                 }
+
+                double distance_to_use = max_scan_range+1;
+                for (int k = 0;k<distance_list.size();k++)
+                {
+                    // ROS_WARN("distances %f at %d",distance_list[k],i);
+                    if (k==0){
+                        distance_to_use = distance_list[0];
+                    }
+                    else if (k >=1 )
+                    {
+                        if(distance_list[k]<distance_to_use)
+                        {
+                            distance_to_use = distance_list[k];
+                        }
+                    }
+                }
                 
-                fake_laser.ranges[i] = std::min(new_distance1,100.0);
+                // if (distance_to_use<get_distance(points_compare_x,points_compare_y,first_point.x,first_point.y))
+                // {
+                //     ROS_WARN("get_distance %f at %d",get_distance(points_compare_x,points_compare_y,second_point.x,second_point.y),i);
+                //     distance_to_use = 0;
+                // }
+                // ROS_WARN("%f current x",current_config.x);
+                turtlelib::Vector2D robot_in_robot;
+                turtlelib::Vector2D robot_offset_in_robot;
+                robot_in_robot.x = current_config.x;
+                robot_in_robot.y = current_config.y;
+                robot_offset_in_robot.x = current_config.x +cos(scan_angle+current_config.theta);
+                robot_offset_in_robot.y = current_config.y +sin(scan_angle+current_config.theta);
+                // robot_in_robot = T_RW(robot_in_robot);
+                // robot_offset_in_robot = T_RW(robot_offset_in_robot);
+                if (distance_to_use>= max_scan_range)
+                {
+                    double x1 = robot_in_robot.x;
+                    double y1 = robot_in_robot.y;
+                    double x2 = robot_offset_in_robot.x;
+                    double y2 = robot_offset_in_robot.y ;
+                    
+
+
+
+                    double d_12_x, d_34_x,d_12_1_x,d_34_1_x;
+                    double d_12_y, d_34_y,d_12_1_y,d_34_1_y;
+                    double px,py;
+                    
+                    std::vector<wall_points> laser_wall;
+                    laser_wall = create_walls();
+                    std::vector<double> wall_distances;
+                    for (int h = 0;h<4;h++)
+                    {
+                        // ROS_WARN("%d %d",i,h);   
+                        turtlelib::Vector2D walls_p1, walls_p2;
+                        double temp_dist;
+                        double x3,y3,x4,y4;
+                        double new_D;
+                        walls_p1.x = laser_wall[h].x1;    
+                        walls_p1.y = laser_wall[h].y1;   
+                        walls_p2.x = laser_wall[h].x2;   
+                        walls_p2.y = laser_wall[h].y2;        
+                        // walls_p1 = T_RW(walls_p1);
+                        // walls_p2 = T_RW(walls_p2);
+                        x3 = walls_p1.x;
+                        y3 = walls_p1.y;
+                        x4 = walls_p2.x;
+                        y4 = walls_p2.y;
+
+                        d_12_x = get_D(x1,y1,x2,y2);
+                        d_34_x = get_D(walls_p1.x,walls_p1.y,walls_p2.x,walls_p2.y);
+                        d_12_1_x = get_D(x1,1.0,x2,1.0);
+                        d_34_1_x = get_D(walls_p1.x,1.0,walls_p2.x,1.0);
+
+                        d_12_y = get_D(x1,y1,x2,y2);
+                        d_34_y = get_D(walls_p1.x,walls_p1.y,walls_p2.x,walls_p2.y);
+                        d_12_1_y = get_D(y1,1.0,y2,1.0);
+                        d_34_1_y = get_D(walls_p1.y,1.0,walls_p2.y,1.0);
+
+                        // new_D = ((x1-x2)*(y3-y4))-((y1-y2)*(x3-x4));
+                        // px = (((x1*y2-y1*x2)*(x3-x4))-((x1-x2)*(x3*y4-y3*x4)))/new_D;
+                        // py = (((x1*y2-y1*x2)*(y3-y4))-((y1-y2)*(x3*y4-y3*x4)))/new_D;
+                        px = get_D(d_12_x,d_12_1_x,d_34_x,d_34_1_x)/get_D(d_12_1_x,d_12_1_y,d_34_1_x,d_34_1_y);
+                        py = get_D(d_12_y,d_12_1_y,d_34_y,d_34_1_y)/get_D(d_12_1_x,d_12_1_y,d_34_1_x,d_34_1_y);
+                        turtlelib::Vector2D p_vect;
+                        p_vect.x = px;
+                        p_vect.y = py;
+                        p_vect = T_RW(p_vect);
+                        px = p_vect.x;
+                        py = p_vect.y;
+
+                        // temp_dist = get_distance(0.0,0.0,px,py);
+                        temp_dist = sqrt(px*px+py*py);
+                        // wall_distances.push_back(temp_dists);
+                        // ROS_WARN("%f %d",temp_dist,i);
+
+                        if (temp_dist<get_distance(px,py,first_point.x,first_point.y))
+                        {
+                            // ROS_WARN("get_distance %f at %d",get_distance(points_compare_x,points_compare_y,second_point.x,second_point.y),i);
+                            temp_dist = max_scan_range+1;
+                        }
+
+                        if (temp_dist<max_scan_range)
+                        {
+                            wall_distances.push_back(temp_dist);
+                            // distance_to_use = temp_dist;
+                            // ROS_WARN("%f %d",distance_to_use,h);
+                        }
+                        
+
+                    }
+
+                    for (int l = 0;l<wall_distances.size();l++)
+                    {
+                        ROS_WARN("%f %d",wall_distances[l],i);
+                        if(l==0){
+                            distance_to_use = wall_distances[0];
+                        }
+                        
+                        if(distance_to_use>wall_distances[l])
+                        {
+                            distance_to_use = wall_distances[l];
+                        }
+                        
+                    }
+
+                    
+
+                    // d_12_x = get_D(x1,y1,x2,y2);
+                    // d_34_x = get_D(right_wall_p1[0],right_wall_p1[1],right_wall_p2[0],right_wall_p2[1]);
+                    // d_12_1_x = get_D(x1,1.0,x2,1.0);
+                    // d_34_1_x = get_D(right_wall_p1[0],1.0,right_wall_p2[0],1.0);
+
+                    // d_12_y = get_D(x1,y1,x2,y2);
+                    // d_34_y = get_D(right_wall_p1[0],right_wall_p1[1],right_wall_p2[0],right_wall_p2[1]);
+                    // d_12_1_y = get_D(y1,1.0,y2,1.0);
+                    // d_34_1_y = get_D(right_wall_p1[1],1.0,right_wall_p2[1],1.0);
+
+                    // px = get_D(d_12_x,d_12_1_x,d_34_x,d_34_1_x)/get_D(d_12_1_x,d_12_1_y,d_34_1_x,d_34_1_y);
+                    // py = get_D(d_12_y,d_12_1_y,d_34_y,d_34_1_y)/get_D(d_12_1_x,d_12_1_y,d_34_1_x,d_34_1_y);
+                    // distance_to_use = get_distance(x1,y1,px,py);
+                    // ROS_WARN("px: %f at %d \n",px,i);
+                    // ROS_WARN("px: %f, py: %f at %d \n",px,py,i);
+
+                }
+                ROS_WARN("actually use %f at %d",distance_to_use,i);
+                if(distance_to_use > max_scan_range)
+                {
+                    distance_to_use = 0.0;
+                }
+                fake_laser.ranges[i] = distance_to_use;
                 
 
             }
