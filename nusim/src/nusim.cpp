@@ -98,7 +98,7 @@ class Sim
             nh.getParam("/nusim/robot_noise_mean",robot_noise_mean);
             nh.getParam("/nusim/robot_noise_stddev",robot_noise_stddev);
             nh.getParam("/nusim/collision_radius",collision_radius);
-            
+            nh.getParam("/nusim/laser_variance",laser_variance);
             
             motor_cmd_max_lower = motor_cmd_max[0];
             motor_cmd_max_upper = motor_cmd_max[1];
@@ -373,7 +373,7 @@ class Sim
                 {   
                     collision_flag=true;
 
-                    ROS_WARN("COLLISION!");
+                    // ROS_WARN("COLLISION!");
                 }
 
                 if ((collision_distance>collision_radius+radius))
@@ -526,6 +526,7 @@ class Sim
         /// \brief Creates fake laser data points for obstacles and walls.
         void make_fake_laser()
         {
+            std::normal_distribution<> laser_noise(0, laser_variance);
             turtlelib::Vector2D min_range_vector;
             turtlelib::Vector2D max_range_vector;
             double scan_angle;
@@ -641,7 +642,7 @@ class Sim
 
                         if (new_distance1<get_distance(points_compare_x,points_compare_y,first_point.x,first_point.y))
                         {
-                            ROS_WARN("get_distance %f at %d",get_distance(points_compare_x,points_compare_y,second_point.x,second_point.y),i);
+                            // ROS_WARN("get_distance %f at %d",get_distance(points_compare_x,points_compare_y,second_point.x,second_point.y),i);
                             new_distance1 = max_scan_range+1;
                         }
                         distance_list.push_back(new_distance1);
@@ -731,7 +732,7 @@ class Sim
 
                     for (int l = 0;l<wall_distances.size();l++)
                     {
-                        ROS_WARN("%f %d",wall_distances[l],i);
+                        // ROS_WARN("%f %d",wall_distances[l],i);
                         if(l==0){
                             distance_to_use = wall_distances[0];
                         }
@@ -742,12 +743,12 @@ class Sim
                         }                        
                     }
                 }
-                ROS_WARN("actually use %f at %d",distance_to_use,i);
+                // ROS_WARN("actually use %f at %d",distance_to_use,i);
                 if(distance_to_use > max_scan_range)
                 {
                     distance_to_use = 0.0;
                 }
-                fake_laser.ranges[i] = distance_to_use;
+                fake_laser.ranges[i] = distance_to_use + laser_noise(get_random());
                 
 
             }
@@ -778,14 +779,23 @@ class Sim
             left_tick = wheel_Command.left_velocity;
             right_tick = wheel_Command.right_velocity;
             
-            std::normal_distribution<> left_vel_noise(0, .02);
-            std::normal_distribution<> right_vel_noise(0, .02);
+            std::normal_distribution<> left_vel_noise(0, robot_noise_stddev);
+            std::normal_distribution<> right_vel_noise(0, robot_noise_stddev);
 
             left_noise = left_vel_noise(get_random());
             right_noise = right_vel_noise(get_random());
-
-            wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec)+left_noise*(left_tick* motor_cmd_to_radsec); 
-            wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec)+right_noise*(right_tick* motor_cmd_to_radsec); 
+            
+            if(turtlelib::almost_equal(left_tick,right_tick,0.01))
+            {
+                wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec); 
+                wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec); 
+            }
+            else
+            {
+                wheels_velocity.left_vel = (left_tick* motor_cmd_to_radsec)+left_noise*(left_tick* motor_cmd_to_radsec); 
+                wheels_velocity.right_vel = (right_tick * motor_cmd_to_radsec)+right_noise*(right_tick* motor_cmd_to_radsec); 
+            }
+             
             
         }
 
@@ -870,6 +880,21 @@ class Sim
             // }
             // marker_pub.publish(marker);
 
+            // current_path.header.stamp = ros::Time::now();
+            // current_path.header.frame_id = "world";
+            // path_pose.header.stamp = ros::Time::now();
+            // path_pose.header.frame_id = "red-base_footprint";
+            // path_pose.pose.position.x = current_config.x;
+            // path_pose.pose.position.y = current_config.y;
+            // path_pose.pose.orientation.x = q.x();
+            // path_pose.pose.orientation.y = q.y();
+            // path_pose.pose.orientation.z = q.z();
+            // path_pose.pose.orientation.w = q.w();
+            // current_path.poses.push_back(path_pose);
+            // path_pub.publish(current_path);
+         }
+        void fake_loop(const ros::TimerEvent &)
+        {
             current_path.header.stamp = ros::Time::now();
             current_path.header.frame_id = "world";
             path_pose.header.stamp = ros::Time::now();
@@ -882,9 +907,6 @@ class Sim
             path_pose.pose.orientation.w = q.w();
             current_path.poses.push_back(path_pose);
             path_pub.publish(current_path);
-         }
-        void fake_loop(const ros::TimerEvent &)
-        {
             make_fake_obstacles();
             make_fake_laser();
         }
@@ -975,12 +997,14 @@ class Sim
         double max_scan_range;
         double robot_noise_mean;
         double robot_noise_stddev;
+        double laser_variance;
 
         bool collision_flag;
         double collision_x;
         double collision_y;
         double collision_theta;
         double collision_radius;
+        
 };
 
 /// \brief the main function that calls the class

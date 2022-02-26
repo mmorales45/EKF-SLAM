@@ -8,10 +8,20 @@ project(nuslam)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
+  message_generation
+  message_runtime
+  nuturtlebot_msgs
   roscpp
+  sensor_msgs
+  std_msgs
+  tf2
+  tf2_ros
   turtlelib
+  turtlebot3_teleop
 )
 
+find_package(Armadillo)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -117,11 +127,19 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${ARMADILLO_INCLUDE_DIRS}
 )
+
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   src/nuslam.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${ARMADILLO_LIBRARIES}
+  turtlelib
 )
 
 add_executable(first src/first.cpp)
@@ -131,10 +149,16 @@ target_link_libraries(first
   nuslam
 )
 
-target_link_libraries(${PROJECT_NAME}
+add_executable(slam src/slam.cpp)
+add_dependencies(slam ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(slam
   ${catkin_LIBRARIES}
+  ${ARMADILLO_LIBRARIES}
+  nuslam
   turtlelib
 )
+
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -183,7 +207,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC include/)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17) 
 target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 
-install(TARGETS first
+install(TARGETS first slam
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
