@@ -29,7 +29,7 @@ namespace nuslam
 
         predict_cov_est = arma::mat(3+2*n,3+2*n,arma::fill::zeros);
         predict_cov_est.submat(3,3 ,2*n+3-1,2*n+3-1) = 1000000.0*arma::mat(2*n,2*n,arma::fill::eye);
-        // predict_cov_est.print();
+        predict_cov_est.print();
 
 
     }
@@ -87,8 +87,8 @@ namespace nuslam
         else
         {
             T_wp_prime(0,0) = delta_t;
-            T_wp_prime(1,0) = -(delta_x/delta_t)*sin(predict_state_est(0,0)) + (delta_x/delta_t)*sin(predict_state_est(0,0)+delta_t);
-            T_wp_prime(2,0) = (delta_x/delta_t)*cos(predict_state_est(0,0)) - (delta_x/delta_t)*cos(predict_state_est(0,0)+delta_t);
+            T_wp_prime(1,0) = -(delta_x/delta_t)*sin(predict_state_est(0,0)) + (delta_x/delta_t)*sin(turtlelib::normalize_angle(predict_state_est(0,0)+delta_t));
+            T_wp_prime(2,0) = (delta_x/delta_t)*cos(predict_state_est(0,0)) - (delta_x/delta_t)*cos(turtlelib::normalize_angle(predict_state_est(0,0)+delta_t));
         }
 
         predict_state_est(0,0) = turtlelib::normalize_angle(predict_state_est(0,0)+ T_wp_prime(0,0) + w_t(0,0)); 
@@ -173,20 +173,22 @@ namespace nuslam
             arma::mat H = calculate_H(i+1);
             // // kalman gain
             arma::mat Ki = predict_cov_est*H.t()*inv(H*predict_cov_est*H.t()+R);//I removed R
+            H.print();
             predict_state_est = predict_state_est + Ki*(z-zt);
             predict_state_est(0,0) = turtlelib::normalize_angle(predict_state_est(0,0));
             predict_cov_est = (I-Ki*H)*predict_cov_est;
+            // predict_state_est.print();S
 
         }
-        predict_state_est.print();
+        // predict_state_est.print();
         return predict_state_est;
 
     }
 
     arma::mat KalmanFilter::Landmark_Initialization(int robot_id, turtlelib::Vector2D coords)
     {
-        predict_state_est(3+2*robot_id,0) = coords.x;
-        predict_state_est(3+2*robot_id+1,0) = coords.y;
+        predict_state_est(3+2*robot_id,0) = predict_state_est(1,0)+coords.x*cos(turtlelib::normalize_angle(predict_state_est(0,0)+coords.y));
+        predict_state_est(3+2*robot_id+1,0) = predict_state_est(2,0)+coords.x*sin(turtlelib::normalize_angle(predict_state_est(0,0)+coords.y));
     }
     
 }
