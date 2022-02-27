@@ -55,8 +55,12 @@ class odometry
             //set frame ids and initial position of robot
             odom.header.frame_id = odom_id;
             odom.child_frame_id = body_id;
-            transformStamped.header.frame_id = odom_id;
-            transformStamped.child_frame_id = body_id;
+            transformStamped.header.frame_id = "world";// for blue robot
+            transformStamped.child_frame_id = "blue-base_footprint";// for blue robot
+            transformStamped_mo.header.frame_id = "map";// for green robot
+            transformStamped_mo.child_frame_id = "odom";// for green robot
+            transformStamped_green.header.frame_id = "odom";// for green robot
+            transformStamped_green.child_frame_id = "green-base_footprint";// for green robot
             nh.getParam("/robot",robot_coords);
             current_config.x = robot_coords[0];
             current_config.y = robot_coords[1];
@@ -72,7 +76,7 @@ class odometry
             EKFilter = nuslam::KalmanFilter();
             c = arma::mat(3*(3),1,arma::fill::zeros);
             initial_flag = 0;
-
+            b = arma::mat(3*(3),1,arma::fill::zeros);
             timer = nh.createTimer(ros::Duration(1.0/rate), &odometry::main_loop, this);
         }
 
@@ -103,7 +107,7 @@ class odometry
         void make_path()
         {
             current_path.header.stamp = ros::Time::now();
-            current_path.header.frame_id = "map";
+            current_path.header.frame_id = "world";
             path_pose.header.stamp = ros::Time::now();
             path_pose.header.frame_id = "blue-base_footprint";
             path_pose.pose.position.x = current_config.x;
@@ -169,20 +173,20 @@ class odometry
                 z_values(2*t,0) = radius_i;
                 z_values((2*t)+1,0) = phi_i;
                 // ROS_WARN("id: %d",fake_obstacles.markers[t].id);
-                // if (initial_flag == 0)
-                // {
+                if (initial_flag == 0)
+                {
                 EKFilter.Landmark_Initialization(t,coord_vect);
-                // }
+                }
 
             }   
 
             initial_flag = 1;
 
-            c = EKFilter.predict(twist);
-            ROS_INFO_STREAM(c);
+            c = EKFilter.predict(twist,5.0);
+            // ROS_INFO_STREAM(c);
 
-            arma::mat b = EKFilter.update(val,z_values); 
-            // ROS_INFO_STREAM(b);
+            b = EKFilter.update(val,z_values); 
+            ROS_INFO_STREAM(b);
 
             
         }
@@ -195,13 +199,37 @@ class odometry
             twist = DiffDrive.Twist_from_wheelVel(new_vel);
             //update configuration based on forward kinematics
             current_config = DiffDrive.forward_Kinematics(new_angles,current_config);
+            
+            //create transform from odom to base
+            turtlelib::Vector2D vect_OB;
+            vect_OB.x = current_config.x;
+            vect_OB.y = current_config.y;
+            double thetaOB = current_config.theta;
+            T_OB = turtlelib::Transform2D(vect_OB,thetaOB);
+            turtlelib::Vector2D new_vect_OB = T_OB.translation();
+            double new_theta_OB = T_OB.rotation();
+
+            //create transform from map to base
+            turtlelib::Vector2D vect_MB;
+            vect_MB.x = b(1,0);
+            vect_MB.y = b(2,0);
+            double theta_MB = b(0,0);
+            T_MB = turtlelib::Transform2D(vect_MB,theta_MB);
+            turtlelib::Vector2D new_vect_MB = T_MB.translation();
+            double new_theta_MB = T_MB.rotation();
+
+            //find transform from map to odom
+            T_MO = T_MB * T_OB.inv();
+            turtlelib::Vector2D new_vect_MO = T_MO.translation();
+            double new_theta_MO = T_MO.rotation();
+
             //make the new angles the old ones
             old_angles.left_angle = new_angles.left_angle;
             old_angles.right_angle = new_angles.right_angle;
             //publish odom and transform
             odom.header.stamp = ros::Time::now();
-            odom.pose.pose.position.x = c(1,0);
-            odom.pose.pose.position.y = c(2,0);
+            odom.pose.pose.position.x = b(1,0);
+            odom.pose.pose.position.y = b(2,0);
             //create quaternion from theta
             q.setRPY(0, 0, current_config.theta);
             odom.pose.pose.orientation.x = q.x();
@@ -214,15 +242,35 @@ class odometry
             odom.twist.twist.linear.y = twist.y_dot;
 
             transformStamped.header.stamp = ros::Time::now();
-            transformStamped.transform.translation.x = c(1,0);
-            transformStamped.transform.translation.y = c(2,0);
+            transformStamped.transform.translation.x = current_config.x;
+            transformStamped.transform.translation.y = current_config.y;
             transformStamped.transform.rotation.x = q.x();
             transformStamped.transform.rotation.y = q.y();
             transformStamped.transform.rotation.z = q.z();
             transformStamped.transform.rotation.w = q.w();
 
+            transformStamped_mo.header.stamp = ros::Time::now();
+            transformStamped_mo.transform.translation.x = new_vect_MO.x;
+            transformStamped_mo.transform.translation.y = new_vect_MO.y;
+            q_MO.setRPY(0, 0, new_theta_MO);
+            transformStamped_mo.transform.rotation.x = q_MO.x();
+            transformStamped_mo.transform.rotation.y = q_MO.y();
+            transformStamped_mo.transform.rotation.z = q_MO.z();
+            transformStamped_mo.transform.rotation.w = q_MO.w();
+
+            transformStamped_green.header.stamp = ros::Time::now();
+            transformStamped_green.transform.translation.x = new_vect_OB.x;
+            transformStamped_green.transform.translation.y = new_vect_OB.y;
+            q_OB.setRPY(0, 0, new_theta_OB);
+            transformStamped_green.transform.rotation.x = q_OB.x();
+            transformStamped_green.transform.rotation.y = q_OB.y();
+            transformStamped_green.transform.rotation.z = q_OB.z();
+            transformStamped_green.transform.rotation.w = q_OB.w();
+
             odom_pub.publish(odom);
             broadcaster.sendTransform(transformStamped);
+            broadcaster.sendTransform(transformStamped_mo);
+            broadcaster.sendTransform(transformStamped_green);
 
 
             
@@ -253,19 +301,28 @@ class odometry
     nav_msgs::Odometry odom;
     tf2_ros::TransformBroadcaster broadcaster;
     geometry_msgs::TransformStamped transformStamped;
+    geometry_msgs::TransformStamped transformStamped_green;
+    geometry_msgs::TransformStamped transformStamped_mo;
 
     ros::Timer timer;
     std::vector<double> robot_coords;
 
     double rate;
     tf2::Quaternion q;
+    tf2::Quaternion q_MO;
+    tf2::Quaternion q_OB;
     nav_msgs::Path current_path;
     geometry_msgs::PoseStamped path_pose;
 
     arma::mat z_values;
     nuslam::KalmanFilter EKFilter;
     arma::mat c;
+    arma::mat b;
     int initial_flag;
+
+    turtlelib::Transform2D T_OB;
+    turtlelib::Transform2D T_MB;
+    turtlelib::Transform2D T_MO;
     
     
 };

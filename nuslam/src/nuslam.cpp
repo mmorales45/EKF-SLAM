@@ -16,13 +16,13 @@ namespace nuslam
         mt = arma::mat(2*n,1,arma::fill::ones);
 
         Q = arma::mat(3,3,arma::fill::eye);
-        Q(0,0) = 0.00;
-        Q(1,1) = 0.00;
-        Q(2,2) = 0.00;
+        // Q(0,0) = 1.1;
+        // Q(1,1) = 1.1;
+        // Q(2,2) = 1.1;
 
         R = arma::mat(2,2,arma::fill::eye);
-        R(0,0) = 0.00001;
-        R(1,1) = 0.00001;
+        R(0,0) = 0.001;
+        R(1,1) = 0.001;
 
         current_measure.r_j = 0.0;
         current_measure.phi_j = 0.0;
@@ -34,24 +34,24 @@ namespace nuslam
 
     }
 
-    arma::mat KalmanFilter::calculate_transition(turtlelib::Twist2D twist)
+    arma::mat KalmanFilter::calculate_transition(turtlelib::Twist2D twist, double rate)
     {
-        double delta_x = twist.x_dot/5.0;
-        double delta_t = twist.theta_dot/5.0;
+        double delta_x = twist.x_dot/rate;
+        double delta_t = twist.theta_dot/rate;
         double top_term;
         double bot_term;  
         arma::mat A;
         arma::mat I = arma::mat(2*n+3,2*n+3,arma::fill::eye);
 
-        if(turtlelib::almost_equal(delta_t,0.0))
+        if(turtlelib::almost_equal(delta_t,0.0,0.001))
         {
             top_term = -delta_x*sin(predict_state_est(0,0));
             bot_term = delta_x*cos(predict_state_est(0.0));
         }
         else
         {
-            top_term = -(delta_x/delta_t)*cos(predict_state_est(0,0)) + (delta_x/delta_t)*cos(predict_state_est(0,0)+delta_t);
-            bot_term = -(delta_x/delta_t)*sin(predict_state_est(0,0)) + (delta_x/delta_t)*sin(predict_state_est(0,0)+delta_t);
+            top_term = -(delta_x/delta_t)*cos(turtlelib::normalize_angle(predict_state_est(0,0))) + (delta_x/delta_t)*cos(turtlelib::normalize_angle(predict_state_est(0,0)+delta_t));
+            bot_term = -(delta_x/delta_t)*sin(turtlelib::normalize_angle(predict_state_est(0,0))) + (delta_x/delta_t)*sin(turtlelib::normalize_angle(predict_state_est(0,0)+delta_t));
         }
 
         arma::mat tl;
@@ -62,33 +62,35 @@ namespace nuslam
         arma::mat tr(3,2*n,arma::fill::zeros);
         arma::mat br(2*n,2*n,arma::fill::zeros);
         arma::mat bl(2*n,3,arma::fill::zeros);
-        
-        auto joined_top  = std::move(arma::join_rows( tl, tr ));
-        auto joined_bot  = std::move(arma::join_rows( bl, br ));
-        auto joined_all  = std::move(arma::join_cols( joined_top, joined_bot ));
+        arma::mat second_term = arma::mat(2*n+3,2*n+3,arma::fill::zeros);
+        second_term(1,0) = top_term;
+        second_term(2,0) = bot_term;
+        // auto joined_top  = std::move(arma::join_rows( tl, tr ));
+        // auto joined_bot  = std::move(arma::join_rows( bl, br ));
+        // auto joined_all  = std::move(arma::join_cols( joined_top, joined_bot ));
 
-        A = I + joined_all;
+        A = I + second_term;
         return A;
     }
 
-    arma::mat KalmanFilter::calculate_updated_state(turtlelib::Twist2D twist)
+    arma::mat KalmanFilter::calculate_updated_state(turtlelib::Twist2D twist, double rate)
     {
-        double delta_x = twist.x_dot/5.0;
-        double delta_t = twist.theta_dot/5.0;
+        double delta_x = twist.x_dot/rate;
+        double delta_t = twist.theta_dot/rate;
         arma::mat T_wp_prime =  arma::mat(3,1,arma::fill::zeros);
         arma::mat w_t =  arma::mat(3,1,arma::fill::zeros);
 
-        if(turtlelib::almost_equal(delta_t,0.0))
+        if(turtlelib::almost_equal(delta_t,0.0,0.001))
         {
             T_wp_prime(0,0) = 0.0;
-            T_wp_prime(1,0) = delta_x*cos(predict_state_est(0.0));
-            T_wp_prime(2,0) = delta_x*sin(predict_state_est(0.0));
+            T_wp_prime(1,0) = delta_x*cos(turtlelib::normalize_angle(predict_state_est(0.0)));
+            T_wp_prime(2,0) = delta_x*sin(turtlelib::normalize_angle(predict_state_est(0.0)));
         }
         else
         {
             T_wp_prime(0,0) = delta_t;
-            T_wp_prime(1,0) = -(delta_x/delta_t)*sin(predict_state_est(0,0)) + (delta_x/delta_t)*sin(turtlelib::normalize_angle(predict_state_est(0,0)+delta_t));
-            T_wp_prime(2,0) = (delta_x/delta_t)*cos(predict_state_est(0,0)) - (delta_x/delta_t)*cos(turtlelib::normalize_angle(predict_state_est(0,0)+delta_t));
+            T_wp_prime(1,0) = -(delta_x/delta_t)*sin((predict_state_est(0,0))) + (delta_x/delta_t)*sin((predict_state_est(0,0)+delta_t));
+            T_wp_prime(2,0) = (delta_x/delta_t)*cos((predict_state_est(0,0))) - (delta_x/delta_t)*cos((predict_state_est(0,0)+delta_t));
         }
 
         predict_state_est(0,0) = turtlelib::normalize_angle(predict_state_est(0,0)+ T_wp_prime(0,0) + w_t(0,0)); 
@@ -103,7 +105,7 @@ namespace nuslam
         arma::mat h =  arma::mat(2,1,arma::fill::zeros);
         double rj, phij, temp_angle;
         rj = sqrt(pow(predict_state_est((2*j)+1,0)-predict_state_est(1,0),2)+pow(predict_state_est((2*j)+2,0)-predict_state_est(2,0),2));
-        temp_angle = atan2(predict_state_est((2*j)+1,0)-predict_state_est(2,0),predict_state_est((2*j)+2,0)-predict_state_est(1,0))-predict_state_est(0,0);
+        temp_angle = atan2(predict_state_est((2*j)+2,0)-predict_state_est(2,0),predict_state_est((2*j)+1,0)-predict_state_est(1,0))-predict_state_est(0,0);
         phij = turtlelib::normalize_angle(temp_angle);
         h(0,0) = rj;
         h(1,0) = phij;
@@ -142,12 +144,12 @@ namespace nuslam
 
     }
 
-    arma::mat KalmanFilter::predict(turtlelib::Twist2D twist)
+    arma::mat KalmanFilter::predict(turtlelib::Twist2D twist,double rate)
     {
         arma::mat Q_bar(3+2*n,3+2*n,arma::fill::zeros);
         Q_bar.submat(0,0, 2,2) = Q;
-        arma::mat A = calculate_transition(twist);
-        predict_state_est = calculate_updated_state(twist);
+        arma::mat A = calculate_transition(twist,rate);
+        predict_state_est = calculate_updated_state(twist,rate);
         // predict_cov_est
         // A.print();
         // predict_cov_est.print();
@@ -160,6 +162,7 @@ namespace nuslam
     arma::mat KalmanFilter::update(int num, arma::mat prev_z)
     {
         arma::mat z(2,1,arma::fill::zeros);
+        arma::mat delta_z(2,1,arma::fill::zeros);
 
         for (int i=0;i<num;i++)
         {
@@ -174,7 +177,9 @@ namespace nuslam
             // // kalman gain
             arma::mat Ki = predict_cov_est*H.t()*inv(H*predict_cov_est*H.t()+R);//I removed R
             H.print();
-            predict_state_est = predict_state_est + Ki*(z-zt);
+            delta_z = (z-zt);
+            delta_z(1,0) = turtlelib::normalize_angle(delta_z(1,0));
+            predict_state_est = predict_state_est + Ki*(delta_z);
             predict_state_est(0,0) = turtlelib::normalize_angle(predict_state_est(0,0));
             predict_cov_est = (I-Ki*H)*predict_cov_est;
             // predict_state_est.print();S

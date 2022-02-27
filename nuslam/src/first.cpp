@@ -126,8 +126,8 @@ main()
   z(3,0) = -0.25;
   z(5,0) = 0.1;
   nuslam::KalmanFilter a = nuslam::KalmanFilter();
-  a.Landmark_Initialization(3,z);
-  arma::mat b = a.update(3,z);
+  // a.Landmark_Initialization(3,z);
+  // arma::mat b = a.update(3,z);
 
   // arma::mat t = arma::mat({{0,0,0,0,0,0}});
   // arma::mat t = {{0},

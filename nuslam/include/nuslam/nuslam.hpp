@@ -22,9 +22,9 @@ namespace nuslam
 
         KalmanFilter();
 
-        arma::mat calculate_updated_state(turtlelib::Twist2D twist);
+        arma::mat calculate_updated_state(turtlelib::Twist2D twist,double rate);
 
-        arma::mat calculate_transition(turtlelib::Twist2D twist);
+        arma::mat calculate_transition(turtlelib::Twist2D twist,double rate);
 
         arma::mat calculate_h(int j);
 
@@ -32,7 +32,7 @@ namespace nuslam
 
         arma::mat calculate_Q_est();
 
-        arma::mat predict(turtlelib::Twist2D twist);
+        arma::mat predict(turtlelib::Twist2D twist,double rate);
 
         arma::mat update(int j, arma::mat z);
 

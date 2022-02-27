@@ -105,19 +105,52 @@ Visualization Manager:
       Visual Enabled: true
     - Alpha: 1
       Class: rviz/RobotModel
-      Collision Enabled: true
-      Enabled: false
+      Collision Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        red-base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        red-base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        red-base_scan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        red-caster_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        red-imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        red-wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        red-wheel_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: red/robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: true
@@ -137,6 +170,8 @@ Visualization Manager:
         green-wheel_left_link:
           Value: true
         green-wheel_right_link:
+          Value: true
+        map:
           Value: true
         odom:
           Value: true
@@ -164,19 +199,20 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          odom:
-            green-base_footprint:
-              green-base_link:
-                green-base_scan:
-                  {}
-                green-caster_back_link:
-                  {}
-                green-imu_link:
-                  {}
-                green-wheel_left_link:
-                  {}
-                green-wheel_right_link:
-                  {}
+          map:
+            odom:
+              green-base_footprint:
+                green-base_link:
+                  green-base_scan:
+                    {}
+                  green-caster_back_link:
+                    {}
+                  green-imu_link:
+                    {}
+                  green-wheel_left_link:
+                    {}
+                  green-wheel_right_link:
+                    {}
           red-base_footprint:
             red-base_link:
               red-base_scan:
