@@ -53,8 +53,8 @@ class odometry
             loadParams();
             rate = 500;
             //set frame ids and initial position of robot
-            odom.header.frame_id = odom_id;
-            odom.child_frame_id = body_id;
+            odom.header.frame_id = "world";
+            odom.child_frame_id = "odom";
             transformStamped.header.frame_id = "world";// for blue robot
             transformStamped.child_frame_id = "blue-base_footprint";// for blue robot
             transformStamped_mo.header.frame_id = "map";// for green robot
@@ -231,7 +231,7 @@ class odometry
             odom.pose.pose.position.x = b(1,0);
             odom.pose.pose.position.y = b(2,0);
             //create quaternion from theta
-            q.setRPY(0, 0, current_config.theta);
+            q.setRPY(0, 0, new_theta_MO);
             odom.pose.pose.orientation.x = q.x();
             odom.pose.pose.orientation.y = q.y();
             odom.pose.pose.orientation.z = q.z();

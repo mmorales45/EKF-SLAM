@@ -301,8 +301,8 @@ class Sim
                 std::normal_distribution<> fake_obstacle_noise(0, basic_sensor_variance);
                 obstacle_noise = fake_obstacle_noise(get_random());
                 turtlelib::Vector2D obs_trans;
-                obs_trans.x = cylinder_marker_x[i];
-                obs_trans.y = cylinder_marker_y[i];
+                obs_trans.x = cylinder_marker_x[i]+obstacle_noise;
+                obs_trans.y = cylinder_marker_y[i]+obstacle_noise;
                 turtlelib::Transform2D T_WO;
                 T_WO = turtlelib::Transform2D(obs_trans);
                 turtlelib::Transform2D T_RO;
@@ -317,8 +317,8 @@ class Sim
 
                 fake_marker.markers[i].id = i;
 
-                fake_marker.markers[i].pose.position.x = new_obs.x+obstacle_noise;
-                fake_marker.markers[i].pose.position.y = new_obs.y+obstacle_noise;
+                fake_marker.markers[i].pose.position.x = new_obs.x;
+                fake_marker.markers[i].pose.position.y = new_obs.y;
                 fake_marker.markers[i].pose.position.z = 0.125;
                 fake_marker.markers[i].pose.orientation.x = 0.0;
                 fake_marker.markers[i].pose.orientation.y = 0.0;

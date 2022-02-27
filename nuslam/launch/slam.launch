@@ -8,7 +8,7 @@
     
     
     <node pkg="tf2_ros" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 0 0 1 world map" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="link2_broadcaster" args="0 0 0 0 0 0 1 map odom" />
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="link2_broadcaster" args="0 0 0 0 0 0 1 map odom" /> -->
     <rosparam file="$(find nusim)/config/basic_world.yaml" />
     <rosparam file="$(find nuturtle_description)/config/diff_params.yaml" />
 
