@@ -53,8 +53,8 @@ class odometry
             loadParams();
             rate = 500;
             //set frame ids and initial position of robot
-            odom.header.frame_id = "world";
-            odom.child_frame_id = "odom";
+            odom.header.frame_id = "odom";
+            odom.child_frame_id = "green-base_footprint";
             transformStamped.header.frame_id = "world";// for blue robot
             transformStamped.child_frame_id = "blue-base_footprint";// for blue robot
             transformStamped_mo.header.frame_id = "map";// for green robot
@@ -71,13 +71,16 @@ class odometry
             obstacles_sub = nh.subscribe("/nusim/obstacles/Fake_markerArray",10,&odometry::obstacle_callback,this);
             odom_pub = nh.advertise<nav_msgs::Odometry>("odom",100);
             path_pub  = nh.advertise<nav_msgs::Path>("odometry/path", 10, true);
+            green_path_pub = nh.advertise<nav_msgs::Path>("odometry/green_path", 10, true);
             set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
+            fake_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nuslam/obstacles/Fake_markerArray", 1, true);
 
             EKFilter = nuslam::KalmanFilter();
             c = arma::mat(3*(3),1,arma::fill::zeros);
             initial_flag = 0;
             b = arma::mat(3*(3),1,arma::fill::zeros);
             timer = nh.createTimer(ros::Duration(1.0/rate), &odometry::main_loop, this);
+            timer_green = nh.createTimer(ros::Duration(1.0/5.0), &odometry::green_loop, this);
         }
 
         /// \brief Get the updated information of the Turtlebots through their wheel positions and velocities
@@ -155,7 +158,7 @@ class odometry
         void obstacle_callback(const visualization_msgs::MarkerArray & fake_obstacles)
         {
             // ROS_WARN("id: %d",fake_obstacles.markers.size());
-            int val = int (fake_obstacles.markers.size());
+            val = int (fake_obstacles.markers.size());
             z_values = arma::mat(2*(val),1,arma::fill::zeros);
             
             for (int t = 0;t<val;t++)
@@ -188,9 +191,69 @@ class odometry
             b = EKFilter.update(val,z_values); 
             ROS_INFO_STREAM(b);
 
+            make_fake_obstacles();
+
             
         }
         
+        void create_green_path()
+        {
+            green_current_path.header.stamp = ros::Time::now();
+            green_current_path.header.frame_id = "world";
+            green_path_pose.header.stamp = ros::Time::now();
+            green_path_pose.header.frame_id = "green-base_footprint";
+            green_path_pose.pose.position.x = new_vect_MB.x;
+            green_path_pose.pose.position.y = new_vect_MB.y;
+            q_MB.setRPY(0, 0, new_theta_MB);
+            green_path_pose.pose.orientation.x = q_MB.x();
+            green_path_pose.pose.orientation.y = q_MB.y();
+            green_path_pose.pose.orientation.z = q_MB.z();
+            green_path_pose.pose.orientation.w = q_MB.w();
+            green_current_path.poses.push_back(green_path_pose);
+            green_path_pub.publish(green_current_path);
+        }
+
+        void make_fake_obstacles()
+        {            
+            fake_marker.markers.resize(val);
+            for (int i = 0;i<val;i++)
+            {
+                turtlelib::Vector2D obstacle_B_MARK;
+                obstacle_B_MARK.x = b(3+2*i,0);
+                obstacle_B_MARK.y = b(4+2*i,0);
+
+
+                fake_marker.markers[i].header.stamp = ros::Time();
+                fake_marker.markers[i].header.frame_id = "world";
+                shape = visualization_msgs::Marker::CYLINDER;
+                fake_marker.markers[i].type = shape;
+                fake_marker.markers[i].ns = "slam_fake_obstacles";
+
+                fake_marker.markers[i].id = i;
+
+                fake_marker.markers[i].pose.position.x = obstacle_B_MARK.x;
+                fake_marker.markers[i].pose.position.y = obstacle_B_MARK.y;
+                fake_marker.markers[i].pose.position.z = 0.125;
+                fake_marker.markers[i].pose.orientation.x = 0.0;
+                fake_marker.markers[i].pose.orientation.y = 0.0;
+                fake_marker.markers[i].pose.orientation.z = 0.0;
+                fake_marker.markers[i].pose.orientation.w = 1.0;
+
+                fake_marker.markers[i].scale.x = (2*0.05);
+                fake_marker.markers[i].scale.y = (2*0.05);
+                fake_marker.markers[i].scale.z = 0.25;
+                
+                fake_marker.markers[i].color.r = 0.0;
+                fake_marker.markers[i].color.g = 1.0;
+                fake_marker.markers[i].color.b = 0.0;
+                fake_marker.markers[i].color.a = 1.0;
+
+            }
+            fake_marker_pub.publish(fake_marker);
+            
+        }
+
+
         /// \brief A timer that continuosly publishes odometry, creates transforms, and updates the DiffDrive class members
         ///
         void main_loop(const ros::TimerEvent &)
@@ -215,8 +278,8 @@ class odometry
             vect_MB.y = b(2,0);
             double theta_MB = b(0,0);
             T_MB = turtlelib::Transform2D(vect_MB,theta_MB);
-            turtlelib::Vector2D new_vect_MB = T_MB.translation();
-            double new_theta_MB = T_MB.rotation();
+            new_vect_MB = T_MB.translation();
+            new_theta_MB = T_MB.rotation();
 
             //find transform from map to odom
             T_MO = T_MB * T_OB.inv();
@@ -228,10 +291,10 @@ class odometry
             old_angles.right_angle = new_angles.right_angle;
             //publish odom and transform
             odom.header.stamp = ros::Time::now();
-            odom.pose.pose.position.x = b(1,0);
-            odom.pose.pose.position.y = b(2,0);
+            odom.pose.pose.position.x = current_config.x;
+            odom.pose.pose.position.y = current_config.y;
             //create quaternion from theta
-            q.setRPY(0, 0, new_theta_MO);
+            q.setRPY(0, 0, current_config.theta);
             odom.pose.pose.orientation.x = q.x();
             odom.pose.pose.orientation.y = q.y();
             odom.pose.pose.orientation.z = q.z();
@@ -271,11 +334,14 @@ class odometry
             broadcaster.sendTransform(transformStamped);
             broadcaster.sendTransform(transformStamped_mo);
             broadcaster.sendTransform(transformStamped_green);
-
-
-            
-
         }
+        
+        void green_loop(const ros::TimerEvent &)
+        {
+            create_green_path();
+            
+        }
+
     private:
     //create private variables
     ros::NodeHandle nh;
@@ -283,6 +349,7 @@ class odometry
     ros::Subscriber obstacles_sub;
     ros::Publisher odom_pub;
     ros::Publisher path_pub;
+    ros::Publisher green_path_pub;
     ros::ServiceServer set_pose_service;
 
     std::string odom_id;
@@ -305,15 +372,21 @@ class odometry
     geometry_msgs::TransformStamped transformStamped_mo;
 
     ros::Timer timer;
+    ros::Timer timer_green;
     std::vector<double> robot_coords;
 
     double rate;
     tf2::Quaternion q;
     tf2::Quaternion q_MO;
     tf2::Quaternion q_OB;
+    tf2::Quaternion q_MB;
     nav_msgs::Path current_path;
     geometry_msgs::PoseStamped path_pose;
 
+    nav_msgs::Path green_current_path;
+    geometry_msgs::PoseStamped green_path_pose;
+
+    int val;
     arma::mat z_values;
     nuslam::KalmanFilter EKFilter;
     arma::mat c;
@@ -324,6 +397,11 @@ class odometry
     turtlelib::Transform2D T_MB;
     turtlelib::Transform2D T_MO;
     
+    turtlelib::Vector2D new_vect_MB;
+    double new_theta_MB;
+    uint32_t shape;
+    visualization_msgs::MarkerArray fake_marker;
+    ros::Publisher fake_marker_pub;
     
 };
 
