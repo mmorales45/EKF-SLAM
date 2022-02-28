@@ -385,10 +385,23 @@ class Sim
 
                 if (collision_flag==true)
                 {
-                    current_config.x = collision_x;
-                    current_config.y = collision_y;
-                    current_config.theta = collision_theta;
+                    // current_config.x = collision_x;
+                    // current_config.y = collision_y;
+                    // current_config.theta = collision_theta;
                     // collision_flag=false;
+
+                    //new stuff
+                    obs_coll_x = cylinder_marker_x[i];
+                    obs_coll_y = cylinder_marker_y[i];
+                    rob_coll_x = current_config.x;
+                    rob_coll_y = current_config.y;
+                    double delta_x_collision = rob_coll_x-obs_coll_x;
+                    double delta_y_collision = rob_coll_y-obs_coll_y;
+                    double collision_dist = collision_radius+radius;
+                    double collision_angle = atan2(delta_y_collision,delta_x_collision);
+                    collision_angle = collision_angle;
+                    current_config.x = cylinder_marker_x[i] + collision_dist*cos(collision_angle);
+                    current_config.y = cylinder_marker_y[i] + collision_dist*sin(collision_angle);
                 }
             }
         }
@@ -1004,6 +1017,10 @@ class Sim
         double collision_y;
         double collision_theta;
         double collision_radius;
+        double obs_coll_x;
+        double obs_coll_y;
+        double rob_coll_x;
+        double rob_coll_y;
         
 };
 

@@ -291,8 +291,8 @@ class odometry
             old_angles.right_angle = new_angles.right_angle;
             //publish odom and transform
             odom.header.stamp = ros::Time::now();
-            odom.pose.pose.position.x = current_config.x;
-            odom.pose.pose.position.y = current_config.y;
+            odom.pose.pose.position.x = new_vect_OB.x;
+            odom.pose.pose.position.y = new_vect_OB.y;
             //create quaternion from theta
             q.setRPY(0, 0, current_config.theta);
             odom.pose.pose.orientation.x = q.x();
