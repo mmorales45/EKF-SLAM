@@ -27,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LaserScan
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -148,18 +148,80 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /nusim/obstacles/markerArray
-      Name: MarkerArray
+      Name: RedObstacles
       Namespaces:
         obstacles: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
+      Marker Topic: /nusim/obstacles/Fake_markerArray
+      Name: FakeObstacles
+      Namespaces:
+        fake_obstacles: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
       Marker Topic: /nusim/walls/walls
-      Name: MarkerArray
+      Name: WALLS
       Namespaces:
         walls: true
       Queue Size: 100
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: false
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/LaserScan
+      Color: 255; 0; 0
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: LaserScan
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic: /nusim/laser_scan_data
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 255; 0; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: RedPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Queue Size: 10
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /nusim/path
+      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
