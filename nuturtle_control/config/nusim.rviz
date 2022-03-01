@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /RobotModel2
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 555
@@ -96,7 +95,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: RobotModel
+      Name: BlueRobot
       Robot Description: blue/robot_description
       TF Prefix: ""
       Update Interval: 0
@@ -104,7 +103,7 @@ Visualization Manager:
       Visual Enabled: true
     - Alpha: 1
       Class: rviz/RobotModel
-      Collision Enabled: true
+      Collision Enabled: false
       Enabled: true
       Links:
         All Links Enabled: true
@@ -145,7 +144,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: RobotModel
+      Name: RedRobot
       Robot Description: red/robot_description
       TF Prefix: ""
       Update Interval: 0
@@ -226,15 +225,23 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /nusim/obstacles/markerArray
-      Name: MarkerArray
+      Name: RedObstacles
       Namespaces:
         obstacles: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
+      Marker Topic: /nusim/obstacles/Fake_markerArray
+      Name: FakeObstacles
+      Namespaces:
+        fake_obstacles: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
       Marker Topic: /nusim/walls/walls
-      Name: MarkerArray
+      Name: WALLS
       Namespaces:
         walls: true
       Queue Size: 100
@@ -278,13 +285,13 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 0
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
       Line Style: Lines
       Line Width: 0.029999999329447746
-      Name: Path
+      Name: RedPath
       Offset:
         X: 0
         Y: 0
@@ -297,26 +304,18 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /nusim/path
       Unreliable: false
-      Value: false
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /nusim/obstacles/Fake_markerArray
-      Name: MarkerArray
-      Namespaces:
-        fake_obstacles: true
-      Queue Size: 100
       Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 0; 255
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
       Line Style: Lines
       Line Width: 0.029999999329447746
-      Name: Path
+      Name: BluePath
       Offset:
         X: 0
         Y: 0
@@ -329,7 +328,7 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /odometry/path
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -386,7 +385,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.0087783336639404
+      Distance: 4.207147121429443
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -402,9 +401,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4453984797000885
+      Pitch: 0.46039846539497375
       Target Frame: <Fixed Frame>
-      Yaw: 5.908571720123291
+      Yaw: 5.668569564819336
     Saved: ~
 Window Geometry:
   Displays:
@@ -423,4 +422,4 @@ Window Geometry:
     collapsed: false
   Width: 1080
   X: 0
-  Y: 0
+  Y: 27
