@@ -119,13 +119,13 @@ main()
     // arma::mat z_values(2*(5),1,arma::fill::zeros);
     // z_values(0,0) = 5.0;
     // z_values.print();
-  turtlelib::Twist2D twist;
-  twist.x_dot = 1.0;
-  arma::mat z(6,1,arma::fill::ones);
-  z(1,0) = 0.25;
-  z(3,0) = -0.25;
-  z(5,0) = 0.1;
-  nuslam::KalmanFilter a = nuslam::KalmanFilter(3);
+  // turtlelib::Twist2D twist;
+  // twist.x_dot = 1.0;
+  // arma::mat z(6,1,arma::fill::ones);
+  // z(1,0) = 0.25;
+  // z(3,0) = -0.25;
+  // z(5,0) = 0.1;
+  // nuslam::KalmanFilter a = nuslam::KalmanFilter(3);
   // a.Landmark_Initialization(3,z);
   // arma::mat b = a.update(3,z);
 

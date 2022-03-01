@@ -79,7 +79,7 @@ class odometry
             set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
             fake_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nuslam/obstacles/Fake_markerArray", 1, true);
 
-            EKFilter = nuslam::KalmanFilter();
+            // EKFilter = nuslam::KalmanFilter();
             c = arma::mat(3*(3),1,arma::fill::zeros);
             EKF_FLAG = 0;
             initial_flag = 0;
@@ -173,7 +173,7 @@ class odometry
             z_values = arma::mat(2*(val),1,arma::fill::zeros);
             if (EKF_FLAG == 0)
             {
-                EKFilter = nuslam::KalmanFilter(val);
+                EKFilter = nuslam::KalmanFilter(val,1.0,0.001);
                 EKF_FLAG = 1;
                 ROS_WARN("I GOT HERE!");
             }

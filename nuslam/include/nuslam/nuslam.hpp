@@ -18,7 +18,7 @@ namespace nuslam
         KalmanFilter();
 
         /// \brief Create an object that makes matrices wit correct dimensions.
-        KalmanFilter(int num_obs);
+        KalmanFilter(int num_obs,double Q_scale,double R_scale);
         
         /// \brief Update the qt, or x, y, and theta of the robot given a twist.
         /// \param twist- The change in x,y,and theta for one timestep.
@@ -61,11 +61,11 @@ namespace nuslam
 
     private:
 
-        int n;
-        arma::mat predict_state_est;    
-        arma::mat predict_cov_est;
-        arma::mat Q;
-        arma::mat R;
+        int n {};
+        arma::mat predict_state_est {};    
+        arma::mat Q {};
+        arma::mat R {};
+        arma::mat predict_cov_est {};
     };
 }
 
