@@ -19,49 +19,55 @@ namespace nuslam
     class KalmanFilter
     {
     public:
-
+        /// \brief Create an object that makes matrices wit correct dimensions.
         KalmanFilter();
-
+        
+        /// \brief Update the qt, or x, y, and theta of the robot given a twist.
+        /// \param twist- The change in x,y,and theta for one timestep.
+        /// \param rate- How fast the twist is being being received. Used for creating timestep.
+        /// \return predict_state_est- the updated state variable with the new x,y,and theta.
         arma::mat calculate_updated_state(turtlelib::Twist2D twist,double rate);
 
+        /// \brief Calculate the transition matrix A.
+        /// \param twist- The change in x,y,and theta for one timestep.
+        /// \param rate- How fast the twist is being being received. Used for creating timestep. 
+        /// \return A- Derivative of g with respect to state and twist.
         arma::mat calculate_transition(turtlelib::Twist2D twist,double rate);
 
+        /// \brief Calculate the estimated range and phi of an obstacle.
+        /// \param j- The obstacle number.
+        /// \return h- The range and phi of the j index obstacle.
         arma::mat calculate_h(int j);
 
+        /// \brief Calculate the derivative of the h matrix.
+        /// \param j- The obstacle number.
+        /// \return H- A 2 by (3+2n) derivative matrix with respect to the state.
         arma::mat calculate_H(int j);
 
-        arma::mat calculate_Q_est();
-
+        /// \brief Update the state estimate, and covariance.
+        /// \param twist- The change in x,y,and theta for one timestep.
+        /// \param rate- How fast the twist is being being received. Used for creating timestep.
+        /// \return predict_state_est- the updated state variable with the new x,y,and theta.
         arma::mat predict(turtlelib::Twist2D twist,double rate);
 
-        arma::mat update(int j, arma::mat z);
+        /// \brief Compute the posterior state and covariance matrix by loooping through every obstacle.
+        /// \param num- The number of obstacles.
+        /// \param z- A matrix of size 2n by 1 that contains the range and phi for every obstacle.
+        /// \return predict_state_est- the updated state variable updates values for each obstacle and config.
+        arma::mat update(int num, arma::mat z);
 
-        arma::mat Landmark_Initialization(int robot_id, turtlelib::Vector2D coords);
+        /// \brief Add an obstacle into the class given the range and phi.
+        /// \param robot_id- The specific id of an obstacle.
+        /// \param coords- The range and phi of the obstacle.
+        void Landmark_Initialization(int robot_id, turtlelib::Vector2D coords);
 
     private:
-        /*
-        variables needed?
-        xk,zk,x_hat_k,z_hat_k,
 
-
-        */
         int n;
-        arma::mat current_state;
-
-        arma::mat qt;
-        // arma::mat ut; //this is the twist
-        arma::mat mt;
-
         arma::mat predict_state_est;    
         arma::mat predict_cov_est;
-
-        bearing_measure current_measure;
-
         arma::mat Q;
         arma::mat R;
-
-        arma::mat sigma;
-
     };
 }
 

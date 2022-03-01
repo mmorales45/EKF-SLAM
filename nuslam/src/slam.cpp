@@ -184,12 +184,12 @@ class odometry
             }   
 
             initial_flag = 1;
-
+            ROS_INFO_STREAM(twist.x_dot);
             c = EKFilter.predict(twist,5.0);
             // ROS_INFO_STREAM(c);
 
             b = EKFilter.update(val,z_values); 
-            ROS_INFO_STREAM(b);
+            // ROS_INFO_STREAM(b);
 
             make_fake_obstacles();
 
@@ -294,16 +294,17 @@ class odometry
             odom.pose.pose.position.x = new_vect_OB.x;
             odom.pose.pose.position.y = new_vect_OB.y;
             //create quaternion from theta
-            q.setRPY(0, 0, current_config.theta);
-            odom.pose.pose.orientation.x = q.x();
-            odom.pose.pose.orientation.y = q.y();
-            odom.pose.pose.orientation.z = q.z();
-            odom.pose.pose.orientation.w = q.w();
+            q_OB.setRPY(0, 0, new_theta_OB);
+            odom.pose.pose.orientation.x = q_OB.x();
+            odom.pose.pose.orientation.y = q_OB.y();
+            odom.pose.pose.orientation.z = q_OB.z();
+            odom.pose.pose.orientation.w = q_OB.w();
 
             odom.twist.twist.angular.z = twist.theta_dot;
             odom.twist.twist.linear.x = twist.x_dot;
             odom.twist.twist.linear.y = twist.y_dot;
 
+            q.setRPY(0, 0, current_config.theta);
             transformStamped.header.stamp = ros::Time::now();
             transformStamped.transform.translation.x = current_config.x;
             transformStamped.transform.translation.y = current_config.y;
@@ -324,7 +325,7 @@ class odometry
             transformStamped_green.header.stamp = ros::Time::now();
             transformStamped_green.transform.translation.x = new_vect_OB.x;
             transformStamped_green.transform.translation.y = new_vect_OB.y;
-            q_OB.setRPY(0, 0, new_theta_OB);
+            // q_OB.setRPY(0, 0, new_theta_OB);
             transformStamped_green.transform.rotation.x = q_OB.x();
             transformStamped_green.transform.rotation.y = q_OB.y();
             transformStamped_green.transform.rotation.z = q_OB.z();

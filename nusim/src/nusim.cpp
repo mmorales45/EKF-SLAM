@@ -624,10 +624,10 @@ class Sim
                     dx = (test_vec2.x - test_vec.x);
                     dy = (test_vec2.y - test_vec.y);
     
-                    discriminant = get_discriminant(D,radius,dr);
+                    discriminant = get_discriminant(D,2*radius,dr);
                     if (discriminant>=0.0){
                         // ROS_WARN("NEW POINT? at %d",i);
-                        intersections = get_points_intersection(D,dx,dy,radius,dr);
+                        intersections = get_points_intersection(D,dx,dy,2*radius,dr);
 
                         turtlelib::Vector2D laser_points;
                         turtlelib::Vector2D laser_points2;

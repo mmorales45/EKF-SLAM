@@ -12,20 +12,11 @@ namespace nuslam
     {
         n = 3; //number of obstacles
         predict_state_est=arma::mat(3+2*n,1,arma::fill::zeros);
-        qt = arma::mat(3,1,arma::fill::zeros);
-        mt = arma::mat(2*n,1,arma::fill::ones);
-
-        Q = arma::mat(3,3,arma::fill::eye);
-        // Q(0,0) = 1.1;
-        // Q(1,1) = 1.1;
-        // Q(2,2) = 1.1;
+        Q = arma::mat(n,n,arma::fill::eye);
 
         R = arma::mat(2,2,arma::fill::eye);
         R(0,0) = 0.001;
         R(1,1) = 0.001;
-
-        current_measure.r_j = 0.0;
-        current_measure.phi_j = 0.0;
 
         predict_cov_est = arma::mat(3+2*n,3+2*n,arma::fill::zeros);
         predict_cov_est.submat(3,3 ,2*n+3-1,2*n+3-1) = 1000000.0*arma::mat(2*n,2*n,arma::fill::eye);
@@ -54,20 +45,9 @@ namespace nuslam
             bot_term = -(delta_x/delta_t)*sin(turtlelib::normalize_angle(predict_state_est(0,0))) + (delta_x/delta_t)*sin(turtlelib::normalize_angle(predict_state_est(0,0)+delta_t));
         }
 
-        arma::mat tl;
-        tl = {  {0.0,0.0,0.0},
-                {top_term,0.0,0.0},
-                {bot_term,0.0,0.0}  };
-
-        arma::mat tr(3,2*n,arma::fill::zeros);
-        arma::mat br(2*n,2*n,arma::fill::zeros);
-        arma::mat bl(2*n,3,arma::fill::zeros);
         arma::mat second_term = arma::mat(2*n+3,2*n+3,arma::fill::zeros);
         second_term(1,0) = top_term;
         second_term(2,0) = bot_term;
-        // auto joined_top  = std::move(arma::join_rows( tl, tr ));
-        // auto joined_bot  = std::move(arma::join_rows( bl, br ));
-        // auto joined_all  = std::move(arma::join_cols( joined_top, joined_bot ));
 
         A = I + second_term;
         return A;
@@ -136,26 +116,13 @@ namespace nuslam
     }
 
 
-    arma::mat KalmanFilter::calculate_Q_est()
-    {
-        arma::mat Q_bar(3+2*n,3+2*n,arma::fill::zeros);
-        Q_bar.submat(0,0, 2,2) = Q;
-        return Q_bar;
-
-    }
-
     arma::mat KalmanFilter::predict(turtlelib::Twist2D twist,double rate)
     {
         arma::mat Q_bar(3+2*n,3+2*n,arma::fill::zeros);
-        Q_bar.submat(0,0, 2,2) = Q;
+        Q_bar.submat(0,0, n-1,n-1) = Q;
         arma::mat A = calculate_transition(twist,rate);
         predict_state_est = calculate_updated_state(twist,rate);
-        // predict_cov_est
-        // A.print();
-        // predict_cov_est.print();
-        // Q_bar.print();
         predict_cov_est = A * predict_cov_est * A.t() + Q_bar;
-        // predict_cov_est.print();
         return predict_state_est;
     }
 
@@ -190,87 +157,10 @@ namespace nuslam
 
     }
 
-    arma::mat KalmanFilter::Landmark_Initialization(int robot_id, turtlelib::Vector2D coords)
+    void KalmanFilter::Landmark_Initialization(int robot_id, turtlelib::Vector2D coords)
     {
         predict_state_est(3+2*robot_id,0) = predict_state_est(1,0)+coords.x*cos(turtlelib::normalize_angle(predict_state_est(0,0)+coords.y));
         predict_state_est(3+2*robot_id+1,0) = predict_state_est(2,0)+coords.x*sin(turtlelib::normalize_angle(predict_state_est(0,0)+coords.y));
     }
     
 }
-// //another way to get H
-// arma::mat KalmanFilter::calculate_H(int j)
-//     {
-//         double delta_x = mt(j,0) - predict_state_est(1,0); 
-//         double delta_y = mt(j,1) - predict_state_est(2,0);
-//         double d = delta_x*delta_x+delta_y*delta_y;
-//         arma::mat first = arma::mat(2,3,arma::fill::zeros);
-//         arma::mat second = arma::mat(2,2*(j-1),arma::fill::zeros);
-//         arma::mat third = arma::mat(2,3,arma::fill::zeros);
-//         arma::mat fourth = arma::mat(2,(2*n-2*j),arma::fill::zeros);
-
-//         first(0,0) = 0.0;
-//         first(0,1) = -delta_x/sqrt(d);
-//         first(0,2) = -delta_y/sqrt(d);
-//         first(1,0) = -1.0;
-//         first(1,1) = delta_y/d;
-//         first(1,2) = -delta_x/d;
-        
-//         third(0,0) = delta_x/sqrt(d);
-//         third(0,1) = delta_y/sqrt(d);
-//         third(1,0) = -delta_y/d;
-//         third(1,1) = delta_x/d;
-
-//         arma::mat H = std::move(arma::join_rows( first, second, third, fourth));
-//         return H;
-//     }
-
-
-
-// arma::mat KalmanFilter::calculate_H(int j)
-    // {
-    //     double delta_x;
-    //     double delta_y;
-    //     double d;
-    //     std::vector<arma::mat> h;
-    //     h.resize(n);
-    //     arma::mat complete_h(2,3+2*n,arma::fill::zeros);
-        
-
-    //     for (int i=0;i<j;i++)
-    //     {
-    //         //create vector of n rows and 2 columns
-    //         //resize it to n
-    //         //
-    //         h[i] = arma::mat(2,3+2*n,arma::fill::zeros);
-
-    //         delta_x = mt(i,0) - predict_state_est(1,0); 
-    //         delta_y = mt(i,1) - predict_state_est(2,0);
-    //         d = delta_x*delta_x+delta_y*delta_y;
-
-    //         h[i](0,0) = 0.0;
-    //         h[i](0,1) = -delta_x/sqrt(d);
-    //         h[i](0,2) = -delta_y/sqrt(d);
-    //         h[i](1,0) = -1.0;
-    //         h[i](1,1) = delta_y/d;
-    //         h[i](1,2) = -delta_x/d;
-            
-    //         h[i](0,3+2*i) = delta_x/sqrt(d);
-    //         h[i](0,4+2*i) = delta_y/sqrt(d);
-    //         h[i](1,3+2*i) = -delta_y/d;
-    //         h[i](1,4+2*i) = delta_x/d;
-    //     }
-
-    //     for (int k =0;k<j;k++)
-    //     {
-    //         if (k == 0)
-    //         {
-    //             complete_h = h[k];
-    //         }
-    //         else
-    //         {
-    //             complete_h = std::move(arma::join_cols( complete_h, h[k] ));
-    //         }
-    //     }
-    //     return complete_h;
-
-    // }
