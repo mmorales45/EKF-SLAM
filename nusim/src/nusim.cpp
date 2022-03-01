@@ -329,9 +329,9 @@ class Sim
                 fake_marker.markers[i].scale.y = (2*radius);
                 fake_marker.markers[i].scale.z = 0.25;
                 
-                fake_marker.markers[i].color.r = 0.0;
-                fake_marker.markers[i].color.g = 0.0;
-                fake_marker.markers[i].color.b = 1.0;
+                fake_marker.markers[i].color.r = 1.0;
+                fake_marker.markers[i].color.g = 1.0;
+                fake_marker.markers[i].color.b = 0.0;
                 fake_marker.markers[i].color.a = 1.0;
                 fake_marker.markers[i].frame_locked = true;
                 // distance = sqrt(pow(cylinder_marker_x[i]-current_config.x,2)+(cylinder_marker_y[i]-current_config.y,2));                

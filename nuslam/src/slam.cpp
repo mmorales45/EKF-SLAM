@@ -9,8 +9,12 @@
 ///     right_wheel_joint (std::string): Name of the right wheel joint
 /// PUBLISHERS:
 ///     odom_pub (nav_msgs/Odometry): Update the odometry based on the Turtlebot's data
+///     path_pub (nav_msgs/Path): Create the path of the blue robot.
+///     green_path_pub (nav_msgs/Path): Create the path of the green robot.
+///     fake_marker_pub (visualization_msgs/MarkerArray): Publish Markers based on SLAM data.
 /// SUBSCRIBERS:
 ///     joint_state_sub (sensor_msgs/JointState): Receive the wheels' position and velocities to updates then odometry
+///     obstacles_sub visualization_msgs/MarkerArray): Receive the location of the markers based on the red/real robot.
 /// SERVICES:
 ///     set_pose_service (nuturtle_control/SetPose): Set the location of the blue Turtlebot by specifying a x,y,theta
 
@@ -77,6 +81,7 @@ class odometry
 
             EKFilter = nuslam::KalmanFilter();
             c = arma::mat(3*(3),1,arma::fill::zeros);
+            EKF_FLAG = 0;
             initial_flag = 0;
             b = arma::mat(3*(3),1,arma::fill::zeros);
             timer = nh.createTimer(ros::Duration(1.0/rate), &odometry::main_loop, this);
@@ -107,6 +112,7 @@ class odometry
             return true;
         }
 
+        /// \brief Create path for Blue Robot
         void make_path()
         {
             current_path.header.stamp = ros::Time::now();
@@ -122,6 +128,7 @@ class odometry
             current_path.poses.push_back(path_pose);
             path_pub.publish(current_path);
         }
+
         /// \brief Loads the paramters from the parameter server to be used in the node
         ///
         void loadParams()
@@ -155,14 +162,26 @@ class odometry
                 nh.getParam("/right_wheel_joint",right_wheel_joint);
             }
         }
+
+        /// \brief Callback for the fake sensor data topic, main slam implementation. 
+        ///
+        /// \param fake_obstacles - Position of the noisy obstacles relative to the robot.
         void obstacle_callback(const visualization_msgs::MarkerArray & fake_obstacles)
         {
             // ROS_WARN("id: %d",fake_obstacles.markers.size());
             val = int (fake_obstacles.markers.size());
             z_values = arma::mat(2*(val),1,arma::fill::zeros);
+            if (EKF_FLAG == 0)
+            {
+                EKFilter = nuslam::KalmanFilter(val);
+                EKF_FLAG = 1;
+                ROS_WARN("I GOT HERE!");
+            }
             
             for (int t = 0;t<val;t++)
             {
+                // int robot_id = int(fake_obstacles.markers[t].header.frame_id);
+                ROS_INFO_STREAM(fake_obstacles.markers[t].id);
                 double x_i = fake_obstacles.markers[t].pose.position.x;
                 double y_i = fake_obstacles.markers[t].pose.position.y;
                 turtlelib::Vector2D coord_vect;
@@ -184,7 +203,7 @@ class odometry
             }   
 
             initial_flag = 1;
-            ROS_INFO_STREAM(twist.x_dot);
+            // ROS_INFO_STREAM(twist.x_dot);
             c = EKFilter.predict(twist,5.0);
             // ROS_INFO_STREAM(c);
 
@@ -196,6 +215,7 @@ class odometry
             
         }
         
+        /// \brief Create path for Green Robot/SLAM
         void create_green_path()
         {
             green_current_path.header.stamp = ros::Time::now();
@@ -213,6 +233,7 @@ class odometry
             green_path_pub.publish(green_current_path);
         }
 
+        /// \brief Create the obstacles based on the SLAM information. 
         void make_fake_obstacles()
         {            
             fake_marker.markers.resize(val);
@@ -337,10 +358,11 @@ class odometry
             broadcaster.sendTransform(transformStamped_green);
         }
         
+        /// \brief A timer that continuosly publishes the green path at 5hz to prevent LAG.
+        ///
         void green_loop(const ros::TimerEvent &)
         {
             create_green_path();
-            
         }
 
     private:
@@ -393,6 +415,7 @@ class odometry
     arma::mat c;
     arma::mat b;
     int initial_flag;
+    int EKF_FLAG;
 
     turtlelib::Transform2D T_OB;
     turtlelib::Transform2D T_MB;

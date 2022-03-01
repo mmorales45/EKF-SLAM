@@ -9,18 +9,16 @@
 
 namespace nuslam
 {
-    struct bearing_measure
-    {
-        double r_j = 0.0;
-
-        double phi_j = 0.0;
-    };
 
     class KalmanFilter
     {
     public:
+
         /// \brief Create an object that makes matrices wit correct dimensions.
         KalmanFilter();
+
+        /// \brief Create an object that makes matrices wit correct dimensions.
+        KalmanFilter(int num_obs);
         
         /// \brief Update the qt, or x, y, and theta of the robot given a twist.
         /// \param twist- The change in x,y,and theta for one timestep.

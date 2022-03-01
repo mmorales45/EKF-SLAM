@@ -18,6 +18,11 @@
     <param name ="left_wheel_joint" value ="green-wheel_left_link" />
     <param name ="right_wheel_joint" value ="green-wheel_right_link" />
 
+    <group if="$(eval arg('cmd_src') == 'circle')">
+        <node pkg="nuturtle_control" type="circle" name="circle"> 
+            <param name ="frequency" value ="100" />
+        </node>
+    </group>
 
     <group if="$(eval arg('cmd_src') == 'teleop')">
         <include file ="$(find turtlebot3_teleop)/launch/turtlebot3_teleop_key.launch">

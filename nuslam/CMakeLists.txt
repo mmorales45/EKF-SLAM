@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf2
   tf2_ros
-  turtlelib
   turtlebot3_teleop
 )
 
@@ -146,7 +145,7 @@ add_executable(first src/first.cpp)
 add_dependencies(first ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(first
   ${catkin_LIBRARIES}
-  nuslam
+  ${PROJECT_NAME}
 )
 
 add_executable(slam src/slam.cpp)
@@ -154,7 +153,7 @@ add_dependencies(slam ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARG
 target_link_libraries(slam
   ${catkin_LIBRARIES}
   ${ARMADILLO_LIBRARIES}
-  nuslam
+  ${PROJECT_NAME}
   turtlelib
 )
 
@@ -207,7 +206,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC include/)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17) 
 target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 
-install(TARGETS first slam
+install(TARGETS first ${PROJECT_NAME} slam 
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

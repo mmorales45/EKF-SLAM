@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /MarkerArray4/Namespaces1
       Splitter Ratio: 0.5
     Tree Height: 789
   - Class: rviz/Selection
@@ -302,26 +301,34 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /nusim/obstacles/markerArray
-      Name: MarkerArray
-      Namespaces:
-        obstacles: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
       Marker Topic: /nusim/walls/walls
-      Name: MarkerArray
+      Name: WALLS
       Namespaces:
         walls: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
+      Marker Topic: /nusim/obstacles/markerArray
+      Name: RedMarkers
+      Namespaces:
+        obstacles: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
       Marker Topic: /nuslam/obstacles/Fake_markerArray
-      Name: MarkerArray
+      Name: GreenMarkers
       Namespaces:
         slam_fake_obstacles: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /nusim/obstacles/Fake_markerArray
+      Name: YellowMarkers
+      Namespaces:
+        fake_obstacles: true
       Queue Size: 100
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -359,14 +366,6 @@ Visualization Manager:
       Topic: /odom
       Unreliable: false
       Value: false
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /nusim/obstacles/Fake_markerArray
-      Name: MarkerArray
-      Namespaces:
-        fake_obstacles: true
-      Queue Size: 100
-      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -448,12 +447,12 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/LaserScan
-      Color: 255; 255; 255
-      Color Transformer: Intensity
+      Color: 255; 0; 0
+      Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
-      Max Color: 255; 255; 255
+      Max Color: 0; 255; 255
       Min Color: 0; 0; 0
       Name: LaserScan
       Position Transformer: XYZ
