@@ -318,7 +318,7 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /nuslam/obstacles/Fake_markerArray
-      Name: GreenMarkers
+      Name: SlamObstacles
       Namespaces:
         slam_fake_obstacles: true
       Queue Size: 100
@@ -326,7 +326,7 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /nusim/obstacles/Fake_markerArray
-      Name: YellowMarkers
+      Name: FakeObstacles
       Namespaces:
         fake_obstacles: true
       Queue Size: 100
@@ -370,7 +370,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 0; 255
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -389,12 +389,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /odometry/path
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 0
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -413,12 +413,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /nusim/path
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -437,7 +437,7 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /odometry/green_path
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:

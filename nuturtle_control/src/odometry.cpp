@@ -145,7 +145,6 @@ class odometry
         ///
         void main_loop(const ros::TimerEvent &)
         {
-            make_path();
             twist = DiffDrive.Twist_from_wheelVel(new_vel);
             //update configuration based on forward kinematics
             current_config = DiffDrive.forward_Kinematics(new_angles,current_config);
@@ -177,6 +176,7 @@ class odometry
 
             odom_pub.publish(odom);
             broadcaster.sendTransform(transformStamped);
+            make_path();
         }
     private:
     //create private variables

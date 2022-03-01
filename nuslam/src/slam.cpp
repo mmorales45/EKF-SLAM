@@ -279,7 +279,6 @@ class odometry
         ///
         void main_loop(const ros::TimerEvent &)
         {
-            make_path();
             twist = DiffDrive.Twist_from_wheelVel(new_vel);
             //update configuration based on forward kinematics
             current_config = DiffDrive.forward_Kinematics(new_angles,current_config);
@@ -358,10 +357,11 @@ class odometry
             broadcaster.sendTransform(transformStamped_green);
         }
         
-        /// \brief A timer that continuosly publishes the green path at 5hz to prevent LAG.
+        /// \brief A timer that continuosly publishes paths at 5hz to prevent LAG.
         ///
         void green_loop(const ros::TimerEvent &)
         {
+            make_path();
             create_green_path();
         }
 
