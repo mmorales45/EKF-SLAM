@@ -1,5 +1,5 @@
 /// \file
-/// \brief Node that updates the odometry between the odom and blue turtlebot3
+/// \brief Node that applies EKF filter to map robot's and obstacle's locations.
 ///
 /// PARAMETERS:
 ///     robot (std::vector<double>): The initial x,y,theta of the turtlebot
@@ -175,7 +175,6 @@ class odometry
             {
                 EKFilter = nuslam::KalmanFilter(val,.1,0.01);
                 EKF_FLAG = 1;
-                ROS_WARN("I GOT HERE!");
             }
             
             for (int t = 0;t<val;t++)

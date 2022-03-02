@@ -9,22 +9,6 @@ namespace nuslam
 {
     // odometry model
 
-    // KalmanFilter::KalmanFilter()
-    // {
-    //     n = 3; //number of obstacles
-    //     double scale_Q = 1.0;
-    //     double scale_R = 0.001;
-    //     predict_state_est=arma::mat(3+2*n,1,arma::fill::zeros);
-    //     Q = scale_Q * arma::mat(n,n,arma::fill::eye);
-
-    //     R = scale_R * arma::mat(2,2,arma::fill::eye);
-
-    //     predict_cov_est = arma::mat(3+2*n,3+2*n,arma::fill::zeros);
-    //     predict_cov_est.submat(3,3 ,2*n+3-1,2*n+3-1) = 1000000.0*arma::mat(2*n,2*n,arma::fill::eye);
-    //     predict_cov_est.print();
-
-
-    // }
     KalmanFilter::KalmanFilter()              
     {
     }
@@ -34,27 +18,8 @@ namespace nuslam
                                             R(R_scale * arma::mat(2,2,arma::fill::eye)),
                                             predict_cov_est(arma::mat(3+2*n,3+2*n,arma::fill::zeros))                   
     {
-        // double scale_Q = 1.0;
-        // double scale_R = 0.001;
         predict_cov_est.submat(3,3 ,2*n+3-1,2*n+3-1) = 1000000.0*arma::mat(2*n,2*n,arma::fill::eye);
     }
-
-    // KalmanFilter::KalmanFilter(int num_obs)
-    // {
-    //     n = num_obs; //number of obstacles
-    //     double scale_Q = 1.0;
-    //     double scale_R = 0.001;
-    //     predict_state_est=arma::mat(3+2*n,1,arma::fill::zeros);
-    //     Q = scale_Q * arma::mat(n,n,arma::fill::eye);
-
-    //     R = scale_R * arma::mat(2,2,arma::fill::eye);
-
-    //     predict_cov_est = arma::mat(3+2*n,3+2*n,arma::fill::zeros);
-    //     predict_cov_est.submat(3,3 ,2*n+3-1,2*n+3-1) = 1000000.0*arma::mat(2*n,2*n,arma::fill::eye);
-    //     predict_cov_est.print();
-
-
-    // }
 
     arma::mat KalmanFilter::calculate_transition(turtlelib::Twist2D twist)
     {
