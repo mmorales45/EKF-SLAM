@@ -173,7 +173,7 @@ class odometry
             z_values = arma::mat(2*(val),1,arma::fill::zeros);
             if (EKF_FLAG == 0)
             {
-                EKFilter = nuslam::KalmanFilter(val,1.0,0.001);
+                EKFilter = nuslam::KalmanFilter(val,.1,0.01);
                 EKF_FLAG = 1;
                 ROS_WARN("I GOT HERE!");
             }
@@ -204,7 +204,7 @@ class odometry
 
             initial_flag = 1;
             // ROS_INFO_STREAM(twist.x_dot);
-            c = EKFilter.predict(twist,5.0);
+            c = EKFilter.predict(twist);
             // ROS_INFO_STREAM(c);
 
             b = EKFilter.update(val,z_values); 

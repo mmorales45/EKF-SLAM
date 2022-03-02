@@ -22,15 +22,13 @@ namespace nuslam
         
         /// \brief Update the qt, or x, y, and theta of the robot given a twist.
         /// \param twist- The change in x,y,and theta for one timestep.
-        /// \param rate- How fast the twist is being being received. Used for creating timestep.
         /// \return predict_state_est- the updated state variable with the new x,y,and theta.
-        arma::mat calculate_updated_state(turtlelib::Twist2D twist,double rate);
+        arma::mat calculate_updated_state(turtlelib::Twist2D twist);
 
         /// \brief Calculate the transition matrix A.
         /// \param twist- The change in x,y,and theta for one timestep.
-        /// \param rate- How fast the twist is being being received. Used for creating timestep. 
         /// \return A- Derivative of g with respect to state and twist.
-        arma::mat calculate_transition(turtlelib::Twist2D twist,double rate);
+        arma::mat calculate_transition(turtlelib::Twist2D twist);
 
         /// \brief Calculate the estimated range and phi of an obstacle.
         /// \param j- The obstacle number.
@@ -44,9 +42,8 @@ namespace nuslam
 
         /// \brief Update the state estimate, and covariance.
         /// \param twist- The change in x,y,and theta for one timestep.
-        /// \param rate- How fast the twist is being being received. Used for creating timestep.
         /// \return predict_state_est- the updated state variable with the new x,y,and theta.
-        arma::mat predict(turtlelib::Twist2D twist,double rate);
+        arma::mat predict(turtlelib::Twist2D twist);
 
         /// \brief Compute the posterior state and covariance matrix by loooping through every obstacle.
         /// \param num- The number of obstacles.

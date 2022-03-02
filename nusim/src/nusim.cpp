@@ -166,14 +166,6 @@ class Sim
                 marker.markers[i].color.a = 1.0;
             }
             marker_pub.publish(marker);
-            // std::normal_distribution<> left_vel_noise(0, .01);
-            // std::normal_distribution<> right_vel_noise(0, .01);
-            // std::normal_distribution<> slip(0.5, slip_max);
-            // // std::normal_distribution<> fake_obstacle_noise(0, basic_sensor_variance);
-            // left_noise = left_vel_noise(get_random());
-            // right_noise = right_vel_noise(get_random());
-            // slip_noise = slip(get_random());
-            // obstacle_noise = fake_obstacle_noise(get_random());
 
             collision_flag = false;
         }
@@ -385,12 +377,6 @@ class Sim
 
                 if (collision_flag==true)
                 {
-                    // current_config.x = collision_x;
-                    // current_config.y = collision_y;
-                    // current_config.theta = collision_theta;
-                    // collision_flag=false;
-
-                    //new stuff
                     obs_coll_x = cylinder_marker_x[i];
                     obs_coll_y = cylinder_marker_y[i];
                     rob_coll_x = current_config.x;
@@ -595,9 +581,10 @@ class Sim
                 dr = get_dr(dx_infinite,dy_infinite);
 
 
-
+                //loop through every obstacle
                 for (int j = 0;j<obstacle_array_size;j++)
                 {
+                    //find transforms for every obstacle
                     turtlelib::Vector2D test_vec;
                     turtlelib::Vector2D test_vec2;
                     turtlelib::Vector2D obstacle_translational;
@@ -617,6 +604,7 @@ class Sim
 
                     new_distance1 = 0;
                     new_distance2 = 0;
+                    double distance_to_append;
                     test_vec = T_OR(first_point);
                     test_vec2 = T_OR(second_point);
 
@@ -639,33 +627,33 @@ class Sim
                         laser_points2 = T_RO(laser_points2);
                         new_distance1 = get_distance(0,0,laser_points.x,laser_points.y);
                         new_distance2 = get_distance(0,0,laser_points2.x,laser_points2.y);
-
+                        //use the smallest distance
                         if (new_distance1>new_distance2)
                         {
-                            new_distance1 = new_distance2;
+                            distance_to_append = new_distance2;
                             points_compare_x = laser_points2.x;
                             points_compare_y = laser_points2.y;
                         }
                         else
                         {
-                            new_distance1 = new_distance1;
+                            distance_to_append = new_distance1;
                             points_compare_x = laser_points.x;
                             points_compare_y = laser_points.y;
                         }
-
-                        if (new_distance1<get_distance(points_compare_x,points_compare_y,first_point.x,first_point.y))
+                        //getting rid of reflections
+                        if (distance_to_append<get_distance(points_compare_x,points_compare_y,first_point.x,first_point.y))
                         {
                             // ROS_WARN("get_distance %f at %d",get_distance(points_compare_x,points_compare_y,second_point.x,second_point.y),i);
-                            new_distance1 = max_scan_range+1;
+                            distance_to_append = max_scan_range+1;
                         }
-                        distance_list.push_back(new_distance1);
+                        distance_list.push_back(distance_to_append);
                     }   
                     else
                     {
-                        new_distance1 = max_scan_range+1;
+                        distance_to_append = max_scan_range+1;
                     }
                 }
-
+                //use the smallest distance for the laster.
                 double distance_to_use = max_scan_range+1;
                 for (int k = 0;k<distance_list.size();k++)
                 {
@@ -687,7 +675,7 @@ class Sim
                 robot_in_robot.y = current_config.y;
                 robot_offset_in_robot.x = current_config.x +cos(scan_angle+current_config.theta);
                 robot_offset_in_robot.y = current_config.y +sin(scan_angle+current_config.theta);
-
+                //if not a currest laser data point, proceed
                 if (distance_to_use>= max_scan_range)
                 {
                     double x1 = robot_in_robot.x;
@@ -729,7 +717,7 @@ class Sim
                         p_vect = T_RW(p_vect);
                         px = p_vect.x;
                         py = p_vect.y;
-
+                        //find distance between robot and intersection.
                         temp_dist = sqrt(px*px+py*py);
 
                         if (temp_dist<get_distance(px,py,first_point.x,first_point.y))
@@ -742,7 +730,7 @@ class Sim
                             wall_distances.push_back(temp_dist);
                         }
                     }
-
+                    //use the smallest distance
                     for (int l = 0;l<wall_distances.size();l++)
                     {
                         // ROS_WARN("%f %d",wall_distances[l],i);
@@ -757,6 +745,7 @@ class Sim
                     }
                 }
                 // ROS_WARN("actually use %f at %d",distance_to_use,i);
+                //make sure laser scan data shows 0s
                 if(distance_to_use > max_scan_range)
                 {
                     distance_to_use = 0.0;
@@ -792,9 +781,9 @@ class Sim
             left_tick = wheel_Command.left_velocity;
             right_tick = wheel_Command.right_velocity;
             
-            std::normal_distribution<> left_vel_noise(0, robot_noise_stddev);
-            std::normal_distribution<> right_vel_noise(0, robot_noise_stddev);
-
+            std::normal_distribution<> left_vel_noise(robot_noise_mean, robot_noise_stddev);
+            std::normal_distribution<> right_vel_noise(robot_noise_mean, robot_noise_stddev);
+            //create noise for each wheel
             left_noise = left_vel_noise(get_random());
             right_noise = right_vel_noise(get_random());
             
@@ -830,8 +819,6 @@ class Sim
             wheel_angles.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles.right_angle));
             wheel_angles2.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles2.left_angle))+slip_noise*wheels_velocity.left_vel/rate;
             wheel_angles2.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles2.right_angle))+slip_noise*wheels_velocity.right_vel/rate;
-            // wheel_angles2.left_angle = (((wheels_velocity.left_vel*(1/rate))+wheel_angles2.left_angle));
-            // wheel_angles2.right_angle = (((wheels_velocity.right_vel*(1/rate))+wheel_angles2.right_angle));
             current_config = DiffDrive.forward_Kinematics(wheel_angles,current_config);
 
             //update timestep and transforms
@@ -860,52 +847,10 @@ class Sim
                 collision_y = current_config.y;
                 collision_theta = current_config.theta;
             }
-            // broadcaster.sendTransform(transformStamped);
-            //publish the markers'/cylinders' position 
-            //Create marker array
-            // marker.markers.resize(obstacle_array_size);
-            // for (int i = 0;i<obstacle_array_size;i++)
-            // {
-            //     marker.markers[i].header.stamp = ros::Time();
-            //     marker.markers[i].header.frame_id = "world";
-            //     shape = visualization_msgs::Marker::CYLINDER;
-            //     marker.markers[i].type = shape;
-            //     marker.markers[i].ns = "obstacles";
-            //     marker.markers[i].action = visualization_msgs::Marker::ADD;
-            //     marker.markers[i].id = i;
-
-            //     marker.markers[i].pose.position.x = cylinder_marker_x[i];
-            //     marker.markers[i].pose.position.y = cylinder_marker_y[i];
-            //     marker.markers[i].pose.position.z = 0.125;
-            //     marker.markers[i].pose.orientation.x = 0.0;
-            //     marker.markers[i].pose.orientation.y = 0.0;
-            //     marker.markers[i].pose.orientation.z = 0.0;
-            //     marker.markers[i].pose.orientation.w = 1.0;
-
-            //     marker.markers[i].scale.x = (2*radius);
-            //     marker.markers[i].scale.y = (2*radius);
-            //     marker.markers[i].scale.z = 0.25;
-                
-            //     marker.markers[i].color.r = 1.0;
-            //     marker.markers[i].color.g = 0.0;
-            //     marker.markers[i].color.b = 0.0;
-            //     marker.markers[i].color.a = 1.0;
-            // }
-            // marker_pub.publish(marker);
-
-            // current_path.header.stamp = ros::Time::now();
-            // current_path.header.frame_id = "world";
-            // path_pose.header.stamp = ros::Time::now();
-            // path_pose.header.frame_id = "red-base_footprint";
-            // path_pose.pose.position.x = current_config.x;
-            // path_pose.pose.position.y = current_config.y;
-            // path_pose.pose.orientation.x = q.x();
-            // path_pose.pose.orientation.y = q.y();
-            // path_pose.pose.orientation.z = q.z();
-            // path_pose.pose.orientation.w = q.w();
-            // current_path.poses.push_back(path_pose);
-            // path_pub.publish(current_path);
+            
          }
+        /// \brief A timer that publishes laser scan data and paths
+        ///
         void fake_loop(const ros::TimerEvent &)
         {
             current_path.header.stamp = ros::Time::now();

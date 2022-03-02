@@ -56,10 +56,10 @@ namespace nuslam
 
     // }
 
-    arma::mat KalmanFilter::calculate_transition(turtlelib::Twist2D twist, double rate)
+    arma::mat KalmanFilter::calculate_transition(turtlelib::Twist2D twist)
     {
-        double delta_x = twist.x_dot/rate;
-        double delta_t = twist.theta_dot/rate;
+        double delta_x = twist.x_dot/1.0;
+        double delta_t = twist.theta_dot/1.0;
         double top_term;
         double bot_term;  
         arma::mat A;
@@ -84,10 +84,10 @@ namespace nuslam
         return A;
     }
 
-    arma::mat KalmanFilter::calculate_updated_state(turtlelib::Twist2D twist, double rate)
+    arma::mat KalmanFilter::calculate_updated_state(turtlelib::Twist2D twist)
     {
-        double delta_x = twist.x_dot/rate;
-        double delta_t = twist.theta_dot/rate;
+        double delta_x = twist.x_dot/1.0;
+        double delta_t = twist.theta_dot/1.0;
         arma::mat T_wp_prime =  arma::mat(3,1,arma::fill::zeros);
         arma::mat w_t =  arma::mat(3,1,arma::fill::zeros);
 
@@ -104,9 +104,9 @@ namespace nuslam
             T_wp_prime(2,0) = (delta_x/delta_t)*cos((predict_state_est(0,0))) - (delta_x/delta_t)*cos((predict_state_est(0,0)+delta_t));
         }
 
-        predict_state_est(0,0) = turtlelib::normalize_angle(predict_state_est(0,0)+ T_wp_prime(0,0) + w_t(0,0)); 
-        predict_state_est(1,0) = predict_state_est(1,0)+ T_wp_prime(1,0) + w_t(1,0); 
-        predict_state_est(2,0) = predict_state_est(2,0)+ T_wp_prime(2,0) + w_t(2,0); 
+        predict_state_est(0,0) = turtlelib::normalize_angle(predict_state_est(0,0)+ T_wp_prime(0,0)); 
+        predict_state_est(1,0) = predict_state_est(1,0)+ T_wp_prime(1,0); 
+        predict_state_est(2,0) = predict_state_est(2,0)+ T_wp_prime(2,0); 
         return predict_state_est;
 
     }
@@ -147,12 +147,12 @@ namespace nuslam
     }
 
 
-    arma::mat KalmanFilter::predict(turtlelib::Twist2D twist,double rate)
+    arma::mat KalmanFilter::predict(turtlelib::Twist2D twist)
     {
         arma::mat Q_bar(3+2*n,3+2*n,arma::fill::zeros);
         Q_bar.submat(0,0, n-1,n-1) = Q;
-        arma::mat A = calculate_transition(twist,rate);
-        predict_state_est = calculate_updated_state(twist,rate);
+        arma::mat A = calculate_transition(twist);
+        predict_state_est = calculate_updated_state(twist);
         predict_cov_est = A * predict_cov_est * A.t() + Q_bar;
         return predict_state_est;
     }
