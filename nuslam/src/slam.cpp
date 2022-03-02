@@ -50,10 +50,10 @@
 
 /// \brief Create and update the odometry between the world and blue turtlebot
 
-class odometry
+class SLAM
 {
     public:
-        odometry() {
+        SLAM() {
             loadParams();
             rate = 500;
             //set frame ids and initial position of robot
@@ -66,26 +66,25 @@ class odometry
             transformStamped_green.header.frame_id = "odom";// for green robot
             transformStamped_green.child_frame_id = "green-base_footprint";// for green robot
             nh.getParam("/robot",robot_coords);
-            current_config.x = robot_coords[0];
-            current_config.y = robot_coords[1];
-            current_config.theta = robot_coords[2];
+            current_config.x = robot_coords.at(0);
+            current_config.y = robot_coords.at(1);
+            current_config.theta = robot_coords.at(2);
             DiffDrive = turtlelib::DiffDrive(current_config);
             
-            joint_state_sub = nh.subscribe("/joint_states",10,&odometry::js_callback,this);
-            obstacles_sub = nh.subscribe("/nusim/obstacles/Fake_markerArray",10,&odometry::obstacle_callback,this);
+            joint_state_sub = nh.subscribe("/joint_states",10,&SLAM::js_callback,this);
+            obstacles_sub = nh.subscribe("/nusim/obstacles/Fake_markerArray",10,&SLAM::obstacle_callback,this);
             odom_pub = nh.advertise<nav_msgs::Odometry>("odom",100);
-            path_pub  = nh.advertise<nav_msgs::Path>("odometry/path", 10, true);
-            green_path_pub = nh.advertise<nav_msgs::Path>("odometry/green_path", 10, true);
-            set_pose_service = nh.advertiseService("set_pose", &odometry::set_pose_callback, this);
+            path_pub  = nh.advertise<nav_msgs::Path>("SLAM/path", 10, true);
+            green_path_pub = nh.advertise<nav_msgs::Path>("SLAM/green_path", 10, true);
+            set_pose_service = nh.advertiseService("set_pose", &SLAM::set_pose_callback, this);
             fake_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nuslam/obstacles/Fake_markerArray", 1, true);
 
             // EKFilter = nuslam::KalmanFilter();
-            c = arma::mat(3*(3),1,arma::fill::zeros);
             EKF_FLAG = 0;
             initial_flag = 0;
-            b = arma::mat(3*(3),1,arma::fill::zeros);
-            timer = nh.createTimer(ros::Duration(1.0/rate), &odometry::main_loop, this);
-            timer_green = nh.createTimer(ros::Duration(1.0/5.0), &odometry::green_loop, this);
+            state = arma::mat(3,1,arma::fill::zeros);
+            timer = nh.createTimer(ros::Duration(1.0/rate), &SLAM::main_loop, this);
+            timer_green = nh.createTimer(ros::Duration(1.0/5.0), &SLAM::green_loop, this);
         }
 
         /// \brief Get the updated information of the Turtlebots through their wheel positions and velocities
@@ -93,10 +92,10 @@ class odometry
         /// \param js - Has the updated positions and velocities for both the left and right link
         void js_callback(const sensor_msgs::JointState & js)
         {
-            new_vel.left_vel = js.velocity[0];
-            new_vel.right_vel = js.velocity[1];
-            new_angles.left_angle = js.position[0];
-            new_angles.right_angle = js.position[1];
+            new_vel.left_vel = js.velocity.at(0);
+            new_vel.right_vel = js.velocity.at(1);
+            new_angles.left_angle = js.position.at(0);
+            new_angles.right_angle = js.position.at(1);
         }
 
         /// \brief Teleport the Turtlebot3 to a specified location
@@ -203,10 +202,10 @@ class odometry
 
             initial_flag = 1;
             // ROS_INFO_STREAM(twist.x_dot);
-            c = EKFilter.predict(twist);
+            EKFilter.predict(twist);
             // ROS_INFO_STREAM(c);
 
-            b = EKFilter.update(val,z_values); 
+            state = EKFilter.update(val,z_values); 
             // ROS_INFO_STREAM(b);
 
             make_fake_obstacles();
@@ -239,8 +238,8 @@ class odometry
             for (int i = 0;i<val;i++)
             {
                 turtlelib::Vector2D obstacle_B_MARK;
-                obstacle_B_MARK.x = b(3+2*i,0);
-                obstacle_B_MARK.y = b(4+2*i,0);
+                obstacle_B_MARK.x = state(3+2*i,0);
+                obstacle_B_MARK.y = state(4+2*i,0);
 
 
                 fake_marker.markers[i].header.stamp = ros::Time();
@@ -293,9 +292,9 @@ class odometry
 
             //create transform from map to base
             turtlelib::Vector2D vect_MB;
-            vect_MB.x = b(1,0);
-            vect_MB.y = b(2,0);
-            double theta_MB = b(0,0);
+            vect_MB.x = state(1,0);
+            vect_MB.y = state(2,0);
+            double theta_MB = state(0,0);
             T_MB = turtlelib::Transform2D(vect_MB,theta_MB);
             new_vect_MB = T_MB.translation();
             new_theta_MB = T_MB.rotation();
@@ -411,8 +410,7 @@ class odometry
     int val;
     arma::mat z_values;
     nuslam::KalmanFilter EKFilter;
-    arma::mat c;
-    arma::mat b;
+    arma::mat state;
     int initial_flag;
     int EKF_FLAG;
 
@@ -432,8 +430,8 @@ class odometry
 
 int main(int argc, char * argv[])
 {
-    ros::init(argc, argv, "odometry");
-    odometry node;
+    ros::init(argc, argv, "SLAM");
+    SLAM node;
     ros::spin();
     return 0;
 }
