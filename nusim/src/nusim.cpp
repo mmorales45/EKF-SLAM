@@ -109,15 +109,15 @@ class Sim
             marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/markerArray", 1, true);
             fake_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/obstacles/Fake_markerArray", 1, true);
             walls_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nusim/walls/walls", 1, true);
-            encoder_pub  = nh.advertise<nuturtlebot_msgs::SensorData>("red/sensor_data", 10, true);
-            wheel_cmd_sub = nh.subscribe("red/wheel_cmd", 100, &Sim::wheel_cmd_callback, this);
-            path_pub  = nh.advertise<nav_msgs::Path>("nusim/path", 10, true);
-            fake_sensor_pub  = nh.advertise<sensor_msgs::LaserScan>("nusim/laser_scan_data", 10, true);
+            encoder_pub  = nh.advertise<nuturtlebot_msgs::SensorData>("/red/sensor_data", 10, true);
+            wheel_cmd_sub = nh.subscribe("/red/wheel_cmd", 100, &Sim::wheel_cmd_callback, this);
+            path_pub  = nh.advertise<nav_msgs::Path>("/nusim/path", 10, true);
+            fake_sensor_pub  = nh.advertise<sensor_msgs::LaserScan>("/nusim/laser_scan_data", 10, true);
         
             
             
-            reset_service = nh.advertiseService("nusim/reset", &Sim::reset, this);
-            teleport_service = nh.advertiseService("nusim/teleport", &Sim::teleport, this);
+            reset_service = nh.advertiseService("/nusim/reset", &Sim::reset, this);
+            teleport_service = nh.advertiseService("/nusim/teleport", &Sim::teleport, this);
             make_arena();
             timer = nh.createTimer(ros::Duration(1/rate), &Sim::main_loop, this);
             timer_fake = nh.createTimer(ros::Duration(1.0/5.0), &Sim::fake_loop, this);

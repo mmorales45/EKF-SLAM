@@ -57,13 +57,13 @@ class SLAM
             loadParams();
             rate = 500;
             //set frame ids and initial position of robot
-            odom.header.frame_id = "odom";
+            odom.header.frame_id = odom_id;
             odom.child_frame_id = "green-base_footprint";
             transformStamped.header.frame_id = "world";// for blue robot
             transformStamped.child_frame_id = "blue-base_footprint";// for blue robot
             transformStamped_mo.header.frame_id = "map";// for green robot
-            transformStamped_mo.child_frame_id = "odom";// for green robot
-            transformStamped_green.header.frame_id = "odom";// for green robot
+            transformStamped_mo.child_frame_id = odom_id;// for green robot
+            transformStamped_green.header.frame_id = odom_id;// for green robot
             transformStamped_green.child_frame_id = "green-base_footprint";// for green robot
             nh.getParam("/robot",robot_coords);
             current_config.x = robot_coords.at(0);
@@ -132,6 +132,8 @@ class SLAM
         ///
         void loadParams()
         {
+            nh.getParam("/radius",radius);
+
             if(!nh.getParam("/odom_id",odom_id)){
                 ROS_INFO_STREAM("Please make sure the parameters are correct! for odom");
                 ros::shutdown();
@@ -258,8 +260,8 @@ class SLAM
                 fake_marker.markers[i].pose.orientation.z = 0.0;
                 fake_marker.markers[i].pose.orientation.w = 1.0;
 
-                fake_marker.markers[i].scale.x = (2*0.05);
-                fake_marker.markers[i].scale.y = (2*0.05);
+                fake_marker.markers[i].scale.x = (2*radius);
+                fake_marker.markers[i].scale.y = (2*radius);
                 fake_marker.markers[i].scale.z = 0.25;
                 
                 fake_marker.markers[i].color.r = 0.0;
@@ -423,6 +425,7 @@ class SLAM
     uint32_t shape;
     visualization_msgs::MarkerArray fake_marker;
     ros::Publisher fake_marker_pub;
+    double radius;
     
 };
 
