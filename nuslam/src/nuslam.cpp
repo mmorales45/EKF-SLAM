@@ -153,10 +153,10 @@ namespace nuslam
 
     }
 
-    void KalmanFilter::Landmark_Initialization(int robot_id, turtlelib::Vector2D coords)
+    void KalmanFilter::Landmark_Initialization(int robot_id, arma::mat coords)
     {
-        predict_state_est(3+2*robot_id,0) = predict_state_est(1,0)+coords.x*cos(turtlelib::normalize_angle(predict_state_est(0,0)+coords.y));
-        predict_state_est(3+2*robot_id+1,0) = predict_state_est(2,0)+coords.x*sin(turtlelib::normalize_angle(predict_state_est(0,0)+coords.y));
+        predict_state_est(3+2*robot_id,0) = predict_state_est(1,0)+coords(0,0)*cos(turtlelib::normalize_angle(predict_state_est(0,0)+coords(1,0)));
+        predict_state_est(3+2*robot_id+1,0) = predict_state_est(2,0)+coords(0,0)*sin(turtlelib::normalize_angle(predict_state_est(0,0)+coords(1,0)));
     }
     
 }

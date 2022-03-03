@@ -54,7 +54,7 @@ namespace nuslam
         /// \brief Add an obstacle into the class given the range and phi.
         /// \param robot_id- The specific id of an obstacle.
         /// \param coords- The range and phi of the obstacle.
-        void Landmark_Initialization(int robot_id, turtlelib::Vector2D coords);
+        void Landmark_Initialization(int robot_id, arma::mat coords);
 
     private:
 

@@ -184,12 +184,13 @@ class SLAM
                 ROS_INFO_STREAM(fake_obstacles.markers[t].id);
                 double x_i = fake_obstacles.markers[t].pose.position.x;
                 double y_i = fake_obstacles.markers[t].pose.position.y;
-                turtlelib::Vector2D coord_vect;
                 
                 double radius_i = sqrt(pow(x_i,2)+pow(y_i,2));
                 double phi_i = turtlelib::normalize_angle(atan2(y_i,x_i));
-                coord_vect.x = radius_i;
-                coord_vect.y = phi_i;
+                
+                arma::mat init_z(2,1,arma::fill::zeros);
+                init_z(0,0) = radius_i;
+                init_z(1,0) = phi_i;
                 // ROS_WARN("id: %f obs %d",radius_i,t);
                 // ROS_WARN("id: %f",phi_i);
                 z_values(2*t,0) = radius_i;
@@ -197,7 +198,7 @@ class SLAM
                 // ROS_WARN("id: %d",fake_obstacles.markers[t].id);
                 if (initial_flag == 0)
                 {
-                EKFilter.Landmark_Initialization(t,coord_vect);
+                EKFilter.Landmark_Initialization(t,init_z);
                 }
 
             }   
