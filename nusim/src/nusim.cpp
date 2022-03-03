@@ -842,11 +842,6 @@ class Sim
                 broadcaster.sendTransform(transformStamped);
             }
             check_for_collision();
-            if (collision_flag == false){
-                collision_x = current_config.x;
-                collision_y = current_config.y;
-                collision_theta = current_config.theta;
-            }
             
          }
         /// \brief A timer that publishes laser scan data and paths
@@ -958,9 +953,6 @@ class Sim
         double laser_variance;
 
         bool collision_flag;
-        double collision_x;
-        double collision_y;
-        double collision_theta;
         double collision_radius;
         double obs_coll_x;
         double obs_coll_y;

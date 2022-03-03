@@ -14,7 +14,7 @@ namespace nuslam
     }
     
     KalmanFilter::KalmanFilter(int num_obs,double Q_scale,double R_scale) : n(num_obs),predict_state_est(arma::mat(3+2*n,1,arma::fill::zeros)),
-                                            Q(Q_scale * arma::mat(n,n,arma::fill::eye)),
+                                            Q(Q_scale * arma::mat(3,3,arma::fill::eye)),
                                             R(R_scale * arma::mat(2,2,arma::fill::eye)),
                                             predict_cov_est(arma::mat(3+2*n,3+2*n,arma::fill::zeros))                   
     {
@@ -115,7 +115,7 @@ namespace nuslam
     arma::mat KalmanFilter::predict(turtlelib::Twist2D twist)
     {
         arma::mat Q_bar(3+2*n,3+2*n,arma::fill::zeros);
-        Q_bar.submat(0,0, n-1,n-1) = Q;
+        Q_bar.submat(0,0, 2,2) = Q;
         arma::mat A = calculate_transition(twist);
         predict_state_est = calculate_updated_state(twist);
         predict_cov_est = A * predict_cov_est * A.t() + Q_bar;
