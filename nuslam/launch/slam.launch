@@ -11,6 +11,7 @@
     <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="link2_broadcaster" args="0 0 0 0 0 0 1 map odom" /> -->
     <rosparam file="$(find nusim)/config/basic_world.yaml" />
     <rosparam file="$(find nuturtle_description)/config/diff_params.yaml" />
+    <rosparam file="$(find nusim)/config/$(arg config_file)"/>
 
 
     <param name ="odom_id" type="string" value ="odom" />

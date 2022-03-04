@@ -162,6 +162,7 @@ class SLAM
             else{
                 nh.getParam("/right_wheel_joint",right_wheel_joint);
             }
+            nh.getParam("/max_range",max_range);
         }
 
         /// \brief Callback for the fake sensor data topic, main slam implementation. 
@@ -269,6 +270,14 @@ class SLAM
                 fake_marker.markers[i].color.g = 1.0;
                 fake_marker.markers[i].color.b = 0.0;
                 fake_marker.markers[i].color.a = 1.0;
+
+                double distance = sqrt(pow(obstacle_B_MARK.x-current_config.x,2)+pow(obstacle_B_MARK.y-current_config.y,2));
+                if (distance < max_range){
+                    fake_marker.markers[i].action = visualization_msgs::Marker::ADD;
+                }
+                else{
+                    fake_marker.markers[i].action = visualization_msgs::Marker::DELETE;
+                }
 
             }
             fake_marker_pub.publish(fake_marker);
@@ -427,6 +436,7 @@ class SLAM
     visualization_msgs::MarkerArray fake_marker;
     ros::Publisher fake_marker_pub;
     double radius;
+    double max_range;
     
 };
 
