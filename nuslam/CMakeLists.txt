@@ -151,6 +151,15 @@ target_link_libraries(slam
   turtlelib
 )
 
+add_executable(landmarks src/slam.cpp)
+add_dependencies(landmarks ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(landmarks
+  ${catkin_LIBRARIES}
+  ${ARMADILLO_LIBRARIES}
+  ${PROJECT_NAME}
+  turtlelib
+)
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
