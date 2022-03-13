@@ -1,0 +1,1 @@
+It appears that slam is working, however, when the robot can only see one obstacle at a time, SLAM can not localize very well.  perahps relying less on odometry would help in this very difficult sparse environment, but a better demo would include more obstacles.
