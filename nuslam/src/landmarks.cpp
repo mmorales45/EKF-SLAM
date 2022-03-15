@@ -54,72 +54,55 @@ class Landmarks
             laser_sub = nh.subscribe("/nusim/laser_scan_data",10,&Landmarks::ls_callback,this);
             timer = nh.createTimer(ros::Duration(1.0/500.0), &Landmarks::main_loop, this);
             cluster_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/points/Clusters", 1, true);
+            obstacle_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/points/Obstacles", 1, true);
 
             cluster_thresh = 0.2;
             min_laserScan_range = 0.05;
         }
 
         
-        void showCluster()
+        void showObstacles()
         {
             int counter = 0;
-            int id_counter = 0;
             int size_main = main_cluster.size();
             // std::cout << "________GOT TO HERE 0____________" << std::endl;
             // visualization_msgs::MarkerArray cluster_marker;
-            for (int i = 0;i<size_main;i++)
-            {
-                int size_cluster = main_cluster[i].size();
-                for (int j = 0;j< size_cluster;j++)
-                {
-                    counter++;
-                }
-            }
             // std::cout << "________GOT TO HERE 1____________" << std::endl;
-            cluster_marker.markers.resize(counter);
+            obstacle_marker.markers.resize(size_main);
             for (int i = 0;i<size_main;i++)
             {
-                int size_cluster = main_cluster[i].size();
-                std::vector<turtlelib::Vector2D> currentCluster = main_cluster[i];
-                for (int j = 0;j< size_cluster;j++)
-                {
-                    cluster_marker.markers[id_counter].header.stamp = ros::Time();
-                    cluster_marker.markers[id_counter].header.frame_id = "red-base_footprint";
-                    uint32_t shape;
-                    shape = visualization_msgs::Marker::SPHERE;
-                    cluster_marker.markers[id_counter].type = shape;
-                    cluster_marker.markers[id_counter].ns = "foundPoints";
-                    cluster_marker.markers[id_counter].action = visualization_msgs::Marker::ADD;
-                    cluster_marker.markers[id_counter].id = id_counter;
+                obstacle_marker.markers[i].header.stamp = ros::Time();
+                obstacle_marker.markers[i].header.frame_id = "red-base_footprint";
+                uint32_t shape;
+                shape = visualization_msgs::Marker::CYLINDER;
+                obstacle_marker.markers[i].type = shape;
+                obstacle_marker.markers[i].ns = "Obstacles";
+                obstacle_marker.markers[i].action = visualization_msgs::Marker::ADD;
+                obstacle_marker.markers[i].id = i;
 
-                    cluster_marker.markers[id_counter].pose.position.x = currentCluster[j].x;
-                    cluster_marker.markers[id_counter].pose.position.y = currentCluster[j].y;
-                    cluster_marker.markers[id_counter].pose.position.z = 0.2;
-                    cluster_marker.markers[id_counter].pose.orientation.x = 0.0;
-                    cluster_marker.markers[id_counter].pose.orientation.y = 0.0;
-                    cluster_marker.markers[id_counter].pose.orientation.z = 0.0;
-                    cluster_marker.markers[id_counter].pose.orientation.w = 1.0;
+                obstacle_marker.markers[i].pose.position.x = xy_COORDS.at(i).x;
+                obstacle_marker.markers[i].pose.position.y = xy_COORDS.at(i).y;
+                obstacle_marker.markers[i].pose.position.z = 0.2;
+                obstacle_marker.markers[i].pose.orientation.x = 0.0;
+                obstacle_marker.markers[i].pose.orientation.y = 0.0;
+                obstacle_marker.markers[i].pose.orientation.z = 0.0;
+                obstacle_marker.markers[i].pose.orientation.w = 1.0;
 
-                    cluster_marker.markers[id_counter].scale.x = (0.05);
-                    cluster_marker.markers[id_counter].scale.y = (0.05);
-                    cluster_marker.markers[id_counter].scale.z = (0.05);
-                    
-                    cluster_marker.markers[id_counter].color.r = 1.0;
-                    cluster_marker.markers[id_counter].color.g = 1.0;
-                    cluster_marker.markers[id_counter].color.b = 0.0;
-                    cluster_marker.markers[id_counter].color.a = 1.0;
-                    // cluster_marker.markers[id_counter].frame_locked = true;
-                    id_counter++;
-                }
-                // std::cout << "________GOT TO HERE 2___________" << std::endl;
-
+                obstacle_marker.markers[i].scale.x = R_array.at(i)/2;
+                obstacle_marker.markers[i].scale.y = R_array.at(i)/2;
+                obstacle_marker.markers[i].scale.z = (0.05);
+                
+                obstacle_marker.markers[i].color.r = 1.0;
+                obstacle_marker.markers[i].color.g = 1.0;
+                obstacle_marker.markers[i].color.b = 0.0;
+                obstacle_marker.markers[i].color.a = 1.0;
             }
             // std::cout << "________GOT TO HERE 3___________" << std::endl;
-            cluster_marker_pub.publish(cluster_marker); 
+            obstacle_marker_pub.publish(obstacle_marker); 
             // std::cout << "________GOT TO HERE 4___________" << std::endl;
         }
 
-        void showObstacles()
+        void showCluster()
         {
             int counter = 0;
             int id_counter = 0;
@@ -280,7 +263,7 @@ class Landmarks
                     double x_diff, y_diff, z_i;
                     x_diff = currentXY.x - x_mean;
                     y_diff = currentXY.y - y_mean;
-                    z_i = sqrt( pow(x_diff,2) + pow(y_diff,2) );
+                    z_i = pow(x_diff,2) + pow(y_diff,2);
 
                     x_cent.at(j) = x_diff;
                     y_cent.at(j) = y_diff;
@@ -456,6 +439,7 @@ class Landmarks
             ClassifyCircles();
             showCluster();
             CircleFitting();
+            showObstacles();
         }
 
        
@@ -471,6 +455,7 @@ class Landmarks
     ros::NodeHandle nh;
     ros::Subscriber laser_sub;
     ros::Publisher cluster_marker_pub;
+    ros::Publisher obstacle_marker_pub;
     ros::Timer timer;
     
     //create variable for cluster distance
@@ -478,6 +463,7 @@ class Landmarks
 
     double min_laserScan_range;
     visualization_msgs::MarkerArray cluster_marker;
+    visualization_msgs::MarkerArray obstacle_marker;
     std::vector<std::vector<turtlelib::Vector2D>> main_cluster;
     std::vector<std::vector<turtlelib::Vector2D>> true_clusters;
     std::vector<double> R_array;
