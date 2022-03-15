@@ -43,6 +43,8 @@
 
 #include <sensor_msgs/LaserScan.h>
 
+#include <nuslam/CircleFitting.hpp>
+
 
 /// \brief Create and update the odometry between the world and blue turtlebot
 
@@ -56,7 +58,7 @@ class Landmarks
             cluster_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/points/Clusters", 1, true);
             obstacle_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/points/Obstacles", 1, true);
 
-            cluster_thresh = 0.2;
+            cluster_thresh = 0.05;
             min_laserScan_range = 0.05;
         }
 
@@ -64,7 +66,7 @@ class Landmarks
         void showObstacles()
         {
             int counter = 0;
-            int size_main = main_cluster.size();
+            int size_main = R_array.size();
             // std::cout << "________GOT TO HERE 0____________" << std::endl;
             // visualization_msgs::MarkerArray cluster_marker;
             // std::cout << "________GOT TO HERE 1____________" << std::endl;
@@ -72,7 +74,7 @@ class Landmarks
             for (int i = 0;i<size_main;i++)
             {
                 obstacle_marker.markers[i].header.stamp = ros::Time();
-                obstacle_marker.markers[i].header.frame_id = "red-base_footprint";
+                obstacle_marker.markers[i].header.frame_id = "red-base_scan";
                 uint32_t shape;
                 shape = visualization_msgs::Marker::CYLINDER;
                 obstacle_marker.markers[i].type = shape;
@@ -88,8 +90,8 @@ class Landmarks
                 obstacle_marker.markers[i].pose.orientation.z = 0.0;
                 obstacle_marker.markers[i].pose.orientation.w = 1.0;
 
-                obstacle_marker.markers[i].scale.x = R_array.at(i)/2;
-                obstacle_marker.markers[i].scale.y = R_array.at(i)/2;
+                obstacle_marker.markers[i].scale.x = R_array.at(i);
+                obstacle_marker.markers[i].scale.y = R_array.at(i);
                 obstacle_marker.markers[i].scale.z = (0.05);
                 
                 obstacle_marker.markers[i].color.r = 1.0;
@@ -126,7 +128,7 @@ class Landmarks
                 for (int j = 0;j< size_cluster;j++)
                 {
                     cluster_marker.markers[id_counter].header.stamp = ros::Time();
-                    cluster_marker.markers[id_counter].header.frame_id = "red-base_footprint";
+                    cluster_marker.markers[id_counter].header.frame_id = "red-base_scan";
                     uint32_t shape;
                     shape = visualization_msgs::Marker::SPHERE;
                     cluster_marker.markers[id_counter].type = shape;
@@ -163,12 +165,10 @@ class Landmarks
 
         void ClassifyCircles()
         {
-            std::cout << "________GOT TO HERE 0____________" << std::endl;
             double min_angle = turtlelib::PI/2;
             double max_angle = (3*turtlelib::PI)/2;
             std::vector<std::vector<turtlelib::Vector2D>> new_Clusters;
             int size_main = main_cluster.size();
-            std::cout << "________GOT TO HERE 1____________" << std::endl;
             for (int i = 0;i<size_main;i++)
             {
                 std::vector<turtlelib::Vector2D> currentCluster = main_cluster[i];
@@ -179,7 +179,6 @@ class Landmarks
 
                 double angle_sums = 0.0;
                 std::vector<double> angle_array;
-                std::cout << "________GOT TO HERE 3___________" << std::endl;
                 for (int j = 1;j< (size_cluster-1);j++)
                 {
                     turtlelib::Vector2D new_Point1, new_Point2;
@@ -191,7 +190,6 @@ class Landmarks
                     angle_sums = angle_sums + arc_angle;
                     angle_array.push_back(arc_angle);
                 }
-                std::cout << "________GOT TO HERE 4____________" << std::endl;
                 double angle_mean = 0.0;
                 angle_mean = angle_sums / (size_cluster-2);        
 
@@ -208,10 +206,8 @@ class Landmarks
                 {
                     new_Clusters.push_back(currentCluster);
                 }   
-                std::cout << "________GOT TO HERE 5____________" << std::endl;
             }
             true_clusters =  new_Clusters;
-            std::cout << "________GOT TO HERE 6____________" << std::endl;
         }
 
         
@@ -366,11 +362,18 @@ class Landmarks
                 R = sqrt( (pow(A(1),2) + pow(A(2),2) - (4*A(0)*A(3)))/(4*pow(A(0),2)) );
                 
                 turtlelib::Vector2D circleCenter = {a+x_mean,b+y_mean};
-                R_array.at(i) = R;
-                xy_COORDS.at(i) = circleCenter;
+                if (R<0.4)
+                {
+                    R_array.at(i) = R;
+                    xy_COORDS.at(i) = circleCenter;
+                }
+                
             }
         }
 
+        // check_cluster_size();
+
+        // check_mainCluster_size();
         /// \brief Callback for the fake sensor data topic.
         ///
         void ls_callback(const sensor_msgs::LaserScan & laserData)
@@ -383,11 +386,15 @@ class Landmarks
             //get the size of the laser scan array
             int size_laser = laserData.ranges.size();
             std::vector<turtlelib::Vector2D> cluster;
+            std::vector<double> cluster_array;
+            std::vector<std::vector<double>> range_array;
 
             turtlelib::Vector2D init_XY;
             init_XY = { laserData.ranges.at(0) * cos(turtlelib::deg2rad(0)),
                         laserData.ranges.at(0) * sin(turtlelib::deg2rad(0))};
+
             cluster.push_back(init_XY);
+            std::cout << "________SEG FAULT 1___________" << std::endl;
             for (int i = 1; i< size_laser; i++)
             {
                 double old_range, new_range;
@@ -395,51 +402,106 @@ class Landmarks
                 new_range = laserData.ranges.at(i);
                 
                 // if the new range is smaller than the laser min, check cluster size, if any, then break out of current angle.
-                // std::cout << "________GOT TO HERE 3____________" << std::endl;
-                if ( (fabs(new_range-old_range) < cluster_thresh)&& ((i+1)!=size_laser) && (new_range>0.1)) 
+                std::cout << "________SEG FAULT 2___________" << std::endl;
+                if ( (new_range <= min_laserScan_range) && ((i+1)!=size_laser) )
                 {
-                    ;
-                    
+                    std::cout << "________SEG FAULT 3___________" << std::endl;
+                    if (cluster.size()>=4){
+                        main_cluster.push_back(cluster);
+                        cluster.clear();
+                    }
                 }
                 else
                 {
-                    if (cluster.size()>=4){
-                        main_cluster.push_back(cluster);
+                    std::cout << "________SEG FAULT 3.5___________" << std::endl;
+                    turtlelib::Vector2D old_xy, new_xy;
+                    old_xy.x = old_range * cos(turtlelib::deg2rad(i-1));
+                    old_xy.y = old_range * sin(turtlelib::deg2rad(i-1));
+                    new_xy.x = new_range * cos(turtlelib::deg2rad(i));
+                    new_xy.y = new_range * sin(turtlelib::deg2rad(i));
+                    //only for the very first cluster and at angle 0
+                    if (cluster.size() == 0)
+                    {
+                        cluster.push_back(old_xy);
                     }
-                    cluster.clear();
+
+                    if (fabs(new_range-old_range) < cluster_thresh) 
+                    {
+                        cluster.push_back(new_xy);
+                    }
+                    //found a point outside of the current cluster
+                    else
+                    {
+                        if (cluster.size()>=4){
+                            main_cluster.push_back(cluster);
+                        }
+                        if (main_cluster.size()==0){
+                            main_cluster.push_back(cluster);
+                        }
+                        //try populatinig with something.
+                        cluster.clear();
+                        if ((i+1) == size_laser){
+                            cluster.push_back(new_xy);
+                        }
+                    }
                 }
 
-                turtlelib::Vector2D old_xy, new_xy;
-                old_xy.x = old_range * cos(turtlelib::deg2rad(i-1));
-                old_xy.y = old_range * sin(turtlelib::deg2rad(i-1));
-                new_xy.x = new_range * cos(turtlelib::deg2rad(i));
-                new_xy.y = new_range * sin(turtlelib::deg2rad(i));;
-
-                cluster.push_back(new_xy);
-
-                int size_main = cluster.size();
-                std::cout << "_____CLUSTER SIZE_______"<< size_main << "_____AT____"<<i<<std::endl;
+                
             }
+
+            double init_range = laserData.ranges.at(0);
+            turtlelib::Vector2D init_xy;
+            double delta_x,delta_y;
+            delta_x = (init_range*cos(0))-init_xy.x;
+            delta_y = (init_range*sin(0))-init_xy.y;
             
-
-            int size_main = main_cluster.size();
-            std::cout << "_____BEFORE_______"<< size_main << "____________"<<std::endl;
-            //check for the loop closure
-            if ( (laserData.ranges.at(0) > 0) && (laserData.ranges.at(1) > 0) )
+            double new_range1;
+            // old_range = laserData.ranges.at(358);
+            new_range1 = laserData.ranges.at(359);
+            std::cout << "___BEFORE__MAIN CLUSTER SIZE____"<< main_cluster.size() << std::endl;
+            std::cout << "________SEG FAULT 4___________" << std::endl;
+            if ( turtlelib::almost_equal(delta_x,0.0,0.01) && turtlelib::almost_equal(delta_y,0.0,0.01))
             {
-                if ((fabs(laserData.ranges.at(0) - laserData.ranges.at(1))) < cluster_thresh)
+                if ((fabs(new_range1-init_range) < cluster_thresh) && new_range1>0.1)
                 {
-                    std::cout << "_____ERASING________"<<std::endl;
-                    main_cluster[0].insert(main_cluster[0].end(),main_cluster.at(size_main-1).begin(),main_cluster.at(size_main-1).end());
-                    main_cluster.pop_back();
+                    // cluster.print();
+                    if (cluster.size()>0){
+                        main_cluster[0].insert(main_cluster[0].begin(),cluster.begin(),cluster.end());
+                        cluster.clear();
+                    }
                 }
             }
-            size_main = main_cluster.size();
-            std::cout << "_____AFTER_______"<< size_main << "____________"<<std::endl;
+            std::cout << "________SEG FAULT 5___________" << std::endl;
+            if (cluster.size()>=4)
+            {
+                main_cluster.push_back(cluster);
+            }
+            std::cout << "________SEG FAULT 6___________" << std::endl;
+            if (main_cluster[0].size() < 4 && main_cluster.size() > 0)
+            {
+                main_cluster.erase(main_cluster.begin());
+            }
+            std::cout << "________SEG FAULT 7___________" << std::endl;
+
+            // for (int k = 0;k<main_cluster.size();k++)
+            // {
+            //     if (main_cluster.at(k).size() == 1)
+            //     {
+            //         main_cluster[k].erase(main_cluster[k].begin());
+            //     }
+            // }
+            
+            std::cout << "_____MAIN CLUSTER SIZE____"<< main_cluster.size() << std::endl;
+
+            makeCircles = nuslam::nuCircles(main_cluster);
             ClassifyCircles();
             showCluster();
-            CircleFitting();
+            makeCircles.CircleFitting();
+            R_array = makeCircles.getR_array();
+            xy_COORDS = makeCircles.getCirclePosition();
+            // CircleFitting();
             showObstacles();
+            
         }
 
        
@@ -468,6 +530,8 @@ class Landmarks
     std::vector<std::vector<turtlelib::Vector2D>> true_clusters;
     std::vector<double> R_array;
     std::vector<turtlelib::Vector2D> xy_COORDS;
+
+    nuslam::nuCircles makeCircles;
 
     
 };

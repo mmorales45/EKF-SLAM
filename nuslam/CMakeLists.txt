@@ -133,6 +133,7 @@ include_directories(
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   src/nuslam.cpp
+  src/CircleFitting.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
