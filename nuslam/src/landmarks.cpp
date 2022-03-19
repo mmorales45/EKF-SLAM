@@ -64,7 +64,6 @@ class Landmarks
         /// \brief Publish the markers for the obstacles
         void showObstacles()
         {
-            int counter = 0;
             int size_main = R_array.size();
             obstacle_marker.markers.resize(size_main);
             for (int i = 0;i<size_main;i++)
@@ -112,7 +111,7 @@ class Landmarks
             int counter = 0;
             int id_counter = 0;
             int size_main = main_cluster.size();
-
+            //find the amount of clusters in the lists.
             for (int i = 0;i<size_main;i++)
             {
                 int size_cluster = main_cluster[i].size();
@@ -174,7 +173,7 @@ class Landmarks
             std::vector<turtlelib::Vector2D> cluster;
             std::vector<double> cluster_array;
             std::vector<std::vector<double>> range_array;
-
+            //find initial point and add to cluster.
             turtlelib::Vector2D init_XY;
             init_XY = { laserData.ranges.at(0) * cos(turtlelib::deg2rad(0)),
                         laserData.ranges.at(0) * sin(turtlelib::deg2rad(0))};
@@ -230,19 +229,15 @@ class Landmarks
             }
 
             double init_range = laserData.ranges.at(0);
-            // turtlelib::Vector2D init_xy;
-            // double delta_x,delta_y;
-            // delta_x = (init_range*cos(0))-(laserData.ranges.at(size_laser-1)*cos(turtlelib::deg2rad(size_laser-1)));
-            // delta_y = (init_range*sin(0))-(laserData.ranges.at(size_laser-1)*sin(turtlelib::deg2rad(size_laser-1)));
             
             double range_before_start;
             range_before_start = laserData.ranges.at((size_laser-1));
             std::cout << "___BEFORE__MAIN CLUSTER SIZE____"<< main_cluster.size() << std::endl;
-            // if ( turtlelib::almost_equal(delta_x,0.0,0.1) && turtlelib::almost_equal(delta_y,0.0,0.1))
-            // {
+
+            //Check the first and last point's range to see if their in a cluster. If so, then combine them and delete the last.
             if ((fabs(range_before_start-init_range) < cluster_thresh) && range_before_start>0.1)
             {
-                // cluster.print();
+                // if size is greater than 0 or 4, add the final cluster to the first.
                 if (cluster.size()>0){
                     main_cluster[0].insert(main_cluster[0].begin(),cluster.begin(),cluster.end());
                     cluster.clear();
@@ -251,6 +246,7 @@ class Landmarks
                 {
                     main_cluster.push_back(cluster);
                 }
+                // if the cluster is smaller than 4, remove it.
                 if (main_cluster[0].size() < 4 && main_cluster.size() > 0)
                 {
                     main_cluster.erase(main_cluster.begin());
@@ -258,23 +254,17 @@ class Landmarks
             }
             else
             {
-                (cluster.size()>0);
                 cluster.clear();
             }
             
-                 
-
-            // }
-            
-                      
-            std::cout << "_____MAIN CLUSTER SIZE____"<< main_cluster.size() << std::endl;
-
+            //With clusters, determine if they make a valid circle, if so, find the radius and positions.
             std::vector<std::vector<turtlelib::Vector2D>> true_clusters;
             makeCircles = nuslam::nuCircles(main_cluster);
             true_clusters = makeCircles.ClassifyCircles();
             makeCircles = nuslam::nuCircles(true_clusters);
             showCluster();
             makeCircles.CircleFitting();
+            //Get the radii and the positions to use for publishing.
             R_array = makeCircles.getR_array();
             xy_COORDS = makeCircles.getCirclePosition();
             showObstacles();
