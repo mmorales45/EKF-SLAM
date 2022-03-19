@@ -185,8 +185,7 @@ class SLAM
             
             for (int t = 0;t<val;t++)
             {
-                // int robot_id = int(fake_obstacles.markers[t].header.frame_id);
-                // ROS_INFO_STREAM(fake_obstacles.markers[t].id);
+                
                 double x_i = fake_obstacles.markers[t].pose.position.x;
                 double y_i = fake_obstacles.markers[t].pose.position.y;
                 turtlelib::Vector2D current_land;
@@ -198,16 +197,10 @@ class SLAM
                 arma::mat init_z(2,1,arma::fill::zeros);
                 init_z(0,0) = radius_i;
                 init_z(1,0) = phi_i;
-                // ROS_WARN("id: %f obs %d",radius_i,t);
-                // ROS_WARN("id: %f",phi_i);
+
                 z_values(2*t,0) = radius_i;
                 z_values((2*t)+1,0) = phi_i;
-                // ROS_WARN("id: %d",fake_obstacles.markers[t].id);
-                // EKFilter.DataAssociation_V2(init_z);
-                // int qq = EKFilter.DataAssociation(init_z);
-                // ROS_WARN("GOT HERE");
-                // ROS_WARN("%d",t);
-                // ROS_INFO_STREAM(qq);
+
                 if (known_landmarks.size()==0)
                 {
                     known_landmarks.push_back(current_land);
@@ -228,19 +221,11 @@ class SLAM
                     }
                     else
                     {
-                        ROS_INFO_STREAM("NO MORE NEW LANDMARKS");
+                        ;
                     }
 
                 }
 
-                // if (initial_flag == 0)
-                // {
-                // EKFilter.Landmark_Initialization(t,init_z);
-                // }
-                // if (initial_flag == 1)
-                // {
-                //     EKFilter.Landmark_Initialization(t,init_z);
-                // }
                 
             }   
             

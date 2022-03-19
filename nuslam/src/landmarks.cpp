@@ -4,11 +4,11 @@
 /// PARAMETERS:
 ///     
 /// PUBLISHERS:
-///     
+///     cluster_marker_pub (visualization_msgs/MarkerArray): Publish location of clusters.
+///     obstacle_marker_pub (visualization_msgs/MarkerArray): Publish location of markers. 
 /// SUBSCRIBERS:
-///     
-/// SERVICES:
-///     
+///     laser_sub (sensor_msgs/LaserScan): Get the data from real or fake laser lidar camera.
+
 
 
 #include <ros/ros.h>
@@ -46,7 +46,7 @@
 #include <nuslam/CircleFitting.hpp>
 
 
-/// \brief Create and update the odometry between the world and blue turtlebot
+/// \brief Creates clusters and creates obstacles based on criteria for a circle.
 
 class Landmarks
 {
@@ -54,7 +54,6 @@ class Landmarks
         Landmarks() {
             //initialize the subscribers and publishers
             laser_sub = nh.subscribe("/nusim/laser_scan_data",10,&Landmarks::ls_callback,this);
-            timer = nh.createTimer(ros::Duration(1.0/500.0), &Landmarks::main_loop, this);
             cluster_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/points/Clusters", 1, true);
             obstacle_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/points/Obstacles", 1, true);
             //define cluster thresh
@@ -62,7 +61,7 @@ class Landmarks
             min_laserScan_range = 0.05;
         }
 
-        
+        /// \brief Publish the markers for the obstacles
         void showObstacles()
         {
             int counter = 0;
@@ -107,13 +106,13 @@ class Landmarks
             obstacle_marker_pub.publish(obstacle_marker); 
         }
 
+        /// \brief Publish the markers for the clusters.
         void showCluster()
         {
             int counter = 0;
             int id_counter = 0;
             int size_main = main_cluster.size();
-            // std::cout << "________GOT TO HERE 0____________" << std::endl;
-            // visualization_msgs::MarkerArray cluster_marker;
+
             for (int i = 0;i<size_main;i++)
             {
                 int size_cluster = main_cluster[i].size();
@@ -122,7 +121,6 @@ class Landmarks
                     counter++;
                 }
             }
-            // std::cout << "________GOT TO HERE 1____________" << std::endl;
             cluster_marker.markers.resize(counter);
             for (int i = 0;i<size_main;i++)
             {
@@ -158,17 +156,14 @@ class Landmarks
                     // cluster_marker.markers[id_counter].frame_locked = true;
                     id_counter++;
                 }
-                // std::cout << "________GOT TO HERE 2___________" << std::endl;
 
             }
-            // std::cout << "________GOT TO HERE 3___________" << std::endl;
             cluster_marker_pub.publish(cluster_marker); 
-            // std::cout << "________GOT TO HERE 4___________" << std::endl;
         }
 
-        // check_mainCluster_size();
-        /// \brief Callback for the fake sensor data topic.
+        /// \brief Callback for the laser sensor data topic.
         ///
+        /// \param laserData - The laser scan data from lidar.
         void ls_callback(const sensor_msgs::LaserScan & laserData)
         {
             //clear the main cluster every run
@@ -285,13 +280,6 @@ class Landmarks
             showObstacles();
         }
 
-       
-        /// \brief A timer that continuosly publishes odometry, creates transforms, and updates the DiffDrive class members
-        ///
-        void main_loop(const ros::TimerEvent &)
-        {
-            
-        }
 
     private:
     //create private variables
@@ -299,7 +287,6 @@ class Landmarks
     ros::Subscriber laser_sub;
     ros::Publisher cluster_marker_pub;
     ros::Publisher obstacle_marker_pub;
-    ros::Timer timer;
     
     //create variable for cluster distance
     double cluster_thresh;

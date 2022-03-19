@@ -25,7 +25,7 @@ This launch file can be called by running the following command.
 roslaunch nuslam slam.launch
 ```
 
-The other launchfile for this package is `landmarks_detect.launch`.
+The other launchfile for this package is `landmarks_detect.launch`. It can be run in simulation or the real robot.
 
 This launch file can be called by running the following command.
 ```
