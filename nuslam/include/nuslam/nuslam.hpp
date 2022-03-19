@@ -1,5 +1,9 @@
 #ifndef NUSLAM_INCLUDE_GUARD_HPP
 #define NUSLAM_INCLUDE_GUARD_HPP
+
+/// \file
+/// \brief Library for an Extended Kalman Filter
+
 #include <iostream>
 #include <armadillo>
 #include <iosfwd> 

@@ -1,5 +1,9 @@
 #ifndef NUCIRCLES_INCLUDE_GUARD_HPP
 #define NUCIRCLES_INCLUDE_GUARD_HPP
+
+/// \file
+/// \brief Library for circle classification and fitting based on clusters.
+
 #include<iosfwd>
 #include <cmath>
 #include <iostream>
@@ -16,6 +20,7 @@ namespace nuslam
         nuCircles();
 
         /// \brief Create an object for the the class with a vector of vector of Vector2D.
+        /// \param main_cluster- The current list of clusters.
         nuCircles(std::vector<std::vector<turtlelib::Vector2D>> main_cluster);
         
         /// \brief Create circles by calculating radius and coordinates using x and y values.
