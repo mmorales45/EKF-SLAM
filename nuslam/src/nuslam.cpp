@@ -266,7 +266,7 @@ namespace nuslam
 
     int KalmanFilter::DataAssociation_V2(arma::mat z){
         arma::mat maha_distance;
-        double maha_distance_val;
+        
 
         if (N == 0)
         {
@@ -310,6 +310,7 @@ namespace nuslam
             delta_z = (z-z_k);
             delta_z(1,0) = turtlelib::normalize_angle(delta_z(1,0));
             maha_distance = delta_z.t() * inv(covariance) * delta_z;
+            double maha_distance_val;
             maha_distance_val = maha_distance(0,0);
         }
         return N;
@@ -322,7 +323,7 @@ namespace nuslam
 
     bool KalmanFilter::CheckLandmarks(std::vector<turtlelib::Vector2D> land_list,turtlelib::Vector2D current_land){
         
-        for (int i=0;i<land_list.size();i++)
+        for (int i=0;i<int(land_list.size());i++)
         {
             turtlelib::Vector2D temp_land = land_list.at(i);
 

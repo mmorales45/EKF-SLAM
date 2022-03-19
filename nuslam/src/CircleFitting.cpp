@@ -132,7 +132,7 @@ namespace nuslam
                 arma::vec A_star_vec;
                 double eig_compare = 10.0;
                 int iter = 0;
-                for (int k = 0;k<eigval.size();k++)
+                for (int k = 0;k<int(eigval.size());k++)
                 {
                     if ((eigval[k]>0.0 && eigval[k]<eig_compare))
                     {

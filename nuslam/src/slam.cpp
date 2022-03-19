@@ -229,7 +229,7 @@ class SLAM
                 
             }   
             
-            for (int ii=0; ii<known_landmarks.size();ii++)
+            for (int ii=0; ii<int(known_landmarks.size());ii++)
             {
                 ROS_INFO_STREAM(known_landmarks.at(ii));
             }
