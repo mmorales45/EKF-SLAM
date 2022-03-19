@@ -10,6 +10,8 @@ The the main node in this package is the slam node.
 
 The slam node implements the Extended Kalman Filter SLAM. It reads the obstacle data being published by the nusim node to calculate the position of the Turtlebot as well as the obstacles' locations. It then publishes a MarkerArray message of where the markers are located based on the EKF filter. 
 
+For the nuslam node, there are two libraries that it uses that are both located in the package. This is the nuslam library which has the equations for an Extended Kalman Filter and the other library is the CircleFitting library. In the CircleFitting library,it is used for determining if clusters form a true circle, which is done in ClassifyCircles and if it does, then it will output the location of the circle as well as the radius which is handled in CircleFitting.
+
 For nuslam, two methods of Data Association were attempted but not with accurate results.
 
 The other node that was implemented was landmarks.cpp. This node subscribes to laser scan data, whether is be real or simulated, and it creates obstacles based on Circle Fitting and Circle Classification algorithms. 
