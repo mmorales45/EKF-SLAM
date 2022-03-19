@@ -59,12 +59,8 @@ Laser noise: 0.01
 
 Video of the turtlebot moving in turtle land and seeing obstacles.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/13grzbBxwfE">
-</iframe>
+https://youtu.be/13grzbBxwfE>
 
 Video of the turtlebot moving in turtle land and seeing obstacles in RVIZ.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/jGN4xyfuN_s">
-</iframe>
+https://youtu.be/jGN4xyfuN_s
