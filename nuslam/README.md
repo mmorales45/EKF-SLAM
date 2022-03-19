@@ -57,10 +57,18 @@ Laser noise: 0.01
 
 ![SLAM](pictures/slam.png)
 
-Video of the turtlebot moving in turtle land and seeing obstacles.
+Video of the turtlebot moving in turtle land and seeing obstacles in real life.
 
 https://youtu.be/13grzbBxwfE>
 
 Video of the turtlebot moving in turtle land and seeing obstacles in RVIZ.
 
 https://youtu.be/jGN4xyfuN_s
+
+Video of the turtlebot being surrounded by and seeing obstacles in real life.
+
+https://youtu.be/J7Vot6esoKY
+
+Video of the turtlebot being surrounded by and seeing obstacles in RVIZ.
+
+https://youtu.be/r1sbA5DxFAY
