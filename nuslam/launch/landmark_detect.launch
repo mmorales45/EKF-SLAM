@@ -1,3 +1,33 @@
+<!-- <launch>
+    <arg name= "cmd_src" default = "none" doc="Can be set to circle to start the circle node, teleop to control with keyboard or none if another node will publish cmd_vel data"/>
+    <arg name= "robot" default = "nusim" doc="Can be set to nusim to start the simulator, localhost to run nodes from the turtlebot, turtlebotname to run nodes on that turtlebot or none to not run any other nodes"/>
+    <arg name= "use_rviz" default = "false" doc="use_rviz:=true to use RVIZ and see the robot model,tf frames and odometry"/>
+    
+    
+    <group if="$(eval arg('robot') == 'nusim')">
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuslam)/config/landmarks.rviz -f 'world'" required="true" if="$(arg use_rviz)"/>
+        <node name="landmarks" pkg="nuslam" type="landmarks"/>
+        <include file="$(find nuslam)/launch/slam.launch" pass_all_args = "true">
+            <arg name="robot"                       value="$(arg robot)"/>
+            <arg name="use_rviz"                       value="false"/>
+            <arg name="cmd_src"                       value="$(arg cmd_src)"/>
+        </include>
+    </group>
+
+    <group if="$(eval arg('robot') == 'donatello')">
+        <node name="landmarks" pkg="nuslam" type="landmarks">
+            <remap from="/nusim/laser_scan_data" to="/scan"/>
+        </node>
+
+        <include file="$(find nuturtle_control)/launch/start_robot.launch" pass_all_args = "true">
+            <arg name="robot"                       value="$(arg robot)"/>
+            <arg name="set_frame_id"                       value="blue-base_scan"/>
+        </include>
+    </group>
+
+</launch> -->
+
+
 <launch>
     <arg name= "cmd_src" default = "none" doc="Can be set to circle to start the circle node, teleop to control with keyboard or none if another node will publish cmd_vel data"/>
     <arg name= "robot" default = "nusim" doc="Can be set to nusim to start the simulator, localhost to run nodes from the turtlebot, turtlebotname to run nodes on that turtlebot or none to not run any other nodes"/>
@@ -7,15 +37,17 @@
     <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_control)/config/nuturtle.rviz -f 'world'" required="true" if="$(arg use_rviz)"/> -->
     
     
-    <node pkg="tf2_ros" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 0 0 1 world odom" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 0 0 1 world map" />
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="link2_broadcaster" args="0 0 0 0 0 0 1 map odom" /> -->
     <rosparam file="$(find nusim)/config/basic_world.yaml" />
     <rosparam file="$(find nuturtle_description)/config/diff_params.yaml" />
+    <rosparam file="$(find nusim)/config/$(arg config_file)"/>
 
 
     <param name ="odom_id" type="string" value ="odom" />
-    <param name ="body_id" type="string" value ="blue-base_footprint" />
-    <param name ="left_wheel_joint" value ="blue-wheel_left_link" />
-    <param name ="right_wheel_joint" value ="blue-wheel_right_link" />
+    <param name ="body_id" type="string" value ="green-base_footprint" />
+    <param name ="left_wheel_joint" value ="green-wheel_left_link" />
+    <param name ="right_wheel_joint" value ="green-wheel_right_link" />
 
     <group if="$(eval arg('cmd_src') == 'circle')">
         <node pkg="nuturtle_control" type="circle" name="circle"> 
@@ -29,15 +61,23 @@
         </include>
     </group>
 
+    <group ns="green">
+        <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=green" />
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+        <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+    </group>
+
     <group ns="blue">
-            
         <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=blue" />
         <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
         <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
     </group>
 
     <group if="$(eval arg('robot') == 'nusim')">
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_control)/config/nusim.rviz -f 'world'" required="true" if="$(arg use_rviz)"/>  
+
+        <node name="landmarks" pkg="nuslam" type="landmarks"/>
+
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuslam)/config/nuslam.rviz -f 'world'" required="true" if="$(arg use_rviz)"/>  
         <group ns="red">
             <param name="robot_description" command = "$(find xacro)/xacro $(find nuturtle_description)/urdf/turtlebot3_burger.urdf.xacro color:=red" />
             <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
@@ -45,7 +85,7 @@
             </node>
         </group>
 
-        <node name="odometry" pkg="nuturtle_control" type="odometry"/>
+        <node name="slam" pkg="nuslam" type="slam"/>
         <node name="turtle_interface" pkg="nuturtle_control" type="turtle_interface"/>        
 
         <node name="nusim" pkg="nusim" type="nusim" output = "screen">
@@ -58,23 +98,19 @@
         </node>
     </group>
 
-    <group if="$(eval arg('robot') == 'localhost')">
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_control)/config/nuturtle.rviz -f 'world'" required="true" if="$(arg use_rviz)"/>
-        <include file = "$(find nuturtle_control)/launch/basic_remote.launch" pass_all_args = "true" >
-            <arg name="robot"                       value="$(arg robot)"/>
-            <arg name="set_frame_id"                       value="blue-base_scan"/>
-        </include>
-        <node machine="turtlebot" name="odometry" pkg="nuturtle_control" type="odometry"/>
-        <node machine="turtlebot" name="turtle_interface" pkg="nuturtle_control" type="turtle_interface"/>
-    </group>
+    <group if="$(eval arg('robot') == 'april')">
+        <node name="slam" pkg="nuslam" type="slam"/>
 
-    <group if="$(eval arg('robot') == 'donatello')">
+        <node name="landmarks" pkg="nuslam" type="landmarks">
+            <remap from="/nusim/laser_scan_data" to="/scan"/>
+        </node>
+
         <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_control)/config/realRobot.rviz -f 'world'" required="true" if="$(arg use_rviz)"/>
         <include file = "$(find nuturtle_control)/launch/basic_remote.launch" pass_all_args = "true" >
             <arg name="robot"                       value="$(arg robot)"/>
             <arg name="set_frame_id"                       value="blue-base_scan"/>
         </include>
-        <node machine="turtlebot" name="odometry" pkg="nuturtle_control" type="odometry"/>
+        <!-- <node machine="turtlebot" name="odometry" pkg="nuturtle_control" type="odometry"/> -->
         <node machine="turtlebot" name="turtle_interface" pkg="nuturtle_control" type="turtle_interface"/>
 
         <node name="nusim" pkg="nusim" type="nusim" output = "screen">
@@ -85,7 +121,8 @@
             <param name ="sim_flag" value ="real" />
             <rosparam file="$(find nusim)/config/$(arg config_file)"/>
         </node>
-        
     </group>
+    
 
 </launch>
+

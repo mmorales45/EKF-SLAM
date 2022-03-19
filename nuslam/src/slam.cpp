@@ -72,7 +72,7 @@ class SLAM
             DiffDrive = turtlelib::DiffDrive(current_config);
             
             joint_state_sub = nh.subscribe("/joint_states",10,&SLAM::js_callback,this);
-            obstacles_sub = nh.subscribe("/nusim/obstacles/Fake_markerArray",10,&SLAM::obstacle_callback,this);
+            obstacles_sub = nh.subscribe("/points/Obstacles",10,&SLAM::obstacle_callback,this);
             odom_pub = nh.advertise<nav_msgs::Odometry>("odom",100);
             path_pub  = nh.advertise<nav_msgs::Path>("SLAM/path", 10, true);
             green_path_pub = nh.advertise<nav_msgs::Path>("SLAM/green_path", 10, true);
@@ -85,6 +85,7 @@ class SLAM
             state = arma::mat(3,1,arma::fill::zeros);
             timer = nh.createTimer(ros::Duration(1.0/rate), &SLAM::main_loop, this);
             timer_green = nh.createTimer(ros::Duration(1.0/5.0), &SLAM::green_loop, this);
+            landmark_counter= 0;
         }
 
         /// \brief Get the updated information of the Turtlebots through their wheel positions and velocities
@@ -172,20 +173,25 @@ class SLAM
         {
             // ROS_WARN("id: %d",fake_obstacles.markers.size());
             val = int (fake_obstacles.markers.size());
+            ROS_INFO_STREAM("NUM OF OBSTACLES");
+            ROS_INFO_STREAM(val);
+            ROS_INFO_STREAM("NUM OF OBSTACLES");
             z_values = arma::mat(2*(val),1,arma::fill::zeros);
             if (EKF_FLAG == 0)
             {
-                EKFilter = nuslam::KalmanFilter(val,.1,0.01);
+                EKFilter = nuslam::KalmanFilter(100,100.0,0.1);
                 EKF_FLAG = 1;
             }
             
             for (int t = 0;t<val;t++)
             {
                 // int robot_id = int(fake_obstacles.markers[t].header.frame_id);
-                ROS_INFO_STREAM(fake_obstacles.markers[t].id);
+                // ROS_INFO_STREAM(fake_obstacles.markers[t].id);
                 double x_i = fake_obstacles.markers[t].pose.position.x;
                 double y_i = fake_obstacles.markers[t].pose.position.y;
-                
+                turtlelib::Vector2D current_land;
+                current_land = {x_i,y_i};
+                current_land = T_MB(current_land);
                 double radius_i = sqrt(pow(x_i,2)+pow(y_i,2));
                 double phi_i = turtlelib::normalize_angle(atan2(y_i,x_i));
                 
@@ -197,13 +203,54 @@ class SLAM
                 z_values(2*t,0) = radius_i;
                 z_values((2*t)+1,0) = phi_i;
                 // ROS_WARN("id: %d",fake_obstacles.markers[t].id);
-                if (initial_flag == 0)
+                // EKFilter.DataAssociation_V2(init_z);
+                // int qq = EKFilter.DataAssociation(init_z);
+                // ROS_WARN("GOT HERE");
+                // ROS_WARN("%d",t);
+                // ROS_INFO_STREAM(qq);
+                if (known_landmarks.size()==0)
                 {
-                EKFilter.Landmark_Initialization(t,init_z);
+                    known_landmarks.push_back(current_land);
+                    EKFilter.Landmark_Initialization(landmark_counter,init_z);
+                    landmark_counter++;
+
+                }
+                else
+                {
+                    bool new_landmark = EKFilter.CheckLandmarks(known_landmarks,current_land);
+                    // ROS_INFO_STREAM(new_landmark);
+                    if (new_landmark && landmark_counter<99)
+                    {
+                        // ROS_INFO_STREAM("NEW LANDMARK");
+                        known_landmarks.push_back(current_land);
+                        EKFilter.Landmark_Initialization(landmark_counter,init_z);
+                        landmark_counter++;
+                    }
+                    else
+                    {
+                        ROS_INFO_STREAM("NO MORE NEW LANDMARKS");
+                    }
+
                 }
 
+                // if (initial_flag == 0)
+                // {
+                // EKFilter.Landmark_Initialization(t,init_z);
+                // }
+                // if (initial_flag == 1)
+                // {
+                //     EKFilter.Landmark_Initialization(t,init_z);
+                // }
+                
             }   
-
+            
+            for (int ii=0; ii<known_landmarks.size();ii++)
+            {
+                ROS_INFO_STREAM(known_landmarks.at(ii));
+            }
+            ROS_INFO_STREAM("SIZE OF LANDMARKS");
+            ROS_INFO_STREAM(known_landmarks.size());
+            
             initial_flag = 1;
             // ROS_INFO_STREAM(twist.x_dot);
             EKFilter.predict(twist);
@@ -211,8 +258,8 @@ class SLAM
 
             state = EKFilter.update(val,z_values); 
             // ROS_INFO_STREAM(b);
-
             make_fake_obstacles();
+            EKFilter.ResetN();
 
             
         }
@@ -437,6 +484,10 @@ class SLAM
     ros::Publisher fake_marker_pub;
     double radius;
     double max_range;
+
+    turtlelib::Vector2D current_land;
+    std::vector<turtlelib::Vector2D> known_landmarks;
+    int landmark_counter;
     
 };
 

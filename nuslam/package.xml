@@ -73,6 +73,7 @@
   <build_depend>turtlebot3_teleop</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>nuturtlebot_msgs</build_depend>
+  <build_depend>catch_ros</build_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

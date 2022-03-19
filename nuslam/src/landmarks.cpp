@@ -52,12 +52,12 @@ class Landmarks
 {
     public:
         Landmarks() {
-            
+            //initialize the subscribers and publishers
             laser_sub = nh.subscribe("/nusim/laser_scan_data",10,&Landmarks::ls_callback,this);
             timer = nh.createTimer(ros::Duration(1.0/500.0), &Landmarks::main_loop, this);
             cluster_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/points/Clusters", 1, true);
             obstacle_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/points/Obstacles", 1, true);
-
+            //define cluster thresh
             cluster_thresh = 0.05;
             min_laserScan_range = 0.05;
         }
@@ -67,41 +67,44 @@ class Landmarks
         {
             int counter = 0;
             int size_main = R_array.size();
-            // std::cout << "________GOT TO HERE 0____________" << std::endl;
-            // visualization_msgs::MarkerArray cluster_marker;
-            // std::cout << "________GOT TO HERE 1____________" << std::endl;
             obstacle_marker.markers.resize(size_main);
             for (int i = 0;i<size_main;i++)
             {
                 obstacle_marker.markers[i].header.stamp = ros::Time();
-                obstacle_marker.markers[i].header.frame_id = "red-base_scan";
+                obstacle_marker.markers[i].header.frame_id = "blue-base_scan";
                 uint32_t shape;
                 shape = visualization_msgs::Marker::CYLINDER;
                 obstacle_marker.markers[i].type = shape;
                 obstacle_marker.markers[i].ns = "Obstacles";
-                obstacle_marker.markers[i].action = visualization_msgs::Marker::ADD;
+                if (R_array.at(i) < 0.1)
+                {
+                    obstacle_marker.markers[i].action = visualization_msgs::Marker::ADD;
+                }
+                else
+                {
+                    obstacle_marker.markers[i].action = visualization_msgs::Marker::DELETE;
+                }
+                // obstacle_marker.markers[i].action = visualization_msgs::Marker::ADD;
                 obstacle_marker.markers[i].id = i;
 
                 obstacle_marker.markers[i].pose.position.x = xy_COORDS.at(i).x;
                 obstacle_marker.markers[i].pose.position.y = xy_COORDS.at(i).y;
-                obstacle_marker.markers[i].pose.position.z = 0.2;
+                obstacle_marker.markers[i].pose.position.z = -0.065;
                 obstacle_marker.markers[i].pose.orientation.x = 0.0;
                 obstacle_marker.markers[i].pose.orientation.y = 0.0;
                 obstacle_marker.markers[i].pose.orientation.z = 0.0;
                 obstacle_marker.markers[i].pose.orientation.w = 1.0;
 
-                obstacle_marker.markers[i].scale.x = R_array.at(i);
-                obstacle_marker.markers[i].scale.y = R_array.at(i);
-                obstacle_marker.markers[i].scale.z = (0.05);
+                obstacle_marker.markers[i].scale.x = 2*R_array.at(i);
+                obstacle_marker.markers[i].scale.y = 2*R_array.at(i);
+                obstacle_marker.markers[i].scale.z = (0.25);
                 
                 obstacle_marker.markers[i].color.r = 1.0;
                 obstacle_marker.markers[i].color.g = 1.0;
                 obstacle_marker.markers[i].color.b = 0.0;
                 obstacle_marker.markers[i].color.a = 1.0;
             }
-            // std::cout << "________GOT TO HERE 3___________" << std::endl;
             obstacle_marker_pub.publish(obstacle_marker); 
-            // std::cout << "________GOT TO HERE 4___________" << std::endl;
         }
 
         void showCluster()
@@ -128,7 +131,7 @@ class Landmarks
                 for (int j = 0;j< size_cluster;j++)
                 {
                     cluster_marker.markers[id_counter].header.stamp = ros::Time();
-                    cluster_marker.markers[id_counter].header.frame_id = "red-base_scan";
+                    cluster_marker.markers[id_counter].header.frame_id = "blue-base_scan";
                     uint32_t shape;
                     shape = visualization_msgs::Marker::SPHERE;
                     cluster_marker.markers[id_counter].type = shape;
@@ -163,226 +166,14 @@ class Landmarks
             // std::cout << "________GOT TO HERE 4___________" << std::endl;
         }
 
-        void ClassifyCircles()
-        {
-            double min_angle = turtlelib::PI/2;
-            double max_angle = (3*turtlelib::PI)/2;
-            std::vector<std::vector<turtlelib::Vector2D>> new_Clusters;
-            int size_main = main_cluster.size();
-            for (int i = 0;i<size_main;i++)
-            {
-                std::vector<turtlelib::Vector2D> currentCluster = main_cluster[i];
-                int size_cluster = currentCluster.size();
-                turtlelib::Vector2D Point_1,Point_2;
-                Point_1 = currentCluster[0];
-                Point_2 = currentCluster[size_cluster-1];
-
-                double angle_sums = 0.0;
-                std::vector<double> angle_array;
-                for (int j = 1;j< (size_cluster-1);j++)
-                {
-                    turtlelib::Vector2D new_Point1, new_Point2;
-                    new_Point1 = {(Point_1.x - currentCluster[j].x),
-                                    (Point_1.y - currentCluster[j].y)};
-                    new_Point2 = {(Point_2.x - currentCluster[j].x),
-                                    (Point_2.y - currentCluster[j].y)};
-                    double arc_angle = turtlelib::angle(new_Point1,new_Point2);
-                    angle_sums = angle_sums + arc_angle;
-                    angle_array.push_back(arc_angle);
-                }
-                double angle_mean = 0.0;
-                angle_mean = angle_sums / (size_cluster-2);        
-
-                double standard_deviation = 0.0;
-                for (int k = 0;k<(size_cluster-2);k++)
-                {
-                    double sd_val = pow( (angle_array.at(k)-angle_mean) ,2 );
-                    standard_deviation = standard_deviation + sd_val;
-                }
-                double sd_compare = 0.0;
-                sd_compare = standard_deviation/((size_cluster-2));
-
-                if ((angle_mean <= max_angle) && (angle_mean >= min_angle) && (sd_compare<0.15)) 
-                {
-                    new_Clusters.push_back(currentCluster);
-                }   
-            }
-            true_clusters =  new_Clusters;
-        }
-
-        
-        void CircleFitting()
-        {
-            // std::cout << "________GOT TO HERE -1____________" << std::endl;
-            int size_main = main_cluster.size();
-            R_array.clear();
-            xy_COORDS.clear();
-            // std::vector<double> R_array;
-            // std::vector<turtlelib::Vector2D> xy_COORDS;
-            R_array.resize(size_main);
-            xy_COORDS.resize(size_main);
-            // std::cout << "_num of clusters"<< size_main <<"____________" << std::endl;
-            for (int i = 0;i<size_main;i++)
-            {
-                //Create a cluster to loop at from the main set of clusters.
-                std::vector<turtlelib::Vector2D> currentCluster = main_cluster[i];
-                int size_cluster = currentCluster.size();
-                // std::cout << "_num of points in cluster"<< size_cluster <<"____________" << std::endl;
-
-                double x_sums = 0.0;
-                double y_sums = 0.0;
-                //loop through every cluster to calculate the sums of both x and y values.
-                for (int j = 0;j< size_cluster;j++)
-                {
-                    turtlelib::Vector2D currentXY = currentCluster[j];
-                    x_sums = x_sums + currentXY.x;
-                    y_sums = y_sums + currentXY.y;
-                }
-                //calculate means of both x and y.
-                double x_mean,y_mean;
-                x_mean = x_sums/size_cluster;
-                y_mean = y_sums/size_cluster;
-
-                //Create empty vectors to append the centroid values.
-                std::vector<double> x_cent;
-                std::vector<double> y_cent;
-                std::vector<double> z_cent;
-                x_cent.resize(size_cluster);
-                y_cent.resize(size_cluster);
-                z_cent.resize(size_cluster);
-
-                //Loop through every value to calculate zi and centroid values.
-                double z_sums = 0;
-                for (int j = 0;j< size_cluster;j++)
-                {
-                    turtlelib::Vector2D currentXY = currentCluster[j];
-                    double x_diff, y_diff, z_i;
-                    x_diff = currentXY.x - x_mean;
-                    y_diff = currentXY.y - y_mean;
-                    z_i = pow(x_diff,2) + pow(y_diff,2);
-
-                    x_cent.at(j) = x_diff;
-                    y_cent.at(j) = y_diff;
-                    z_cent.at(j) = z_i;
-                    z_sums = z_sums + z_i;
-                }
-
-                //calculate z mean.
-                double z_mean = 0;
-                z_mean = z_sums/size_cluster;
-                // std::cout << "________GOT TO HERE 0____________" << std::endl;
-                //create Z matrix and loop through every row to fill up each cell.
-                arma::mat Z(size_cluster,4,arma::fill::ones);
-                for (int k = 0;k< size_cluster;k++)
-                {
-                    Z(k,0) = z_cent.at(k);
-                    Z(k,1) = x_cent.at(k);
-                    Z(k,2) = y_cent.at(k);
-                    Z(k,3) = 1;
-                }
-
-                //create M matrix.
-                arma::mat M(4,4,arma::fill::zeros);
-                // std::cout << "________GOT TO HERE T1____________" << std::endl;
-                M = (1/size_cluster) * Z.t() * Z;
-                // std::cout << "________GOT TO HERE T2____________" << std::endl;
-                //create H matrix
-                arma::mat H(4,4,arma::fill::zeros);
-                H = {   {8*z_mean, 0, 0, 2},
-                        {0, 1, 0, 0},
-                        {0, 0, 1, 0},
-                        {2, 0, 0, 0} };
-                // create Hinv matrix
-                arma::mat H_inv(4,4,arma::fill::zeros);
-                H_inv = {   {0, 0, 0, 0.5},
-                            {0, 1, 0, 0},
-                            {0, 0, 1, 0},
-                            {0.5, 0, 0, -2*z_mean} };
-                // std::cout << "________GOT TO HERE T3____________" << std::endl;
-                //calculate svd using arma
-                arma::mat U;
-                arma::vec sigma; //cant be a mat, needs to be vec
-                arma::mat V;
-                arma::svd(U,sigma,V,Z);
-                // std::cout << "________GOT TO HERE T4____________" << std::endl;
-                // sigma.print();
-                // The smallest sigma is the 4th column
-                double smallest_sigma = sigma(3);
-                // std::cout << "________GOT TO HERE T5____________" << std::endl;
-                //if sigma is less than 0.0001 set A to
-                // std::cout << "________GOT TO HERE 1____________" << std::endl;
-                arma::vec A;
-                if (smallest_sigma < 1.0e-4)
-                {
-                    A = V.col(3); //make A equal to 4th colum
-                }
-                else
-                {
-                    arma::mat Y;
-                    Y = V * diagmat(sigma) * V.t();
-                    arma::mat Q;
-                    Q = Y * H_inv * Y;
-
-                    arma::vec eigval;
-                    arma::mat eigvec;
-
-                    eig_sym(eigval,eigvec,Q);
-
-                    // std::cout << "_____________"<< i << "_______" << std::endl;
-                    // eigval.print();
-                    // std::cout << "____________________" << std::endl;
-                    // eigvec.print();
-                    // double A_star = 0;
-                    arma::vec A_star_vec;
-                    double eig_compare = 1000.0;
-                    int iter = 0;
-                    for (int k = 0;k<eigval.size();k++)
-                    {
-                        if ((eigval[k]>0.0 && eigval[k]<eig_compare))
-                        {
-                            iter = k;
-                            eig_compare = eigval[k];
-                        }
-                    }
-                    A_star_vec = eigvec.col(iter);
-                    // std::cout << "SMALLEST" << std::endl;
-                    // std::cout << eig_compare << std::endl;
-                    
-                    A = arma::solve(Y,A_star_vec);
-
-                    // std::cout << "____________________" << std::endl;
-                    // A.print();
-                }
-                // std::cout << "________GOT TO HERE 2____________" << std::endl;
-                // A.print();
-                double a,b,R;
-                a = -A(1)/(2*A(0));
-                b = -A(2)/(2*A(0));
-                // std::cout << "________GOT TO HERE 3____________" << std::endl;
-                R = sqrt( (pow(A(1),2) + pow(A(2),2) - (4*A(0)*A(3)))/(4*pow(A(0),2)) );
-                
-                turtlelib::Vector2D circleCenter = {a+x_mean,b+y_mean};
-                if (R<0.4)
-                {
-                    R_array.at(i) = R;
-                    xy_COORDS.at(i) = circleCenter;
-                }
-                
-            }
-        }
-
-        // check_cluster_size();
-
         // check_mainCluster_size();
         /// \brief Callback for the fake sensor data topic.
         ///
         void ls_callback(const sensor_msgs::LaserScan & laserData)
         {
-            // std::cout << "________GOT TO HERE 0____________" << std::endl;
             //clear the main cluster every run
             main_cluster.clear();
-            // std::cout << "________GOT TO HERE 1____________" << std::endl;
-            // std::vector<std::vector<turtlelib::Vector2D>> main_cluster;
+
             //get the size of the laser scan array
             int size_laser = laserData.ranges.size();
             std::vector<turtlelib::Vector2D> cluster;
@@ -394,7 +185,6 @@ class Landmarks
                         laserData.ranges.at(0) * sin(turtlelib::deg2rad(0))};
 
             cluster.push_back(init_XY);
-            std::cout << "________SEG FAULT 1___________" << std::endl;
             for (int i = 1; i< size_laser; i++)
             {
                 double old_range, new_range;
@@ -402,10 +192,8 @@ class Landmarks
                 new_range = laserData.ranges.at(i);
                 
                 // if the new range is smaller than the laser min, check cluster size, if any, then break out of current angle.
-                std::cout << "________SEG FAULT 2___________" << std::endl;
                 if ( (new_range <= min_laserScan_range) && ((i+1)!=size_laser) )
                 {
-                    std::cout << "________SEG FAULT 3___________" << std::endl;
                     if (cluster.size()>=4){
                         main_cluster.push_back(cluster);
                         cluster.clear();
@@ -413,7 +201,6 @@ class Landmarks
                 }
                 else
                 {
-                    std::cout << "________SEG FAULT 3.5___________" << std::endl;
                     turtlelib::Vector2D old_xy, new_xy;
                     old_xy.x = old_range * cos(turtlelib::deg2rad(i-1));
                     old_xy.y = old_range * sin(turtlelib::deg2rad(i-1));
@@ -444,64 +231,58 @@ class Landmarks
                             cluster.push_back(new_xy);
                         }
                     }
-                }
-
-                
+                }  
             }
 
             double init_range = laserData.ranges.at(0);
-            turtlelib::Vector2D init_xy;
-            double delta_x,delta_y;
-            delta_x = (init_range*cos(0))-init_xy.x;
-            delta_y = (init_range*sin(0))-init_xy.y;
+            // turtlelib::Vector2D init_xy;
+            // double delta_x,delta_y;
+            // delta_x = (init_range*cos(0))-(laserData.ranges.at(size_laser-1)*cos(turtlelib::deg2rad(size_laser-1)));
+            // delta_y = (init_range*sin(0))-(laserData.ranges.at(size_laser-1)*sin(turtlelib::deg2rad(size_laser-1)));
             
-            double new_range1;
-            // old_range = laserData.ranges.at(358);
-            new_range1 = laserData.ranges.at(359);
+            double range_before_start;
+            range_before_start = laserData.ranges.at((size_laser-1));
             std::cout << "___BEFORE__MAIN CLUSTER SIZE____"<< main_cluster.size() << std::endl;
-            std::cout << "________SEG FAULT 4___________" << std::endl;
-            if ( turtlelib::almost_equal(delta_x,0.0,0.01) && turtlelib::almost_equal(delta_y,0.0,0.01))
-            {
-                if ((fabs(new_range1-init_range) < cluster_thresh) && new_range1>0.1)
-                {
-                    // cluster.print();
-                    if (cluster.size()>0){
-                        main_cluster[0].insert(main_cluster[0].begin(),cluster.begin(),cluster.end());
-                        cluster.clear();
-                    }
-                }
-            }
-            std::cout << "________SEG FAULT 5___________" << std::endl;
-            if (cluster.size()>=4)
-            {
-                main_cluster.push_back(cluster);
-            }
-            std::cout << "________SEG FAULT 6___________" << std::endl;
-            if (main_cluster[0].size() < 4 && main_cluster.size() > 0)
-            {
-                main_cluster.erase(main_cluster.begin());
-            }
-            std::cout << "________SEG FAULT 7___________" << std::endl;
-
-            // for (int k = 0;k<main_cluster.size();k++)
+            // if ( turtlelib::almost_equal(delta_x,0.0,0.1) && turtlelib::almost_equal(delta_y,0.0,0.1))
             // {
-            //     if (main_cluster.at(k).size() == 1)
-            //     {
-            //         main_cluster[k].erase(main_cluster[k].begin());
-            //     }
+            if ((fabs(range_before_start-init_range) < cluster_thresh) && range_before_start>0.1)
+            {
+                // cluster.print();
+                if (cluster.size()>0){
+                    main_cluster[0].insert(main_cluster[0].begin(),cluster.begin(),cluster.end());
+                    cluster.clear();
+                }
+                if (cluster.size()>=4)
+                {
+                    main_cluster.push_back(cluster);
+                }
+                if (main_cluster[0].size() < 4 && main_cluster.size() > 0)
+                {
+                    main_cluster.erase(main_cluster.begin());
+                } 
+            }
+            else
+            {
+                (cluster.size()>0);
+                cluster.clear();
+            }
+            
+                 
+
             // }
             
+                      
             std::cout << "_____MAIN CLUSTER SIZE____"<< main_cluster.size() << std::endl;
 
+            std::vector<std::vector<turtlelib::Vector2D>> true_clusters;
             makeCircles = nuslam::nuCircles(main_cluster);
-            ClassifyCircles();
+            true_clusters = makeCircles.ClassifyCircles();
+            makeCircles = nuslam::nuCircles(true_clusters);
             showCluster();
             makeCircles.CircleFitting();
             R_array = makeCircles.getR_array();
             xy_COORDS = makeCircles.getCirclePosition();
-            // CircleFitting();
             showObstacles();
-            
         }
 
        

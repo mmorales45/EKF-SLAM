@@ -40,6 +40,7 @@ namespace nuslam
         /// \return H- A 2 by (3+2n) derivative matrix with respect to the state.
         arma::mat calculate_H(int j);
 
+        arma::mat calculate_H(int j, arma::mat newState);
         /// \brief Update the state estimate, and covariance.
         /// \param twist- The change in x,y,and theta for one timestep.
         /// \return predict_state_est- the updated state variable with the new x,y,and theta.
@@ -56,6 +57,31 @@ namespace nuslam
         /// \param coords- The range and phi of the obstacle.
         void Landmark_Initialization(int robot_id, arma::mat coords);
 
+        void Landmark_Initialization(int robot_id, arma::mat coords, turtlelib::config config);
+        
+        /// \brief Associate data of unknown landmarks.
+        /// \param z- The current Measurements.
+        int DataAssociation(arma::mat z);
+        
+        /// \brief Associate data of unknown landmarks in a different manner.
+        /// \param z- The current Measurements.
+        int DataAssociation_V2(arma::mat z);
+
+        /// \brief Set the number of known landmarks to 0.
+        void ResetN();
+        
+        /// \brief Set the private variable of known landmarks to the input from node.
+        /// \param known_list- The current list of known landmark positions.
+        void UpdateLandmarks(std::vector<turtlelib::Vector2D> known_list);
+
+        /// \brief Set the private variable of known landmarks to the input from node.
+        /// \param land_list- The current list of known landmark positions.
+        /// \param current_land- The current landmark.
+        bool CheckLandmarks(std::vector<turtlelib::Vector2D> land_list,turtlelib::Vector2D current_land);
+
+        /// \brief Get the map values of the state vector.
+        arma::mat getMAP();
+
     private:
 
         int n {};
@@ -63,6 +89,8 @@ namespace nuslam
         arma::mat Q {};
         arma::mat R {};
         arma::mat predict_cov_est {};
+        int N {};
+        std::vector<turtlelib::Vector2D> known_Landmarks;
     };
 }
 

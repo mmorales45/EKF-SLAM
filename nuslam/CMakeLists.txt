@@ -8,6 +8,7 @@ project(nuslam)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  catch_ros
   geometry_msgs
   message_generation
   message_runtime
@@ -111,7 +112,7 @@ find_package(Armadillo)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS include
+#  INCLUDE_DIRS include
  LIBRARIES ${PROJECT_NAME}
  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
@@ -132,9 +133,12 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-  src/nuslam.cpp
   src/CircleFitting.cpp
+  src/nuslam.cpp
 )
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
@@ -206,11 +210,15 @@ target_link_libraries(landmarks
 # install(TARGETS ${PROJECT_NAME}_node
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
+
+
+
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17) 
 target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 
-install(TARGETS ${PROJECT_NAME} slam 
+
+install(TARGETS landmarks ${PROJECT_NAME} slam
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -250,3 +258,14 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+catch_add_test(${PROJECT_NAME}_test
+  tests/circle_tests.cpp
+  src/CircleFitting.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}_test
+  ${catkin_LIBRARIES}
+  ${ARMADILLO_LIBRARIES}
+  turtlelib
+)
