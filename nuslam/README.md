@@ -57,6 +57,8 @@ Laser noise: 0.01
 
 ![SLAM](pictures/slam.png)
 
+
+![LANDMARKS](pictures/Landmarks.png)
 Video of the turtlebot moving in turtle land and seeing obstacles in real life.
 
 https://youtu.be/13grzbBxwfE>
