@@ -10,16 +10,27 @@ The the main node in this package is the slam node.
 
 The slam node implements the Extended Kalman Filter SLAM. It reads the obstacle data being published by the nusim node to calculate the position of the Turtlebot as well as the obstacles' locations. It then publishes a MarkerArray message of where the markers are located based on the EKF filter. 
 
+For nuslam, two methods of Data Association were attempted but not with accurate results.
+
+The other node that was implemented was landmarks.cpp. This node subscribes to laser scan data, whether is be real or simulated, and it creates obstacles based on Circle Fitting and Circle Classification algorithms. 
+
 ## Launchfiles
 
-The launchfile for this package is `slam.launch`.
+The main launchfile for this package is `slam.launch`.
 
 This launch file can be called by running the following command.
 ```
 roslaunch nuslam slam.launch
 ```
 
-The launch file has a few arguments that be changed. They are as follows.
+The other launchfile for this package is `landmarks_detect.launch`.
+
+This launch file can be called by running the following command.
+```
+roslaunch nuslam landmarks_detect.launch
+```
+
+The launch files have a few arguments that be changed. They are as follows.
 
 1. robot
 
@@ -45,3 +56,15 @@ Wheel_cmd noise: 0.1
 Laser noise: 0.01
 
 ![SLAM](pictures/slam.png)
+
+Video of the turtlebot moving in turtle land and seeing obstacles.
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/13grzbBxwfE">
+</iframe>
+
+Video of the turtlebot moving in turtle land and seeing obstacles in RVIZ.
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/jGN4xyfuN_s">
+</iframe>
