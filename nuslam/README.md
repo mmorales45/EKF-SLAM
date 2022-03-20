@@ -76,3 +76,28 @@ https://youtu.be/J7Vot6esoKY
 Video of the turtlebot being surrounded by and seeing obstacles in RVIZ.
 
 https://youtu.be/r1sbA5DxFAY
+
+The following picture shows my current Data Association method being applied with not accurate results. The positions of the real and slam positions are close only because the robot ends in a position where it sees all 5 obstacles. 
+
+![DataAssociation](pictures/DataAssociationBad.png)
+
+Actual Robot Pose
+```
+x: 0.0104
+y: 0.0085
+theta: -0.0164
+```
+
+Slam robot pose
+```
+position: 
+    x: 0.009646032854387305
+    y: 0.00830595809616567
+    z: 0.0
+orientation: 
+    x: 0.0
+    y: 0.0
+    z: -0.013412374582945912
+    w: 0.9999100500585274
+
+```
