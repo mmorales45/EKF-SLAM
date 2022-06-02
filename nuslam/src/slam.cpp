@@ -79,7 +79,6 @@ class SLAM
             set_pose_service = nh.advertiseService("set_pose", &SLAM::set_pose_callback, this);
             fake_marker_pub  = nh.advertise<visualization_msgs::MarkerArray>("/nuslam/obstacles/Fake_markerArray", 1, true);
 
-            // EKFilter = nuslam::KalmanFilter();
             EKF_FLAG = 0;
             initial_flag = 0;
             state = arma::mat(3,1,arma::fill::zeros);
@@ -108,7 +107,6 @@ class SLAM
             current_config.theta = data.theta;
             current_config.x = data.x;
             current_config.y = data.y;
-            // DiffDrive = turtlelib::DiffDrive(current_config);
             return true;
         }
 
