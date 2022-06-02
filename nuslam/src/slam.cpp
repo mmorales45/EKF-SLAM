@@ -61,7 +61,7 @@ class SLAM
             odom.child_frame_id = "green-base_footprint";
             transformStamped.header.frame_id = "world";// for blue robot
             transformStamped.child_frame_id = "blue-base_footprint";// for blue robot
-            transformStamped_mo.header.frame_id = "map";// for green robot
+            transformStamped_mo.header.frame_id = "map";
             transformStamped_mo.child_frame_id = odom_id;// for green robot
             transformStamped_green.header.frame_id = odom_id;// for green robot
             transformStamped_green.child_frame_id = "green-base_footprint";// for green robot
@@ -171,7 +171,6 @@ class SLAM
         /// \param fake_obstacles - Position of the noisy obstacles relative to the robot.
         void obstacle_callback(const visualization_msgs::MarkerArray & fake_obstacles)
         {
-            // ROS_WARN("id: %d",fake_obstacles.markers.size());
             val = int (fake_obstacles.markers.size());
             ROS_INFO_STREAM("NUM OF OBSTACLES");
             ROS_INFO_STREAM(val);
@@ -211,10 +210,8 @@ class SLAM
                 else
                 {
                     bool new_landmark = EKFilter.CheckLandmarks(known_landmarks,current_land);
-                    // ROS_INFO_STREAM(new_landmark);
                     if (new_landmark && landmark_counter<99)
                     {
-                        // ROS_INFO_STREAM("NEW LANDMARK");
                         known_landmarks.push_back(current_land);
                         EKFilter.Landmark_Initialization(landmark_counter,init_z);
                         landmark_counter++;
@@ -237,12 +234,9 @@ class SLAM
             ROS_INFO_STREAM(known_landmarks.size());
             
             initial_flag = 1;
-            // ROS_INFO_STREAM(twist.x_dot);
             EKFilter.predict(twist);
-            // ROS_INFO_STREAM(c);
 
             state = EKFilter.update(val,z_values); 
-            // ROS_INFO_STREAM(b);
             make_fake_obstacles();
             EKFilter.ResetN();
 
@@ -387,7 +381,6 @@ class SLAM
             transformStamped_green.header.stamp = ros::Time::now();
             transformStamped_green.transform.translation.x = new_vect_OB.x;
             transformStamped_green.transform.translation.y = new_vect_OB.y;
-            // q_OB.setRPY(0, 0, new_theta_OB);
             transformStamped_green.transform.rotation.x = q_OB.x();
             transformStamped_green.transform.rotation.y = q_OB.y();
             transformStamped_green.transform.rotation.z = q_OB.z();
