@@ -12,9 +12,7 @@ The slam node implements the Extended Kalman Filter SLAM. It reads the obstacle 
 
 For the nuslam node, there are two libraries that it uses that are both located in the package. This is the nuslam library which has the equations for an Extended Kalman Filter and the other library is the CircleFitting library. In the CircleFitting library,it is used for determining if clusters form a true circle, which is done in ClassifyCircles and if it does, then it will output the location of the circle as well as the radius which is handled in CircleFitting.
 
-For nuslam, two methods of Data Association were attempted but not with accurate results.
-
-The other node that was implemented was landmarks.cpp. This node subscribes to laser scan data, whether is be real or simulated, and it creates obstacles based on Circle Fitting and Circle Classification algorithms. 
+The landmarks.cpp node subscribes to laser scan data, whether is be real or simulated, and it creates obstacles based on Circle Fitting and Circle Classification algorithms. 
 
 ## Launchfiles
 
